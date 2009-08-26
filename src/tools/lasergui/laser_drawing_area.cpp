@@ -682,7 +682,7 @@ LaserDrawingArea::draw_persons_legs(Glib::RefPtr<Gdk::Window> &window,
 	      y = (y_positions1[i] + y_positions2[j])/2.0;
 	    }
 	  }
-	  if ( j == track_length2 - 1 ){
+	  if ( b_compound_track && j == track_length2 - 1 ){
 	    last_compound_position = (int) i;
 	  }
 	    
@@ -752,7 +752,7 @@ LaserDrawingArea::draw_persons_legs(Glib::RefPtr<Gdk::Window> &window,
 
 	  cr->move_to(pos.first, pos.second);
 	  
-	  os = transform_coords_from_fawkes(x_positions2[track_length2 - 1],y_positions2[track_length2 - 1]);
+	  pos = transform_coords_from_fawkes(x_positions2[track_length2 - 1],y_positions2[track_length2 - 1]);
 	  cr->line_to(pos.first, pos.second);
 	  cr->move_to(pos.first - radius, pos.second);
 	  cr->arc(pos.first, pos.second, radius, 0, 2*M_PI);
