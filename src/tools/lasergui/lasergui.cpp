@@ -112,6 +112,8 @@ class LaserGuiGtkWindow : public Gtk::Window
 
     __connection_dispatcher.signal_connected().connect(sigc::mem_fun(*this, &LaserGuiGtkWindow::on_connect));
     __connection_dispatcher.signal_disconnected().connect(sigc::mem_fun(*this, &LaserGuiGtkWindow::on_disconnect));
+
+    b_first_time_legtracker_connected = true;
   }
 
 
@@ -164,6 +166,7 @@ class LaserGuiGtkWindow : public Gtk::Window
       __area->set_visdisp_if(__visdis_if);
 
       on_legtracker_toggled();
+
 
       __ifd->signal_data_changed().connect(sigc::hide(sigc::mem_fun(*__area, &LaserDrawingArea::queue_draw)));
       __bb->register_listener(__ifd, BlackBoard::BBIL_FLAG_DATA);
@@ -374,8 +377,10 @@ class LaserGuiGtkWindow : public Gtk::Window
       __l_track_if = NULL;
 
       __area->set_objpos_if(__l_objpos_if_persons,__l_objpos_if_legs,__l_objpos_if_misc,__laser_segmentation_if, __l_track_if, __target_if,__switch_if);
-
+      
     } else {
+
+
       unsigned int num_opens = 3
 	+ MAX_OBJECTPOSITIONINTERFACES_PERSONS
 	+ MAX_OBJECTPOSITIONINTERFACES_LEGS
@@ -433,6 +438,24 @@ class LaserGuiGtkWindow : public Gtk::Window
 			    __l_objpos_if_misc,__laser_segmentation_if,
 			    __l_track_if, __target_if,__switch_if);
       __area->queue_draw();
+
+      if(b_first_time_legtracker_connected){
+	b_first_time_legtracker_connected = false;
+	printf("checks : %d %d %d\n",__l_objpos_if_legs != NULL, __l_objpos_if_legs->size() > 0, (*__l_objpos_if_legs->begin()) != NULL);
+	if(__l_objpos_if_legs != NULL && __l_objpos_if_legs->size() > 0 && *__l_objpos_if_legs->begin() != NULL){
+	__ifd_legs = new InterfaceDispatcher("LegsInterfaceDispatcher", *__l_objpos_if_legs->begin());
+	__ifd_legs->signal_data_changed().connect(sigc::hide(sigc::mem_fun(*__area, &LaserDrawingArea::queue_draw)));
+	__bb->register_listener(__ifd_legs, BlackBoard::BBIL_FLAG_DATA);
+	printf("interfacedispatcher init1");
+	}
+	if(__l_track_if != NULL && __l_track_if->size() > 0 && *__l_track_if->begin() != NULL){
+	  __ifd_tracks = new InterfaceDispatcher("TracksInterfaceDispatcher", *__l_track_if->begin());
+	  __ifd_tracks->signal_data_changed().connect(sigc::hide(sigc::mem_fun(*__area, &LaserDrawingArea::queue_draw)));
+	  __bb->register_listener(__ifd_tracks, BlackBoard::BBIL_FLAG_DATA);
+	printf("interfacedispatcher init2");
+	}
+      }
+      
     }
   }
 
@@ -462,10 +485,14 @@ class LaserGuiGtkWindow : public Gtk::Window
   ObjectPositionInterface           *__target_if;
   
   InterfaceDispatcher               *__ifd;
+  InterfaceDispatcher               *__ifd_legs;
+  InterfaceDispatcher               *__ifd_tracks;
   std::list<ObjectPositionInterface*>* __l_objpos_if_persons;
   std::list<ObjectPositionInterface*>* __l_objpos_if_legs;
   std::list<ObjectPositionInterface*>* __l_objpos_if_misc;
   std::list<Position2DTrackInterface*>* __l_track_if;
+  
+  bool                               b_first_time_legtracker_connected;
 
   ObjectPositionInterface           *__line_if;
   VisualDisplay2DInterface          *__visdis_if;
