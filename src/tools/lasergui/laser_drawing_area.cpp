@@ -364,7 +364,7 @@ LaserDrawingArea::on_expose_event(GdkEventExpose* event)
 	
 	draw_beams(window, cr);
 	
-	draw_segments(window, cr);
+	//	draw_segments(window, cr);
 	
 	const float radius = 4 / __zoom_factor;
 	if (__line_if) {
