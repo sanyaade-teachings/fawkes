@@ -253,6 +253,10 @@ class LaserGuiGtkWindow : public Gtk::Window
 
     delete __bb;
     delete __ifd;
+    delete __ifd_legs;
+    delete __ifd_tracks;
+    __ifd_legs = NULL;
+    __ifd_tracks = NULL;
     __bb = NULL;
     __ifd = NULL;
     __laser360_if = NULL;
@@ -325,6 +329,8 @@ class LaserGuiGtkWindow : public Gtk::Window
 	__area->set_laser360_if(__laser360_if);
       }
       __area->queue_draw();
+
+
     } catch (Exception &e) {
       e.print_trace();
     }
@@ -377,6 +383,13 @@ class LaserGuiGtkWindow : public Gtk::Window
       __l_track_if = NULL;
 
       __area->set_objpos_if(__l_objpos_if_persons,__l_objpos_if_legs,__l_objpos_if_misc,__laser_segmentation_if, __l_track_if, __target_if,__switch_if);
+      
+      __bb->unregister_listener(__ifd_legs);
+      __bb->unregister_listener(__ifd_tracks);
+      delete __ifd_legs;
+      delete __ifd_tracks;
+      __ifd_legs = NULL;
+      __ifd_tracks = NULL;
       
     } else {
 
@@ -439,22 +452,22 @@ class LaserGuiGtkWindow : public Gtk::Window
 			    __l_track_if, __target_if,__switch_if);
       __area->queue_draw();
 
-      if(b_first_time_legtracker_connected){
-	b_first_time_legtracker_connected = false;
-	printf("checks : %d %d %d\n",__l_objpos_if_legs != NULL, __l_objpos_if_legs->size() > 0, (*__l_objpos_if_legs->begin()) != NULL);
-	if(__l_objpos_if_legs != NULL && __l_objpos_if_legs->size() > 0 && *__l_objpos_if_legs->begin() != NULL){
+      //      if(b_first_time_legtracker_connected){
+      //	b_first_time_legtracker_connected = false;
+      //	printf("checks : %d %d %d\n",__l_objpos_if_legs != NULL, __l_objpos_if_legs->size() > 0, (*__l_objpos_if_legs->begin()) != NULL);
+      if(__l_objpos_if_legs != NULL && __l_objpos_if_legs->size() > 0 && *__l_objpos_if_legs->begin() != NULL){
 	__ifd_legs = new InterfaceDispatcher("LegsInterfaceDispatcher", *__l_objpos_if_legs->begin());
 	__ifd_legs->signal_data_changed().connect(sigc::hide(sigc::mem_fun(*__area, &LaserDrawingArea::queue_draw)));
 	__bb->register_listener(__ifd_legs, BlackBoard::BBIL_FLAG_DATA);
-	printf("interfacedispatcher init1");
-	}
-	if(__l_track_if != NULL && __l_track_if->size() > 0 && *__l_track_if->begin() != NULL){
-	  __ifd_tracks = new InterfaceDispatcher("TracksInterfaceDispatcher", *__l_track_if->begin());
-	  __ifd_tracks->signal_data_changed().connect(sigc::hide(sigc::mem_fun(*__area, &LaserDrawingArea::queue_draw)));
-	  __bb->register_listener(__ifd_tracks, BlackBoard::BBIL_FLAG_DATA);
-	printf("interfacedispatcher init2");
-	}
+	//	printf("interfacedispatcher init1");
       }
+      if(__l_track_if != NULL && __l_track_if->size() > 0 && *__l_track_if->begin() != NULL){
+	__ifd_tracks = new InterfaceDispatcher("TracksInterfaceDispatcher", *__l_track_if->begin());
+	__ifd_tracks->signal_data_changed().connect(sigc::hide(sigc::mem_fun(*__area, &LaserDrawingArea::queue_draw)));
+	__bb->register_listener(__ifd_tracks, BlackBoard::BBIL_FLAG_DATA);
+	//	printf("interfacedispatcher init2");
+      }
+      //    }
       
     }
   }
