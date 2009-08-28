@@ -754,7 +754,7 @@ LaserDrawingArea::draw_persons_legs(Glib::RefPtr<Gdk::Window> &window,
 	    }
 	  }
 	  
-	  if( !b_compound_track || i < track_length1 - 1 ){
+	  if( !b_compound_track || i < track_length1 - 1 || timestamps2[j] != timestamps1[i]){
 	    std::pair<float,float> pos = transform_coords_from_fawkes(x_positions1[i],y_positions1[i]);
 	    cr->move_to(pos.first + radius, pos.second);
 	    cr->arc(pos.first, pos.second, radius, 0, 2*M_PI);
