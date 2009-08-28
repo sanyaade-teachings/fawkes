@@ -250,11 +250,14 @@ class LaserGuiGtkWindow : public Gtk::Window
     }
 
 
-
-    delete __bb;
+    if (__bb != NULL ) 
+      delete __bb;
+    if ( __ifd != NULL )
     delete __ifd;
-    delete __ifd_legs;
-    delete __ifd_tracks;
+    if(__ifd_legs != NULL)
+      delete __ifd_legs;
+    if(__ifd_legs != NULL)
+      delete __ifd_tracks;
     __ifd_legs = NULL;
     __ifd_tracks = NULL;
     __bb = NULL;
@@ -384,10 +387,15 @@ class LaserGuiGtkWindow : public Gtk::Window
 
       __area->set_objpos_if(__l_objpos_if_persons,__l_objpos_if_legs,__l_objpos_if_misc,__laser_segmentation_if, __l_track_if, __target_if,__switch_if);
       
-      __bb->unregister_listener(__ifd_legs);
+
+      if(__ifd_legs != NULL){
+	delete __ifd_legs;
+	__bb->unregister_listener(__ifd_legs);
+      }
+      if(__ifd_legs != NULL){
+	delete __ifd_tracks;
       __bb->unregister_listener(__ifd_tracks);
-      delete __ifd_legs;
-      delete __ifd_tracks;
+      }      
       __ifd_legs = NULL;
       __ifd_tracks = NULL;
       
