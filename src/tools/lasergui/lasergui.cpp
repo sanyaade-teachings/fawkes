@@ -476,7 +476,7 @@ class LaserGuiGtkWindow : public Gtk::Window
 	while (Gtk::Main::events_pending()) Gtk::Main::iteration();
       }
       
-      __switch_if = __bb->open_for_reading<SwitchInterface>("legtracker write!");
+      __switch_if = __bb->open_for_reading<SwitchInterface>("legtracker-lasergui");
       __pgb_ltopen->set_fraction(++opened * step_fraction);
       while (Gtk::Main::events_pending()) Gtk::Main::iteration();
       __dlg_ltopen->hide();
@@ -485,21 +485,39 @@ class LaserGuiGtkWindow : public Gtk::Window
 			    __l_track_if, __target_if,__switch_if);
       __area->queue_draw();
 
+
+      if( ((__laser360_if!=NULL && !__laser360_if->has_writer()) || 
+	   (__laser720_if!=NULL && !__laser720_if->has_writer())) &&
+	  __ifd_legs == NULL){
+	__ifd_legs = new InterfaceDispatcher("LegtrackerInterfaceDispatcher", __switch_if);
+	__ifd_legs->signal_data_changed().connect(sigc::hide(sigc::mem_fun(*__area, &LaserDrawingArea::queue_draw)));
+	__bb->register_listener(__ifd_legs, BlackBoard::BBIL_FLAG_DATA);
+	printf("interfacedispatcher init1\n");
+	fflush(stdout);
+      }
+      else{
+	printf("%d,%d - %d,%d - %d\n",__laser360_if!=NULL, __laser360_if!=NULL && __laser360_if->has_writer(),
+	       __laser720_if!=NULL, __laser720_if!=NULL && __laser720_if->has_writer(), __ifd_legs == NULL);
+      }
+
+     
       //      if(b_first_time_legtracker_connected){
       //	b_first_time_legtracker_connected = false;
       //	printf("checks : %d %d %d\n",__l_objpos_if_legs != NULL, __l_objpos_if_legs->size() > 0, (*__l_objpos_if_legs->begin()) != NULL);
-      if(__l_objpos_if_legs != NULL && __l_objpos_if_legs->size() > 0 && *__l_objpos_if_legs->begin() != NULL){
+      /*      if(__l_objpos_if_legs != NULL && __l_objpos_if_legs->size() > 0 && *__l_objpos_if_legs->begin() != NULL){
 	__ifd_legs = new InterfaceDispatcher("LegsInterfaceDispatcher", *__l_objpos_if_legs->begin());
 	__ifd_legs->signal_data_changed().connect(sigc::hide(sigc::mem_fun(*__area, &LaserDrawingArea::queue_draw)));
 	__bb->register_listener(__ifd_legs, BlackBoard::BBIL_FLAG_DATA);
 	//	printf("interfacedispatcher init1");
       }
+     
       if(__l_track_if != NULL && __l_track_if->size() > 0 && *__l_track_if->begin() != NULL){
 	__ifd_tracks = new InterfaceDispatcher("TracksInterfaceDispatcher", *__l_track_if->begin());
 	__ifd_tracks->signal_data_changed().connect(sigc::hide(sigc::mem_fun(*__area, &LaserDrawingArea::queue_draw)));
 	__bb->register_listener(__ifd_tracks, BlackBoard::BBIL_FLAG_DATA);
 	//	printf("interfacedispatcher init2");
       }
+      */
       //    }
       
     }
