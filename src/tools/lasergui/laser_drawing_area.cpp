@@ -797,8 +797,8 @@ LaserDrawingArea::draw_persons_legs(Glib::RefPtr<Gdk::Window> &window,
 	  bool b_last_was_track1(false);
 	  bool b_last_was_track2(false);
 	  
-	  while(i < track_length1 && j < track_length2){
-	    if(timestamps1[i] < timestamps2[j]){
+	  while(i < track_length1 || j < track_length2){
+	    if(j >= track_length2 || (i < track_length1 && timestamps1[i] < timestamps2[j])){
 	      if(b_last_was_track2 && !b_last_was_track2){
 		std::pair<float,float> pos = transform_coords_from_fawkes(x_positions2[j-1],y_positions2[j-1]);
 		cr->move_to(pos.first, pos.second);
@@ -808,9 +808,9 @@ LaserDrawingArea::draw_persons_legs(Glib::RefPtr<Gdk::Window> &window,
 	      b_last_was_track1 = true;
 	      b_last_was_track2 = false;
 	      ++i;
+	      continue;
 	    }
-	    else if(timestamps1[i] > timestamps2[j]){
-
+	    if(i >= track_length1 || (j < track_length2 && timestamps1[i] > timestamps2[j])){
 	      if(b_last_was_track1 && !b_last_was_track2){
 		std::pair<float,float> pos = transform_coords_from_fawkes(x_positions1[i-1],y_positions1[i-1]);
 		cr->move_to(pos.first, pos.second);
@@ -820,8 +820,9 @@ LaserDrawingArea::draw_persons_legs(Glib::RefPtr<Gdk::Window> &window,
 	      b_last_was_track2 = true;
 	      b_last_was_track1 = false;
 	      ++j;
+	      continue;
 	    }
-	    else{
+	    else if(timestamps1[i] == timestamps2[j]){
 	      std::pair<float,float> pos = transform_coords_from_fawkes(x_positions1[i],y_positions1[i]);
 	      cr->move_to(pos.first, pos.second);
 	      pos = transform_coords_from_fawkes(x_positions2[j],y_positions2[j]);
