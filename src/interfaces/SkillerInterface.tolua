@@ -22,28 +22,21 @@ class SkillerInterface : public Interface
     int maxlenof_skill_string() const;
   };
 
-  class ExecSkillContinuousMessage : public Message
-  {
-    ExecSkillContinuousMessage(char * ini_skill_string);
-    ExecSkillContinuousMessage();
-    ~ExecSkillContinuousMessage();
-
-    char * skill_string();
-    void set_skill_string(const char * new_skill_string);
-    int maxlenof_skill_string() const;
-  };
-
-  class RestartInterpreterMessage : public Message
-  {
-    RestartInterpreterMessage();
-    ~RestartInterpreterMessage();
-
-  };
-
   class StopExecMessage : public Message
   {
+    StopExecMessage(unsigned int ini_channel);
     StopExecMessage();
     ~StopExecMessage();
+
+    unsigned int channel();
+    void set_channel(const unsigned int new_channel);
+    int maxlenof_channel() const;
+  };
+
+  class StopAllMessage : public Message
+  {
+    StopAllMessage();
+    ~StopAllMessage();
 
   };
 
@@ -70,12 +63,12 @@ class SkillerInterface : public Interface
   unsigned int exclusive_controller();
   void set_exclusive_controller(const unsigned int new_exclusive_controller);
   int maxlenof_exclusive_controller() const;
-  SkillStatusEnum status();
-  void set_status(const SkillStatusEnum new_status);
+  SkillStatusEnum status(int index);
+  void set_status(unsigned int index, const SkillStatusEnum new_status);
   int maxlenof_status() const;
-  bool is_continuous();
-  void set_continuous(const bool new_continuous);
-  int maxlenof_continuous() const;
+  unsigned int msgid(int index);
+  void set_msgid(unsigned int index, const unsigned int new_msgid);
+  int maxlenof_msgid() const;
   bool                    oftype(const char *interface_type) const;
   const void *            datachunk() const;
   unsigned int            datasize() const;
