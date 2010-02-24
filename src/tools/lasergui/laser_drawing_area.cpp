@@ -395,9 +395,11 @@ LaserDrawingArea::on_expose_event(GdkEventExpose* event)
     cr->restore();
 
     cr->save();
+    
     cr->rotate(0.5 * M_PI + __rotation);
     cr->scale(-__zoom_factor, __zoom_factor);
     cr->set_line_width(1. / __zoom_factor);
+    
     if (__visdisp_if) {
       __visdisp->process_messages();
       __visdisp->draw(cr);
@@ -411,9 +413,9 @@ LaserDrawingArea::on_expose_event(GdkEventExpose* event)
 
 	cr->set_source_rgb(1, 0, 0);
 	/*
-	std::vector<double> dashes(1);
-	dashes[0] = 0.1;
-	cr->set_dash(dashes, 0);
+       std::vector<double> dashes(1);
+       dashes[0] = 0.1
+       cr->set_dash(dashes, 0);
 	*/
 	cr->rectangle(__line_if->world_x() - radius * 0.5, __line_if->world_y() - radius * 0.5, radius, radius);
 	cr->rectangle(__line_if->relative_x() - radius * 0.5, __line_if->relative_y() - radius * 0.5, radius, radius);
@@ -425,6 +427,7 @@ LaserDrawingArea::on_expose_event(GdkEventExpose* event)
       }
     }
     cr->restore();
+
   }
 
   return true;
@@ -474,11 +477,11 @@ LaserDrawingArea::draw_beams(Glib::RefPtr<Gdk::Window> &window,
     }
     distances = revdists;
   }
-
-  cr->scale(__zoom_factor, __zoom_factor);
+  
+  //cr->scale(__zoom_factor, __zoom_factor);
   cr->rotate(__rotation);
   cr->set_line_width(1. / __zoom_factor);
-
+  
   draw_scalebox(window, cr);
 
   if ( __draw_mode == MODE_LINES ) {
