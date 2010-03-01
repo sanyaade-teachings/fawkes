@@ -30,8 +30,6 @@ local predlib    = require("fawkes.predlib")
 local grapher    = require("fawkes.fsm.grapher")
 
 local skills        = {}
-local skill_status  = { running = {}, final = {}, failed = {} }
-local active_skills = {}
 
 local skill_space      = ""
 local graphing_enabled = true
@@ -163,7 +161,7 @@ function gensandbox()
    end
    for _, s in ipairs(skills) do
       assert(not rv[s.name], "Sandbox: Name " .. s.name .. " has already been registered")
-      rv[s.name] = create_skill_functable(s)
+      rv[s.name] = create_skill_functable(s, rv)
    end
    for n, i in pairs(interfaces.reading) do
       assert(not rv[n], "Sandbox: Name " .. n .. " has already been registered")
@@ -198,6 +196,16 @@ function reset_skills(t)
    end
 end
 
+
+--- Reset all.
+-- Resets alls skills and the skill status.
+function reset_skills_from_status(t)
+   reset_skills(t.running)
+   reset_skills(t.final)
+   reset_skills(t.failed)
+end
+
+
 --- Get the FSM for the given skill, if any.
 -- @return the FSM of a skill if it exists, or nil otherwise.
 function get_skill_fsm(skill)
@@ -210,34 +218,11 @@ function get_skill_fsm(skill)
 end
 
 
---- Reset skill status.
--- Reset the status values, but do *not* call the reset functions of the skills.
-function reset_status()
-   skill_status = { running = {}, final = {}, failed = {} }
-   active_skills = {}
-end
-
-
---- Reset all.
--- Resets alls skills and the skill status.
-function reset_all()
-   reset_skills(skill_status.running)
-   reset_skills(skill_status.final)
-   reset_skills(skill_status.failed)
-   reset_status()
-end
-
 --- Reset loop internals.
 -- This function is called after every loop, no matter if skills are executed
 -- continuous or one-show and independent of the status.
 function reset_loop()
    predlib.reset()
-end
-
---- Get current skill status.
--- @return three return values, number of running, final and failed skills.
-function get_status()
-   return #skill_status.running, #skill_status.final, #skill_status.failed
 end
 
 
@@ -371,51 +356,28 @@ function write_skiller_debug(skdbg, what, graphdir, colored)
    end
 end
 
--- Top skill execution starts.
--- Internal function used in the automatically generated function wrapper to indicate
--- that a skill has started its execution.
--- @param skill_name name of the skill that is about to start
-function skill_loop_begin(skill_name)
-   --print("Skill " .. skill_name .. " starts execution")
-   table.insert(active_skills, skill_name)
-end
-
-
--- Top skill execution ends.
--- Internal function used in the automatically generated function wrapper. Called if a
--- thread has ended its execution.
--- @param skill_name name of the skill which's execution stopped
--- @param status status returned by the skill
-function skill_loop_end(skill_name, status)
-   if ( type(status) ~= "number" ) then
-      print("Skill " .. skill_name .. " did not return a valid final result.")
-      return
-   end
-
-   if status == skillstati.S_FINAL then
-      --print_debug("Skill function " .. skill_name .. " is final")
-      table.insert(skill_status.final, skill_name)
-   elseif status == skillstati.S_RUNNING then
-      --print_debug("Skill function " .. skill_name .. " is *running*")
-      table.insert(skill_status.running, skill_name)
-   elseif status == skillstati.S_FAILED then
-      --print_debug("Skill function " .. skill_name .. " has failed")
-      table.insert(skill_status.failed, skill_name)
-   else
-      print("Skill " .. skill_name .. " returned an invalid skill status (" .. status .. ")")
-   end
-end
 
 --- Create skill wrapper function.
 -- This wraps the skill's execute() function into an anonymous functions that
 -- does some house keeping and executes the skill. The function expects the module
 -- table as the first argument. It is suitable for the create_skill_wrapper()
 -- function for generating a functable.
-function create_skill_wrapper_func()
+function create_skill_wrapper_func(sandbox)
    return function(skill, ...)
-	     skill_loop_begin(skill.name)
+	     -- pre-exec actions
+	     --table.insert(active_skills, skill.name)
+	     -- skill_depcheck(skill)
+
 	     rv = {skill.execute(...)}
-	     skill_loop_end(skill.name, rv[1])
+
+	     -- post-exec actions
+	     if rv[1] == skillstati.S_FINAL then
+		table.insert(sandbox.__skill_status.final, skill.name)
+	     elseif rv[1] == skillstati.S_RUNNING then
+		table.insert(sandbox.__skill_status.running, skill.name)
+	     else
+		table.insert(sandbox.__skill_status.failed, skill.name)
+	     end
 	     return unpack(rv)
 	  end
 end
@@ -427,9 +389,9 @@ end
 -- functions and preventing (accidental) modification of the skill module.
 -- @param skill_module module table of the skill
 -- 
-function create_skill_functable(skill_module)
+function create_skill_functable(skill_module, sandbox)
    local t = {}
-   local mt = { __call  = skill_module.wrapped_function,
+   local mt = { __call  = create_skill_wrapper_func(sandbox),
 		__index = skill_module }
    setmetatable(t, mt)
    return t

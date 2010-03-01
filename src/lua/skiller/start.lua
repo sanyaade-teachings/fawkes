@@ -52,9 +52,11 @@ fawkes.logprint.init(logger)
 
 require("fawkes.mathext")
 
-skillenv = require("skiller.skillenv")
+skillenv  = require("skiller.skillenv")
+skillexec = require("skiller.exec")
 require("skiller.skillhsm")
 
+skillexec.init(interfaces.writing.skiller:maxlenof_status())
 skillenv.init(SKILLSPACE)
 
 --skiller.skillhsm.SkillHSM:set_debug(true)
