@@ -25,3 +25,11 @@ S_INACTIVE = 0
 S_FINAL    = 1
 S_RUNNING  = 2
 S_FAILED   = 3
+
+function status_add(status1, status2)
+   if     status1 == S_INACTIVE                      then return status2
+   elseif status2 == S_INACTIVE                      then return status1
+   elseif status1 == S_FAILED or status2 == S_FAILED then return S_FAILED
+   elseif status1 == S_FINAL and status2 == S_FINAL  then return S_FINAL
+   else return S_RUNNING end
+end
