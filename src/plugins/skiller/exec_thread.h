@@ -3,7 +3,7 @@
  *  exec_thread.h - Fawkes Skiller: Execution Thread
  *
  *  Created: Mon Feb 18 10:28:38 2008
- *  Copyright  2006-2009  Tim Niemueller [www.niemueller.de]
+ *  Copyright  2006-2010  Tim Niemueller [www.niemueller.de]
  *
  ****************************************************************************/
 
@@ -74,7 +74,7 @@ class SkillerExecutionThread
 
  private: /* methods */
   void init_failure_cleanup();
-  void publish_skill_status(std::string &curss);
+  void publish_skill_status();
   void publish_skdbg();
   void publish_error();
   void process_skdbg_messages();

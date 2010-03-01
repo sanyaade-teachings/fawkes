@@ -3,7 +3,7 @@
  *  exec_thread.cpp - Fawkes Skiller: Execution Thread
  *
  *  Created: Mon Feb 18 10:30:17 2008
- *  Copyright  2006-2009  Tim Niemueller [www.niemueller.de]
+ *  Copyright  2006-2010  Tim Niemueller [www.niemueller.de]
  *
  ****************************************************************************/
 
@@ -59,7 +59,6 @@ SkillerExecutionThread::SkillerExecutionThread()
     BlockedTimingAspect(BlockedTimingAspect::WAKEUP_HOOK_SKILL),
     BlackBoardInterfaceListener("SkillerExecutionThread")
 {
-  __continuous_reset = false;
   __error_written    = false;
 
   __lua = NULL;
@@ -100,7 +99,6 @@ SkillerExecutionThread::init()
 {
   __last_exclusive_controller = 0;
   __reader_just_left = false;
-  __continuous_reset = false;
   __skdbg_what = "ACTIVE";
   __skdbg_graphdir = "TB";
   __skdbg_graphcolored = true;
@@ -220,87 +218,45 @@ SkillerExecutionThread::bb_interface_reader_removed(Interface *interface,
 
 
 /** Determines the skill status and writes it to the BB.
- * This method assumes that it is called from within loop() and lua_mutex is locked.
- * @param curss current skill string
+ * This method assumes that it is called from within loop() and lua_mutex
+ * is locked.
  */
 void
-SkillerExecutionThread::publish_skill_status(std::string &curss)
+SkillerExecutionThread::publish_skill_status()
 {
-  const char *sst = "Unknown";
-  LUA_INTEGER running = 0, final = 0, failed = 0;
-
-  SkillerInterface::SkillStatusEnum old_status = __skiller_if->status(0);
-  SkillerInterface::SkillStatusEnum new_status = __skiller_if->status(0);
+  bool write = false;
 
   try {
+    __lua->get_global("skillexec");
+    __lua->get_field(-1, "status");
+    __lua->pcall(0, __skiller_if->maxlenof_status());
 
-    if ( curss == "" ) {
-      // nothing running, we're inactive
-      sst = "S_INACTIVE/empty";
-      __skiller_if->set_status(0, SkillerInterface::S_INACTIVE);
-
-    } else {                                  // Stack:
-      __lua->get_global("skillenv");          // skillenv
-
-      __lua->get_field(-1, "get_status");     // skillenv skillenv.get_status
-      if ( __lua->is_function(-1) ) {
-	__lua->pcall(0, 3);                   // skillenv running final failed
-	running = __lua->to_integer(-3);
-	final   = __lua->to_integer(-2);
-	failed  = __lua->to_integer(-1);
-
-	__lua->pop(4);                        // ---
-      } else {
-	__lua->pop(2);                        // ---
-	throw LuaRuntimeException("C++:publish_skill_status", "skillenv.get_status is not a function");
-      }
-
-      if ( failed > 0 ) {
-	sst = "S_FAILED";
-	new_status = SkillerInterface::S_FAILED;
-      } else if ( (final > 0) && (running == 0) ) {
-	sst = "S_FINAL";
-	new_status = SkillerInterface::S_FINAL;
-      } else if ( running > 0 ) {
-	sst = "S_RUNNING";
-	new_status = SkillerInterface::S_RUNNING;
-      } else {
-	// all zero
-	sst = "S_INACTIVE";
-	new_status = SkillerInterface::S_INACTIVE;
+    for (unsigned int i = __skiller_if->maxlenof_status(); i >= 1; --i) {
+      SkillerInterface::SkillStatusEnum new_status =
+	(SkillerInterface::SkillStatusEnum)__lua->to_integer(-1);
+      __lua->pop(1);
+      if (__skiller_if->status(i-1) != new_status) {
+	__skiller_if->set_status(i-1, new_status);
+	write = true;
       }
     }
 
-    if ( (old_status != new_status) ||
-	 (curss != __skiller_if->skill_string()) ) {
+    if (write) {
+      __lua->get_global("skillexec");
+      __lua->get_field(-1, "skillstring");
+      __lua->pcall(0, 1);
 
-      /*
-      logger->log_debug("SkillerExecutionThread", "Status is %s (%i vs. %i)"
-			"(running %i, final: %i, failed: %i)",
-			sst, old_status, new_status, running, final, failed);
-      */
-
-      __skiller_if->set_skill_string(curss.c_str());
-
-      __skiller_if->set_status(0, new_status);
-
-      if ( ! __error_written && (new_status == SkillerInterface::S_FAILED) ) {
-	publish_error();
-	__error_written = true;
-      } else if (new_status == SkillerInterface::S_RUNNING ||
-		 new_status == SkillerInterface::S_FINAL) {
-	__skiller_if->set_error("");
-	__error_written = false;
-      }
-
-      __skiller_if->write();
+      __skiller_if->set_skill_string(__lua->to_string(-1));
+      __lua->pop(1);
     }
 
   } catch (Exception &e) {
     logger->log_error("SkillerExecutionThread", "Failed to retrieve skill status");
     logger->log_error("SkillerExecutionThread", e);
     try {
-      __skiller_if->set_status(0, SkillerInterface::S_FAILED);
+      for (unsigned int i = 0; i < __skiller_if->maxlenof_status(); ++i) {
+	__skiller_if->set_status(i, SkillerInterface::S_FAILED);
+      }
     } catch (Exception &e2) {
       logger->log_error("SkillerExecutionThread", "Failed to set FAILED as skill "
 			"status value during error handling");
@@ -308,12 +264,16 @@ SkillerExecutionThread::publish_skill_status(std::string &curss)
     }
   }
 
+  if (write) {
+    __skiller_if->write();
+  }
 }
 
 
 void
 SkillerExecutionThread::publish_skdbg()
 {
+  /*
   try {
     __lua->do_string("skillenv.write_skiller_debug(interfaces.writing.skdbg, \"%s\", \"%s\", %s)",
 		     __skdbg_what.c_str(), __skdbg_graphdir.c_str(),
@@ -322,6 +282,7 @@ SkillerExecutionThread::publish_skdbg()
     logger->log_warn("SkillerExecutionThread", "Error writing graph");
     logger->log_warn("SkillerExecutionThread", e);
   }
+  */
 }
 
 void
@@ -339,6 +300,7 @@ SkillerExecutionThread::lua_loop_reset()
 void
 SkillerExecutionThread::publish_error()
 {
+  /*
   try {
     __lua->do_string("skillenv.write_fsm_error(skillenv.get_skill_fsm(skillenv.get_active_skills()), interfaces.writing.skiller)");
   } catch (Exception &e) {
@@ -347,6 +309,7 @@ SkillerExecutionThread::publish_error()
     __skiller_if->set_error("Failed to set Lua error");
     __skiller_if->write();
   }
+  */
 }
 
 
@@ -388,9 +351,6 @@ SkillerExecutionThread::loop()
 #endif
   __lua_ifi->read();
 
-  // Current skill string
-  std::string curss = "";
-
   unsigned int excl_ctrl   = __skiller_if->exclusive_controller();
   bool write_skiller_if    = false;
 
@@ -419,8 +379,6 @@ SkillerExecutionThread::loop()
 	logger->log_debug("SkillerExecutionThread", "%s releases exclusive control",
 			  m->sender_thread_name());
 	
-	__continuous_reset = true;
-
 	__last_exclusive_controller = __skiller_if->exclusive_controller();
 	__skiller_if->set_exclusive_controller(0);
 	write_skiller_if = true;
@@ -436,18 +394,25 @@ SkillerExecutionThread::loop()
       SkillerInterface::ExecSkillMessage *m = __skiller_if->msgq_first<SkillerInterface::ExecSkillMessage>();
 
       if ( m->sender_id() == excl_ctrl ) {
-	if ( curss != "" ) {
-	  logger->log_warn("SkillerExecutionThread", "More than one skill string enqueued, "
-			   "ignoring successive string (%s).", m->skill_string());
-	} else {	  
-	  logger->log_debug("SkillerExecutionThread", "%s wants me to continuously execute '%s'",
-			    m->sender_thread_name(), m->skill_string());
+	logger->log_debug(name(), "%s wants me to continuously execute '%s'",
+			  m->sender_thread_name(), m->skill_string());
 
-	  curss = m->skill_string();
-	  __continuous_reset = true; // reset if cont exec was in progress
+	try {
+	  __lua->get_global("skillexec");
+	  __lua->get_field(-1, "exec_skill");
+	  __lua->push_string(m->skill_string());
+	  __lua->pcall(1, 1);
+	  unsigned int channel = __lua->to_integer(-1) - 1; // Lua is 1-based
+	  __lua->pop(1);
+	  __skiller_if->set_msgid(channel, m->id());
+	  write_skiller_if = true;
+	} catch (Exception &e) {
+	  logger->log_error(name(), "Failed to start execution of '%s', "
+			    "exception follows", m->skill_string());
+	  logger->log_error(name(), e);
 	}
       } else {
-	logger->log_debug("SkillerExecutionThread", "%s tries to exec while not controller",
+	logger->log_debug(name(), "%s tries to exec while not controller",
 			  m->sender_thread_name());
       }
 
@@ -456,30 +421,71 @@ SkillerExecutionThread::loop()
 
       if ( (m->sender_id() == excl_ctrl) ||
 	   (__reader_just_left && (m->sender_id() == __last_exclusive_controller)) ) {
-	logger->log_debug("SkillerExecutionThread", "Stopping continuous execution");
-	__continuous_reset = true;
-	curss = "";
+
+	logger->log_debug(name(), "Stopping execution of channel %u",
+			  m->channel());	
+
+	try {
+	  __lua->get_global("skillexec");
+	  __lua->get_field(-1, "stop_skill");
+	  __lua->push_integer(m->channel());
+	  __lua->pcall(1);
+	  __skiller_if->set_msgid(m->channel(), 0);
+	  //__skiller_if->set_status(m->channel(), SkillerInterface::S_INACTIVE);
+	  write_skiller_if = true;
+	} catch (Exception &e) {
+	  logger->log_error(name(), "Failed to stop execution of channel %u",
+			    m->channel());
+	  logger->log_error(name(), e);
+	}
 
       } else {
-	logger->log_debug("SkillerExecutionThread", "%s tries to stop exec while not controller",
+	logger->log_debug(name(), "%s tries to stop exec while not controller",
 			  m->sender_thread_name());
       }
+
+
+    } else if ( __skiller_if->msgq_first_is<SkillerInterface::StopAllMessage>() ) {
+      SkillerInterface::StopAllMessage *m = __skiller_if->msgq_first<SkillerInterface::StopAllMessage>();
+
+      if ( (m->sender_id() == excl_ctrl) ||
+	   (__reader_just_left && (m->sender_id() == __last_exclusive_controller)) ) {
+
+	logger->log_debug(name(), "Stopping execution of all channels");
+
+	try {
+	  __lua->get_global("skillexec");
+	  __lua->get_field(-1, "stop_skills");
+	  __lua->pcall();
+	  for (unsigned int i = 0; i < __skiller_if->maxlenof_status(); ++i) {
+	    __skiller_if->set_msgid(i, 0);
+	    //__skiller_if->set_status(i, SkillerInterface::S_INACTIVE);
+	  }
+	  write_skiller_if = true;
+	} catch (Exception &e) {
+	  logger->log_error(name(), "Failed to stop execution of all channels");
+	  logger->log_error(name(), e);
+	}
+
+      } else {
+	logger->log_debug(name(), "%s tries to stop all while not controller",
+			  m->sender_thread_name());
+      }
+
+
     } else {
-      logger->log_warn("SkillerExecutionThread", "Unhandled message of type %s in "
+      logger->log_warn(name(), "Unhandled message of type %s in "
 		       "skiller interface", __skiller_if->msgq_first()->type());
     }
 
     __skiller_if->msgq_pop();
   }
 
-  if ( ! __continuous_reset && (curss == "") ) {
-    curss = __skiller_if->skill_string();
-  }
-
 #ifdef SKILLER_TIMETRACKING
   __tt->ping_end(__ttc_msgproc);
 #endif
 
+  /*
   if ( __continuous_reset ) {
     logger->log_debug("SkillerExecutionThread", "Continuous reset forced");    try {
       if (__sksf_pushed) {
@@ -501,56 +507,23 @@ SkillerExecutionThread::loop()
     __continuous_reset = false;
     write_skiller_if   = true;
   }
+  */
 
   if ( write_skiller_if )  __skiller_if->write();
 
-  if ( curss != "" ) {
-    // We've got something to execute
-
-#ifdef SKILLER_TIMETRACKING
-    __tt->ping_start(__ttc_luaprep);
-#endif
-
-    // was continuous execution, status has to be cleaned up anyway
-    //logger->log_debug("SkillerExecutionThread", "Resetting skill status in continuous mode");
-    try {
-      __lua->do_string("skillenv.reset_status()");
-    } catch (Exception &e) {
-      logger->log_warn("SkillerExecutionThread", "Caught exception while resetting status, ignored, output follows");
-      logger->log_warn("SkillerExecutionThread", e);
-    }
-
-    try {
-      if (! __sksf_pushed) {
-                                            // Stack:
-	__lua->load_string(curss.c_str());  // sksf (skill string function)
-	__lua->do_string("return skillenv.gensandbox()"); // sksf, sandbox
-	__lua->setfenv();                   // sksf
-	__sksf_pushed = true;
-      }
-#ifdef SKILLER_TIMETRACKING
-      __tt->ping_end(__ttc_luaprep);
-      __tt->ping_start(__ttc_luaexec);
-#endif
-      __lua->push_value(-1);		  // sksf sksf
-      __lua->pcall();                     // sksf
-
-    } catch (Exception &e) {
-      logger->log_error("SkillerExecutionThread", e);
-      __skiller_if->set_error("Skill string execution failed with Lua error, see log");
-      __skiller_if->write();
-      __continuous_reset = true;
-    }
-#ifdef SKILLER_TIMETRACKING
-    __tt->ping_end(__ttc_luaexec);
-#endif
-
-  } // end if (curss != "")
+  try {
+    __lua->get_global("skillexec");
+    __lua->get_field(-1, "loop");
+    __lua->pcall();
+  } catch (Exception &e) {
+    logger->log_error(name(), "Skill loop execution failed, exception follows");
+    logger->log_error(name(), e);
+  }
 
 #ifdef SKILLER_TIMETRACKING
     __tt->ping_start(__ttc_publish);
 #endif
-  publish_skill_status(curss);
+  publish_skill_status();
   publish_skdbg();
   lua_loop_reset();
 

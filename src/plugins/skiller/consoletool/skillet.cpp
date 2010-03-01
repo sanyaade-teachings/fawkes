@@ -157,7 +157,7 @@ class SkillShellThread : public Thread, public FawkesNetworkClientHandler
 
 	    if (strcmp(line, "stop") == 0 ) {
 	      printf("Stopping skill execution\n");
-	      SkillerInterface::StopExecMessage *sm = new SkillerInterface::StopExecMessage();
+	      SkillerInterface::StopAllMessage *sm = new SkillerInterface::StopAllMessage();
 	      sif->msgq_enqueue(sm);
 	    } else {
 	      printf("Executing: %s\n", line);
