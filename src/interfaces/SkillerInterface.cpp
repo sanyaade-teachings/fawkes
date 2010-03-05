@@ -53,14 +53,14 @@ SkillerInterface::SkillerInterface() : Interface()
   add_fieldinfo(IFT_STRING, "skill_string", 1024, data->skill_string);
   add_fieldinfo(IFT_STRING, "error", 128, data->error);
   add_fieldinfo(IFT_UINT, "exclusive_controller", 1, &data->exclusive_controller);
-  add_fieldinfo(IFT_ENUM, "status", 16, &data->status, "SkillStatusEnum");
-  add_fieldinfo(IFT_UINT, "msgid", 16, &data->msgid);
+  add_fieldinfo(IFT_ENUM, "status", 8, &data->status, "SkillStatusEnum");
+  add_fieldinfo(IFT_UINT, "msgid", 8, &data->msgid);
   add_messageinfo("ExecSkillMessage");
   add_messageinfo("StopExecMessage");
   add_messageinfo("StopAllMessage");
   add_messageinfo("AcquireControlMessage");
   add_messageinfo("ReleaseControlMessage");
-  unsigned char tmp_hash[] = {0xa7, 0xd4, 0x23, 0x4c, 0xc0, 0xf8, 0x99, 0x8e, 0x3f, 0x87, 0x97, 0x8c, 0xb6, 0xc0, 0x71, 0x4f};
+  unsigned char tmp_hash[] = {0x38, 0xff, 0xb, 0x7d, 0x77, 0x23, 0x30, 0x4b, 0x31, 0x6, 0x9b, 0xaa, 0x72, 0x1c, 0x81, 0x88};
   set_hash(tmp_hash);
 }
 
@@ -236,8 +236,8 @@ SkillerInterface::status() const
 SkillerInterface::SkillStatusEnum
 SkillerInterface::status(unsigned int index) const
 {
-  if (index > 16) {
-    throw Exception("Index value %u out of bounds (0..16)", index);
+  if (index > 8) {
+    throw Exception("Index value %u out of bounds (0..8)", index);
   }
   return data->status[index];
 }
@@ -249,7 +249,7 @@ SkillerInterface::status(unsigned int index) const
 size_t
 SkillerInterface::maxlenof_status() const
 {
-  return 16;
+  return 8;
 }
 
 /** Set status value.
@@ -261,7 +261,7 @@ SkillerInterface::maxlenof_status() const
 void
 SkillerInterface::set_status(const SkillStatusEnum * new_status)
 {
-  memcpy(data->status, new_status, sizeof(SkillStatusEnum) * 16);
+  memcpy(data->status, new_status, sizeof(SkillStatusEnum) * 8);
 }
 
 /** Set status value at given index.
@@ -274,8 +274,8 @@ SkillerInterface::set_status(const SkillStatusEnum * new_status)
 void
 SkillerInterface::set_status(unsigned int index, const SkillStatusEnum new_status)
 {
-  if (index > 16) {
-    throw Exception("Index value %u out of bounds (0..16)", index);
+  if (index > 8) {
+    throw Exception("Index value %u out of bounds (0..8)", index);
   }
   data->status[index] = new_status;
 }
@@ -300,8 +300,8 @@ SkillerInterface::msgid() const
 unsigned int
 SkillerInterface::msgid(unsigned int index) const
 {
-  if (index > 16) {
-    throw Exception("Index value %u out of bounds (0..16)", index);
+  if (index > 8) {
+    throw Exception("Index value %u out of bounds (0..8)", index);
   }
   return data->msgid[index];
 }
@@ -313,7 +313,7 @@ SkillerInterface::msgid(unsigned int index) const
 size_t
 SkillerInterface::maxlenof_msgid() const
 {
-  return 16;
+  return 8;
 }
 
 /** Set msgid value.
@@ -324,7 +324,7 @@ SkillerInterface::maxlenof_msgid() const
 void
 SkillerInterface::set_msgid(const unsigned int * new_msgid)
 {
-  memcpy(data->msgid, new_msgid, sizeof(unsigned int) * 16);
+  memcpy(data->msgid, new_msgid, sizeof(unsigned int) * 8);
 }
 
 /** Set msgid value at given index.
@@ -336,8 +336,8 @@ SkillerInterface::set_msgid(const unsigned int * new_msgid)
 void
 SkillerInterface::set_msgid(unsigned int index, const unsigned int new_msgid)
 {
-  if (index > 16) {
-    throw Exception("Index value %u out of bounds (0..16)", index);
+  if (index > 8) {
+    throw Exception("Index value %u out of bounds (0..8)", index);
   }
   data->msgid[index] = new_msgid;
 }

@@ -57,7 +57,7 @@ class SkillerInterface : public Interface
       carry your instance serial your exec messages will be ignored. Aquire control with
       the AquireControlMessage. Make sure you release control before exiting.
      */
-    unsigned int msgid[16]; /**< 
+    unsigned int msgid[8]; /**< 
      */
     char skill_string[1024]; /**< 
       Combined string showing as much as possible of the currently
@@ -76,7 +76,7 @@ class SkillerInterface : public Interface
       error string. Active channels which did not post an error
       message shall be omitted.
      */
-    SkillStatusEnum status[16]; /**< 
+    SkillStatusEnum status[8]; /**< 
       The status of the current skill execution for the appropriate channel.
      */
   } SkillerInterface_data_t;

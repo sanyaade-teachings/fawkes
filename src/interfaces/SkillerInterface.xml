@@ -41,10 +41,10 @@
       carry your instance serial your exec messages will be ignored. Aquire control with
       the AquireControlMessage. Make sure you release control before exiting.
     </field>
-    <field type="SkillStatusEnum" name="status" length="16">
+    <field type="SkillStatusEnum" name="status" length="8">
       The status of the current skill execution for the appropriate channel.
     </field>
-    <field type="unsigned int" length="16" name="msgid">
+    <field type="unsigned int" length="8" name="msgid">
     </field>
   </data>
   <message name="ExecSkill">
