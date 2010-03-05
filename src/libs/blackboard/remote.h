@@ -74,7 +74,6 @@ class RemoteBlackBoard
 
 
   /* for FawkesNetworkClientHandler */
-  virtual void          deregistered(unsigned int id) throw();
   virtual void          inbound_received(FawkesNetworkMessage *msg,
 					 unsigned int id) throw();
   virtual void          connection_died(unsigned int id) throw();

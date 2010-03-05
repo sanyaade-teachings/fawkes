@@ -387,16 +387,6 @@ RemoteBlackBoard::list_all()
 }
 
 
-/** We are no longer registered in Fawkes network client.
- * Ignored.
- * @param id the id of the calling client
- */
-void
-RemoteBlackBoard::deregistered(unsigned int id) throw()
-{
-}
-
-
 void
 RemoteBlackBoard::inbound_received(FawkesNetworkMessage *m,
 				   unsigned int id) throw()

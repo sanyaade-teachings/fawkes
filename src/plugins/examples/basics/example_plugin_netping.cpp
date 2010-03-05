@@ -43,15 +43,6 @@ class ExamplePluginClientNetworkReceiver : public FawkesNetworkClientHandler
     quit = false;
   }
 
-  /** The handler got deregistered.
-   * @param id the id of the calling client
-   */
-  virtual void deregistered(unsigned int id) throw()
-  {
-    printf("Got deregistered\n");
-    quit = true;
-  }
-
   /** Inbound mesage received.
    * @param m message
    * @param id the id of the calling thread
@@ -81,7 +72,7 @@ class ExamplePluginClientNetworkReceiver : public FawkesNetworkClientHandler
   }
 
 
-  /** Set to true if answer has been received or handler was deregistered.
+  /** Set to true if answer has been received.
    * False at object creation.
    */
   bool quit;

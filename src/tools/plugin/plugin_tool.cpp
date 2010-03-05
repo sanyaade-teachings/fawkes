@@ -255,15 +255,6 @@ PluginTool::watch()
 }
 
 
-/** Handler has been deregistered.
- */
-void
-PluginTool::deregistered(unsigned int id) throw()
-{
-  quit = true;
-}
-
-
 /** Inbound message received.
  * @param msg message.
  */

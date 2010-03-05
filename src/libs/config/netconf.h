@@ -103,7 +103,6 @@ class NetworkConfiguration : public Configuration, public FawkesNetworkClientHan
 
   virtual void          erase_default(const char *path);
 
-  virtual void          deregistered(unsigned int id) throw();
   virtual void          inbound_received(FawkesNetworkMessage *msg,
 					 unsigned int id) throw();
   virtual void          connection_died(unsigned int id) throw();

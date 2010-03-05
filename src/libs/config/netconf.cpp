@@ -1006,16 +1006,6 @@ NetworkConfiguration::erase_default(const char *path)
 }
 
 
-/** We are no longer registered in Fawkes network client.
- * Ignored.
- * @param id the id of the calling client
- */
-void
-NetworkConfiguration::deregistered(unsigned int id) throw()
-{
-}
-
-
 void
 NetworkConfiguration::inbound_received(FawkesNetworkMessage *m,
 				       unsigned int id) throw()

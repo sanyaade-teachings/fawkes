@@ -91,12 +91,6 @@ class NetLogConsolePrinter
     }
   }
 
-  virtual void deregistered(unsigned int id) throw()
-  {
-    quit = true;
-  }
-
-
   virtual void connection_died(unsigned int id) throw()
   {
     printf("Connection to host died. Aborting.\n");

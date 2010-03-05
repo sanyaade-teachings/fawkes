@@ -177,13 +177,6 @@ ConnectionDispatcher::on_message_received()
 
 
 void
-ConnectionDispatcher::deregistered(unsigned int id) throw()
-{
-  // ignored
-}
-
-
-void
 ConnectionDispatcher::inbound_received(FawkesNetworkMessage *m, unsigned int id) throw()
 {
   m->ref();

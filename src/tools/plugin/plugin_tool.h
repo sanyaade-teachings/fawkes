@@ -59,7 +59,6 @@ class PluginTool
   void watch();
   void list_avail();
 
-  virtual void deregistered(unsigned int id) throw();
   virtual void inbound_received(fawkes::FawkesNetworkMessage *msg,
 				unsigned int id) throw();
   virtual void connection_died(unsigned int id) throw();
