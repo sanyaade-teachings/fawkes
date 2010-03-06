@@ -106,7 +106,6 @@ class SkillGuiGtkWindow : public Gtk::Window
   Gtk::ComboBoxEntry     *cbe_skillstring;
   Gtk::Label             *lab_status;
   Gtk::Label             *lab_alive;
-  Gtk::Label             *lab_continuous;
   Gtk::Label             *lab_skillstring;
   Gtk::Label             *lab_error;
   Gtk::ScrolledWindow    *scw_graph;
