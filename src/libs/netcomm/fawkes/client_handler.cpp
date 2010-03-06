@@ -31,13 +31,6 @@ namespace fawkes {
  * @ingroup NetComm
  * @author Tim Niemueller
  *
- * @fn virtual void FawkesNetworkClientHandler::deregistered(unsigned int id) throw() = 0
- * This handler has been deregistered.
- * This is called when this handler is deregistered from the
- * FawkesNetworkClient. Sometimes you may not want to allow this and post
- * a big fat warning into the log.
- * @param id the id of the calling client
- *
  * @fn virtual void FawkesNetworkClientHandler::inbound_received(FawkesNetworkMessage *m, unsigned int id) throw() = 0
  * Called for incoming messages.
  * This is called when an incoming message has been received. If this

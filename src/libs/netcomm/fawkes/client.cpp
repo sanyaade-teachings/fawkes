@@ -34,14 +34,32 @@
 #include <core/threading/wait_condition.h>
 #include <core/exceptions/system.h>
 
-#include <list>
+#include <algorithm>
 #include <cstring>
 #include <cstdlib>
 #include <unistd.h>
 
 namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
+  
+/// @cond INTERNALS
+class FawkesNetworkClient::opqequal {
+ public:
+  opqequal(queueop_t op, unsigned int cid = 0) : __op(op), __cid(cid) {}
 
-/** @class HandlerAlreadyRegisteredException netcomm/fawkes/client.h
+  bool operator()(const queue_entry_t& qe) const
+  { return (qe.op == __op) && ((__cid == 0) || (__cid == qe.component_id)); }
+
+private:
+  queueop_t __op;
+  unsigned int __cid;
+};
+/// @endcond INTERNALS
+
+
+/** @class HandlerAlreadyRegisteredException <netcomm/fawkes/client.h>
  * Client handler has already been registered.
  * Only a single client handler can be registered per component. If you try
  * to register a handler where there is already a handler this exception
@@ -282,7 +300,7 @@ class FawkesNetworkClientRecvThread : public Thread
 };
 
 
-/** @class FawkesNetworkClient netcomm/fawkes/client.h
+/** @class FawkesNetworkClient <netcomm/fawkes/client.h>
  * Simple Fawkes network client. Allows access to a remote instance via the
  * network. Encapsulates all needed interaction with the network.
  *
@@ -318,6 +336,8 @@ FawkesNetworkClient::FawkesNetworkClient(const char *hostname, unsigned short in
   __recv_waitcond       = new WaitCondition(__recv_mutex);
   __connest_mutex       = new Mutex();
   __connest_waitcond    = new WaitCondition(__connest_mutex);
+  __handlers_mutex      = new Mutex();
+  __handlers_inuseby    = 0;
   __connest             = false;
   __connest_interrupted = false;
 }
@@ -350,6 +370,8 @@ FawkesNetworkClient::FawkesNetworkClient()
   __recv_waitcond       = new WaitCondition(__recv_mutex);
   __connest_mutex       = new Mutex();
   __connest_waitcond    = new WaitCondition(__connest_mutex);
+  __handlers_mutex      = new Mutex();
+  __handlers_inuseby    = 0;
   __connest             = false;
   __connest_interrupted = false;
 }
@@ -385,6 +407,8 @@ FawkesNetworkClient::FawkesNetworkClient(unsigned int id, const char *hostname,
   __recv_waitcond       = new WaitCondition(__recv_mutex);
   __connest_mutex       = new Mutex();
   __connest_waitcond    = new WaitCondition(__connest_mutex);
+  __handlers_mutex      = new Mutex();
+  __handlers_inuseby    = 0;
   __connest             = false;
   __connest_interrupted = false;
 }
@@ -404,6 +428,7 @@ FawkesNetworkClient::~FawkesNetworkClient()
   delete __connest_mutex;
   delete __recv_waitcond;
   delete __recv_mutex;
+  delete __handlers_mutex;
 }
 
 
@@ -620,14 +645,35 @@ void
 FawkesNetworkClient::register_handler(FawkesNetworkClientHandler *handler,
 				      unsigned int component_id)
 {
-  handlers.lock();
-  if ( handlers.find(component_id) != handlers.end() ) {
-    handlers.unlock();
+  __handlers_mutex->lock();
+  __handlers_inuseby += 1;
+  __handlers_mutex->unlock();
+
+  if ( (handlers.find(component_id) != handlers.end()) ||
+       (std::find_if(__handler_queue.begin(), __handler_queue.end(), opqequal(ADD))
+	!= __handler_queue.end()) ) {
+
+    __handlers_mutex->lock();
+    __handlers_inuseby -= 1;
+    __handlers_mutex->unlock();
     throw HandlerAlreadyRegisteredException();
-  } else {
-    handlers[component_id] = handler;
   }
-  handlers.unlock();
+
+  __handler_queue.lock();
+  LockList<queue_entry_t>::iterator f;
+  if ((f =std::find_if(__handler_queue.begin(), __handler_queue.end(), opqequal(REMOVE)))
+      != __handler_queue.end()) {
+    __handler_queue.erase(f);
+  } else {
+    queue_entry_t e = { ADD, component_id, handler };
+    __handler_queue.push_back(e);
+  }
+  __handler_queue.unlock();
+
+  __handlers_mutex->lock();
+  __handlers_inuseby -= 1;
+  if (__handlers_inuseby == 0)  process_handler_events();
+  __handlers_mutex->unlock();
 }
 
 
@@ -638,30 +684,73 @@ FawkesNetworkClient::register_handler(FawkesNetworkClientHandler *handler,
 void
 FawkesNetworkClient::deregister_handler(unsigned int component_id)
 {
-  handlers.lock();
-  if ( handlers.find(component_id) != handlers.end() ) {
-    handlers[component_id]->deregistered(_id);
-    handlers.erase(component_id);
+  __handlers_mutex->lock();
+  __handlers_inuseby += 1;
+  __handlers_mutex->unlock();
+
+  __handler_queue.lock();
+  LockList<queue_entry_t>::iterator f;
+  if ((f =std::find_if(__handler_queue.begin(), __handler_queue.end(), opqequal(ADD))) != __handler_queue.end()) {
+    __handler_queue.erase(f);
+  } else if (handlers.find(component_id) != handlers.end()) {
+    queue_entry_t e = { REMOVE, component_id, NULL };
+    __handler_queue.push_back(e);
   }
-  handlers.unlock();
-  __recv_mutex->lock();
-  if (__recv_received.find(component_id) != __recv_received.end()) {
-    __recv_received[component_id] = true;
-    __recv_waitcond->wake_all();
-  }
-  __recv_mutex->unlock();
+  __handler_queue.unlock();
+
+  __handlers_mutex->lock();
+  __handlers_inuseby -= 1;
+  if (__handlers_inuseby == 0)  process_handler_events();
+  __handlers_mutex->unlock();
 }
+
+
+void
+FawkesNetworkClient::process_handler_events()
+{
+  __handler_queue.lock();
+  LockList<queue_entry_t>::iterator i;
+  for (i = __handler_queue.begin(); i != __handler_queue.end(); ++i) {
+    if (i->op == ADD) {
+      handlers[i->component_id] = i->handler;
+    } else {
+      handlers.erase(i->component_id);
+      __recv_mutex->lock();
+      if (__recv_received.find(i->component_id) != __recv_received.end()) {
+	__recv_received[i->component_id] = true;
+	__recv_waitcond->wake_all();
+      }
+      __recv_mutex->unlock();
+    }
+  }
+  __handler_queue.clear();
+  __handler_queue.unlock();
+}
+
 
 
 void
 FawkesNetworkClient::dispatch_message(FawkesNetworkMessage *m)
 {
+  __handlers_mutex->lock();
+  __handlers_inuseby += 1;
+  __handlers_mutex->unlock();
+
   unsigned int cid = m->cid();
-  handlers.lock();
   if (handlers.find(cid) != handlers.end()) {
     handlers[cid]->inbound_received(m, _id);
+  } else {
+    LockList<queue_entry_t>::iterator f;
+    f = std::find_if(__handler_queue.begin(), __handler_queue.end(), opqequal(ADD, cid));
+    if (f != __handler_queue.end()) {
+      f->handler->inbound_received(m, _id);
+    }
   }
-  handlers.unlock();
+
+  __handlers_mutex->lock();
+  __handlers_inuseby -= 1;
+  if (__handlers_inuseby == 0)  process_handler_events();
+  __handlers_mutex->unlock();
 }
 
 
@@ -683,11 +772,19 @@ FawkesNetworkClient::notify_of_connection_dead()
   __connest = false;
   __connest_mutex->unlock();
 
-  handlers.lock();
+  __handlers_mutex->lock();
+  __handlers_inuseby += 1;
+  __handlers_mutex->unlock();
+
   for ( HandlerMap::iterator i = handlers.begin(); i != handlers.end(); ++i ) {
     i->second->connection_died(_id);
   }
-  handlers.unlock();
+
+  __handlers_mutex->lock();
+  __handlers_inuseby -= 1;
+  if (__handlers_inuseby == 0)  process_handler_events();
+  __handlers_mutex->unlock();
+
 
   __recv_mutex->lock();
   __recv_waitcond->wake_all();
@@ -697,11 +794,16 @@ FawkesNetworkClient::notify_of_connection_dead()
 void
 FawkesNetworkClient::notify_of_connection_established()
 {
-  handlers.lock();
+  __handlers_mutex->lock();
+  __handlers_inuseby += 1;
+  __handlers_mutex->unlock();
   for ( HandlerMap::iterator i = handlers.begin(); i != handlers.end(); ++i ) {
     i->second->connection_established(_id);
   }
-  handlers.unlock();
+  __handlers_mutex->lock();
+  __handlers_inuseby -= 1;
+  if (__handlers_inuseby == 0)  process_handler_events();
+  __handlers_mutex->unlock();
 }
 
 

@@ -29,9 +29,14 @@
 #include <netcomm/fawkes/component_ids.h>
 
 #include <core/exception.h>
-#include <core/utils/lock_map.h>
+#include <core/utils/lock_list.h>
+
+#include <map>
 
 namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
 
 class StreamSocket;
 class Mutex;
@@ -84,6 +89,24 @@ class FawkesNetworkClient
   const char *get_ip() const;
 
  private:
+  typedef std::map<unsigned int, FawkesNetworkClientHandler *> HandlerMap;
+  HandlerMap    handlers;
+  unsigned int   __handlers_inuseby;
+  Mutex         *__handlers_mutex;
+  typedef enum {
+    ADD,
+    REMOVE
+  } queueop_t;
+  typedef struct {
+    queueop_t    op;
+    unsigned int component_id;
+    FawkesNetworkClientHandler *handler;
+  } queue_entry_t;
+  LockList<queue_entry_t>  __handler_queue;
+
+  class opqequal;
+
+ private:
   void recv();
   void notify_of_connection_established();
   void notify_of_connection_dead();
@@ -94,14 +117,14 @@ class FawkesNetworkClient
   void set_send_slave_alive();
   void set_recv_slave_alive();
 
+  void process_handler_events();
+
+ private:
   char *__hostname;
   char *__ip;
   unsigned short int __port;
 
   StreamSocket *s;
-
-  typedef LockMap<unsigned int, FawkesNetworkClientHandler *> HandlerMap;
-  HandlerMap  handlers;
 
   WaitCondition *__connest_waitcond;
   Mutex         *__connest_mutex;
