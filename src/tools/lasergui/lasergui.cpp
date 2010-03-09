@@ -124,7 +124,12 @@ class LaserGuiGtkWindow : public Gtk::Window
     __ifd = NULL;
     __ifd_legs = NULL;
     __ifd_tracks = NULL;
-  }
+    // create timer
+    sigc::connection conn = 
+      Glib::signal_timeout().connect( sigc::mem_fun( *this, &LaserGuiGtkWindow::record ), 100 );
+    
+}
+
 
 
  protected:
@@ -553,6 +558,13 @@ class LaserGuiGtkWindow : public Gtk::Window
     }
   }
 
+  bool
+  record() { 
+    __area->record();
+    return true;
+  }
+
+  
 
  private:
   BlackBoard                        *__bb;
@@ -609,7 +621,8 @@ main(int argc, char** argv)
 
    LaserGuiGtkWindow *window = NULL;
    refxml->get_widget_derived("wnd_lasergui", window);
-
+   
+   
    Gtk::Main::run(*window);
 
    return 0;

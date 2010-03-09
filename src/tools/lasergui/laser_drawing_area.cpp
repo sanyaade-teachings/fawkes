@@ -365,7 +365,7 @@ LaserDrawingArea::on_expose_event(GdkEventExpose* event)
   draw(cr);
   }
 
-  record();
+  // record();
 
   return true;
 }
