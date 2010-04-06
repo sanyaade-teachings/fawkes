@@ -28,7 +28,6 @@
 
 #include <string>
 #include <vector>
-#include <boost/algorithm/string.hpp>
 
 namespace fawkes {
   class BlackBoard;
@@ -103,8 +102,13 @@ private:
   private:
     void parse_skill_string(std::string skill_string)
     {
-      // TODO: Test methode
-      boost::split(channel_strings, skill_string, boost::is_any_of("||"), boost::token_compress_on);
+      size_t pos1 = 0;
+      size_t pos2;
+      while ((pos2 = skill_string.find("||", pos1)) != skill_string.npos)
+      {
+        channel_strings.push_back(skill_string.substr(pos1, pos2-pos1));
+        pos1 = pos2 + 2;
+      }
     }
 
     std::vector<std::string> channel_strings;
