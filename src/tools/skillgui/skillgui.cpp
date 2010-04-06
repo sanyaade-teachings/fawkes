@@ -27,6 +27,8 @@
 #  include "graph_drawing_area.h"
 #endif
 
+#include "skill_channel_view.h"
+
 #include <utils/system/argparser.h>
 #include <blackboard/remote.h>
 #include <netcomm/fawkes/client.h>
@@ -108,6 +110,7 @@ SkillGuiGtkWindow::SkillGuiGtkWindow(BaseObjectType* cobject,
 
   refxml->get_widget_derived("img_throbber", __throbber);
   refxml->get_widget_derived("trv_plugins",  __trv_plugins);
+  refxml->get_widget_derived("trv_skill_channels", __trv_skill_channels);
   
   Gtk::SeparatorToolItem *spacesep;
   refxml->get_widget("tb_spacesep", spacesep);
@@ -353,6 +356,8 @@ SkillGuiGtkWindow::on_connect()
       on_skiller_data_changed();
       on_skdbg_data_changed();
       on_agdbg_data_changed();
+      __trv_skill_channels->setup_channels(__skiller_if);
+
 
       __skiller_ifd = new InterfaceDispatcher("Skiller IFD", __skiller_if);
       __skdbg_ifd   = new InterfaceDispatcher("SkillerDebug IFD", __skdbg_if);
@@ -414,6 +419,7 @@ SkillGuiGtkWindow::on_disconnect()
   pvp_graph->queue_draw();
 #endif
   __logview->set_client(NULL);
+  __trv_skill_channels->clear_channels();
 
   this->set_title("Skill GUI");
 }
@@ -544,7 +550,7 @@ SkillGuiGtkWindow::on_skiller_data_changed()
       but_stop->set_sensitive(false);
     }
 
-
+    __trv_skill_channels->update_channels();
   } catch (Exception &e) {
     __throbber->stop_anim();
   }

@@ -44,7 +44,7 @@ LDFLAGS += $(LDFLAGS_GUI) $(LDFLAGS_GRAPHVIZ) $(LDFLAGS_PAPYRUS)
 
 LIBS_skillgui = fawkescore fawkesutils fawkesnetcomm fawkesblackboard fawkesguiutils \
 		SkillerInterface SkillerDebugInterface
-OBJS_skillgui = main.o skillgui.o
+OBJS_skillgui = main.o skillgui.o skill_channel_view.o
 
 ifeq ($(USE_PAPYRUS),1)
   CFLAGS  += $(CFLAGS_PAPYRUS) -std=gnu++0x -DUSE_PAPYRUS

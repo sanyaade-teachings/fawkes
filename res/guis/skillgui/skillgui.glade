@@ -381,6 +381,34 @@
                 <property name="type">tab</property>
               </packing>
             </child>
+            <child>
+              <widget class="GtkScrolledWindow" id="scw_skill_channels">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="hscrollbar_policy">automatic</property>
+                <property name="vscrollbar_policy">automatic</property>
+                <child>
+                  <widget class="GtkTreeView" id="trv_skill_channels">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                  </widget>
+                </child>
+              </widget>
+              <packing>
+                <property name="position">3</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkLabel" id="lab_skill_channels">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Skill Channels</property>
+              </widget>
+              <packing>
+                <property name="position">3</property>
+                <property name="tab_fill">False</property>
+                <property name="type">tab</property>
+              </packing>
+            </child>
           </widget>
           <packing>
             <property name="position">1</property>
