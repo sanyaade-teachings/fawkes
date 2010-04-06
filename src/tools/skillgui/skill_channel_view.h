@@ -112,6 +112,8 @@ private:
         channel_strings.push_back(skill_string.substr(pos1, pos2-pos1));
         pos1 = pos2 + 2;
       }
+      if (pos1 < skill_string.length())
+        channel_strings.push_back(skill_string.substr(pos1));
     }
 
     std::vector<std::string> channel_strings;
