@@ -353,10 +353,11 @@ SkillGuiGtkWindow::on_connect()
       __skiller_if = bb->open_for_reading<SkillerInterface>("Skiller");
       __skdbg_if   = bb->open_for_reading<SkillerDebugInterface>("Skiller");
       __agdbg_if   = bb->open_for_reading<SkillerDebugInterface>("LuaAgent");
+      __trv_skill_channels->setup_channels(__skiller_if);
       on_skiller_data_changed();
       on_skdbg_data_changed();
       on_agdbg_data_changed();
-      __trv_skill_channels->setup_channels(__skiller_if);
+
 
 
       __skiller_ifd = new InterfaceDispatcher("Skiller IFD", __skiller_if);

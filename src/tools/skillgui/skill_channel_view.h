@@ -4,6 +4,7 @@
  *
  *  Created: Thu Apr 01 17:40:55 2010
  *  Copyright  2010  Patrick Podbregar [www.podbregar.com]
+ *  	       2010  Tim Niemueller [www.niemueller.de]
  *
  ****************************************************************************/
 
@@ -67,11 +68,13 @@ private:
       add(channel_number);
       add(skill_string);
       add(status);
+      add(status_color);
     }
 
     Gtk::TreeModelColumn<unsigned> channel_number;
     Gtk::TreeModelColumn<Glib::ustring> skill_string;
     Gtk::TreeModelColumn<Glib::ustring> status;
+    Gtk::TreeModelColumn<Gdk::Color> status_color;
 
 #ifdef HAVE_GCONFMM
   Glib::RefPtr<Gnome::Conf::Client> __gconf;
@@ -112,12 +115,12 @@ private:
     }
 
     std::vector<std::string> channel_strings;
-
   };
 
 
   void ctor();
   std::string get_status_text(fawkes::SkillerInterface::SkillStatusEnum status);
+  Gdk::Color get_status_color(fawkes::SkillerInterface::SkillStatusEnum status);
 
   SkillChannelRecord skill_channel_record;
   Glib::RefPtr<Gtk::ListStore> skill_channel_list;

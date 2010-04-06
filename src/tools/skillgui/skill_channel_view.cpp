@@ -4,6 +4,7 @@
  *
  *  Created: Sat Apr 03 14:36:52 2010
  *  Copyright  2010  Patrick Podbregar [www.podbregar.com]
+ *  	       2010  Tim Niemueller [www.niemueller.de]
  *
  ****************************************************************************/
 
@@ -52,9 +53,15 @@ SkillChannelView::ctor()
   skill_channel_list = Gtk::ListStore::create(skill_channel_record);
   set_model(skill_channel_list);
   set_rules_hint(true);
+  Gtk::CellRendererText *status_renderer = Gtk::manage(new Gtk::CellRendererText());
+  Gtk::TreeViewColumn *status_column = new Gtk::TreeViewColumn("Status", *status_renderer);
+
   append_column("Ch. #", skill_channel_record.channel_number);
-  append_column("Status", skill_channel_record.status);
+  append_column(*Gtk::manage(status_column));
   append_column("Skill String", skill_channel_record.skill_string);
+
+  status_column->add_attribute(status_renderer->property_text(),skill_channel_record.status);
+  status_column->add_attribute(status_renderer->property_foreground_gdk(), skill_channel_record.status_color);
 }
 
 SkillChannelView::~SkillChannelView()
@@ -83,10 +90,13 @@ SkillChannelView::update_channels()
       iter != children.end(); ++iter)
   {
     Gtk::TreeModel::Row row = *iter;
-    row[skill_channel_record.channel_number] = channel_number++;
+    row[skill_channel_record.channel_number] = channel_number;
     row[skill_channel_record.status] = get_status_text(__skiller_if->status(channel_number));
+    row[skill_channel_record.status_color] = get_status_color(__skiller_if->status(channel_number));
     row[skill_channel_record.skill_string] = skill_string->get_channel(channel_number);
+    ++channel_number;
   }
+  delete skill_string;
 }
 
 std::string
@@ -109,6 +119,29 @@ SkillChannelView::get_status_text(SkillerInterface::SkillStatusEnum status)
     break;
   }
   return status_name;
+}
+
+Gdk::Color
+SkillChannelView::get_status_color(SkillerInterface::SkillStatusEnum status)
+{
+  Gdk::Color color;
+  switch(status)
+  {
+  case SkillerInterface::S_INACTIVE:
+    color = Gdk::Color("grey");
+    //std::cout << "Setting Color" << std::endl;
+    break;
+  case SkillerInterface::S_RUNNING:
+    color = Gdk::Color("yellow");
+    break;
+  case SkillerInterface::S_FINAL:
+    color = Gdk::Color("green");
+    break;
+  case SkillerInterface::S_FAILED:
+    color = Gdk::Color("red");
+    break;
+  }
+  return color;
 }
 
 void
