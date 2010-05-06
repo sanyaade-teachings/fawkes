@@ -65,7 +65,13 @@ end
 --- Execute one iteration of all channels
 function loop()
    for _, c in ipairs(channels) do
-      if c:running() then c:loop() end
+      if c:running() then 
+	 local status, err = xpcall(function () c:loop() end, debug.traceback)
+	 if status == false then
+	    print_error(err)
+	    c:stop()
+	 end
+      end
    end
    skillenv.reset_loop()
 end

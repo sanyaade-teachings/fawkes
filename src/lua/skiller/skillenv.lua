@@ -28,8 +28,10 @@ local wsmod      = require("fawkes.fsm.waitstate")
 local depinit    = require("fawkes.depinit")
 local predlib    = require("fawkes.predlib")
 local grapher    = require("fawkes.fsm.grapher")
+local set        = require("fawkes.datastruct.set")
 
 local skills        = {}
+local active_skills = {}
 
 local skill_space      = ""
 local graphing_enabled = true
@@ -163,6 +165,7 @@ function gensandbox()
       assert(not rv[s.name], "Sandbox: Name " .. s.name .. " has already been registered")
       rv[s.name] = create_skill_functable(s, rv)
    end
+   rv.dep_skills = {}
    for n, i in pairs(interfaces.reading) do
       assert(not rv[n], "Sandbox: Name " .. n .. " has already been registered")
       rv[n] = i
@@ -231,9 +234,11 @@ end
 -- If the skill string executes multiple skills then the skills are listed in the
 -- order of their execution. Note that if "the" active skill is discussed this
 -- means the skill executed first.
+
+-- The active skills are the skills currently in use by any skill string
 -- @return unpacked array of names of active skills
 function get_active_skills()
-   return unpack(active_skills)
+   return unpack(set.to_list(active_skills))
 end
 
 
@@ -356,6 +361,40 @@ function write_skiller_debug(skdbg, what, graphdir, colored)
    end
 end
 
+--- Remove skills from active skills set
+-- @param skills the set of names of skills to be removed from the active
+-- skills set
+function deactivate_skills(skills)
+   active_skills = set.difference(active_skills, skills)
+end
+
+--- Check skill dependencies
+-- This function takes a skill module and checks if the skill is already an
+-- active skill. If so an error is thrown. Otherwise all skills the module
+-- depends on are also recursively checked. If no error occurs a set that
+-- contains the name of all checked skills is returned.
+-- @param skill the skill module to check
+-- @param dep_skills the skills already checked (in recursive calls)
+-- @return a set with the names of all checked skills
+function skill_depcheck(skill, dep_skills)
+   assert(not active_skills[skill.name],
+	  skill.name.." is already an active skill")
+
+   local dep_skills = dep_skills or {}
+   assert(not dep_skills[skill.name],
+	  "Circular skill dependency in " .. skill.name .. " detected")
+
+   set.insert(dep_skills, skill.name)
+
+   if skill.depends_skills then
+      for _,s in ipairs(skill.depends_skills) do
+	 dep_skills = set.union(dep_skills,
+				skill_depcheck(get_skill_module(s), dep_skills))
+      end
+   end
+
+   return dep_skills
+end
 
 --- Create skill wrapper function.
 -- This wraps the skill's execute() function into an anonymous functions that
@@ -365,8 +404,10 @@ end
 function create_skill_wrapper_func(sandbox)
    return function(skill, ...)
 	     -- pre-exec actions
-	     --table.insert(active_skills, skill.name)
-	     -- skill_depcheck(skill)
+	     if not sandbox.dep_skills[skill.name] then
+		sandbox.dep_skills = skill_depcheck(skill)
+		active_skills = set.union(active_skills, sandbox.dep_skills)
+	     end
 
 	     rv = {skill.execute(...)}
 
