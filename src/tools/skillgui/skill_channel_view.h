@@ -74,7 +74,7 @@ private:
     Gtk::TreeModelColumn<unsigned> channel_number;
     Gtk::TreeModelColumn<Glib::ustring> skill_string;
     Gtk::TreeModelColumn<Glib::ustring> status;
-    Gtk::TreeModelColumn<Gdk::Color> status_color;
+    Gtk::TreeModelColumn<Glib::ustring> status_color;
 
 #ifdef HAVE_GCONFMM
   Glib::RefPtr<Gnome::Conf::Client> __gconf;
@@ -122,7 +122,7 @@ private:
 
   void ctor();
   std::string get_status_text(fawkes::SkillerInterface::SkillStatusEnum status);
-  Gdk::Color get_status_color(fawkes::SkillerInterface::SkillStatusEnum status);
+  Glib::ustring get_status_color(fawkes::SkillerInterface::SkillStatusEnum status);
 
   SkillChannelRecord skill_channel_record;
   Glib::RefPtr<Gtk::ListStore> skill_channel_list;

@@ -52,7 +52,7 @@ SkillChannelView::ctor()
 
   skill_channel_list = Gtk::ListStore::create(skill_channel_record);
   set_model(skill_channel_list);
-  set_rules_hint(true);
+  get_selection()->set_mode(Gtk::SELECTION_NONE);
   Gtk::CellRendererText *status_renderer = Gtk::manage(new Gtk::CellRendererText());
   Gtk::TreeViewColumn *status_column = new Gtk::TreeViewColumn("Status", *status_renderer);
 
@@ -61,7 +61,7 @@ SkillChannelView::ctor()
   append_column("Skill String", skill_channel_record.skill_string);
 
   status_column->add_attribute(status_renderer->property_text(),skill_channel_record.status);
-  status_column->add_attribute(status_renderer->property_foreground_gdk(), skill_channel_record.status_color);
+  status_column->add_attribute(status_renderer->property_cell_background(), skill_channel_record.status_color);
 }
 
 SkillChannelView::~SkillChannelView()
@@ -121,24 +121,23 @@ SkillChannelView::get_status_text(SkillerInterface::SkillStatusEnum status)
   return status_name;
 }
 
-Gdk::Color
+Glib::ustring
 SkillChannelView::get_status_color(SkillerInterface::SkillStatusEnum status)
 {
-  Gdk::Color color;
+  Glib::ustring color;
   switch(status)
   {
   case SkillerInterface::S_INACTIVE:
-    color = Gdk::Color("grey");
-    //std::cout << "Setting Color" << std::endl;
+    color = "white";
     break;
   case SkillerInterface::S_RUNNING:
-    color = Gdk::Color("yellow");
+    color = "yellow";
     break;
   case SkillerInterface::S_FINAL:
-    color = Gdk::Color("green");
+    color = "green";
     break;
   case SkillerInterface::S_FAILED:
-    color = Gdk::Color("red");
+    color = "red";
     break;
   }
   return color;
