@@ -29,6 +29,7 @@ local jsmod = require("fawkes.fsm.jumpstate")
 local wsmod = require("fawkes.fsm.waitstate")
 local ajsmod = require("luaagent.jumpstates")
 local subfsmfsmod = require("fawkes.fsm.subfsmjumpstate")
+local oo = require("fawkes.ootools")
 
 local FSM               = fsmmod.FSM
 AgentSkillExecJumpState = ajsmod.AgentSkillExecJumpState
@@ -68,13 +69,9 @@ AgentHSM = {current = nil,
 
 --- Create new AgentHSM.
 function AgentHSM:new(o)
-   local f = FSM:new(o)
-   setmetatable(o, self)
-   self.__index = self
-
-   return o
+   local base = FSM:new(o)
+   return oo.create_instance(self, o, base)
 end
-
 
 --- Simple state generation not supported for AgentHSM.
 -- Throws an error. Only jump states can be created for AgentHSMs.

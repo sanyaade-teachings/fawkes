@@ -31,6 +31,12 @@ local skillenv = require("skiller.skillenv")
 local predlib  = require("fawkes.predlib")
 local grapher  = require("fawkes.fsm.grapher")
 
+local fsmdsmod = require("fawkes.fsm.decisionstate")
+local fsmwsmod = require("fawkes.fsm.waitstate")
+local fsmsubsmod = require("fawkes.fsm.subfsmjumpstate")
+local agentssmod = require("luaagent.skillstate")
+
+
 local agent = nil
 
 local graphing_enabled = true
@@ -45,6 +51,10 @@ function module_init(m)
    m.SkillQueue = skqmod.SkillQueue
    m.State      = fsmstmod.State
    m.JumpState  = fsmjsmod.JumpState
+   m.DecisionState = fsmdsmod.DecisionState
+   m.WaitState = fsmwsmod.WaitState
+   m.SubFSMState = fsmsubsmod.SubFSMJumpState
+   m.SkillState = agentssmod.SkillState
    m.config     = config
 
    for k,v in pairs(skillstati) do

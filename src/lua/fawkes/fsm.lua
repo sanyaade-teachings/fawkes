@@ -76,7 +76,6 @@ function FSM:new(o)
    return o
 end
 
-
 --- Check if state was reached in current trace.
 -- @param state state to check if a transition originated from or went to this one
 -- @return two values, first is true if state is included in
@@ -485,4 +484,39 @@ function FSM:reset()
    if self.debug then
       print_debug("FSM '%s' reset done", self.name)
    end
+end
+
+
+--- Define state for FSM
+-- This method takes a table of state definitions, creates the corresponding
+-- states, adds them to the FSM and exports them to a given environment 
+-- (most likely the callers evironment).
+-- @param state_table the table holding the state definitions
+-- @param state_table.export_to the environment to export the states to
+function FSM:define_states(state_table)
+   assert(state_table.export_to, "No environment to export states specified")
+   for _,s in ipairs(state_table) do
+      local state = self:create_state_from(s)
+      self.states[s.name] = state
+      state_table.export_to[s.name] = state
+   end
+end
+
+--- Create a state from definition
+-- This method creates a state from a table holding its definition. The
+-- definition itself must hold all parmaters nescessary to create a certain
+-- type of state. To know which parameters are need take a look in the
+-- corresponding state constructor. At least one has to specify the name 
+-- (s.name) and class (s.class) of the state. The class has to be valid 
+-- state class.
+-- @param s the state definition
+function FSM:create_state_from(s)
+   s.name = s[1] or s.name
+   assert(type(s.name) == "string", "JumpState requires a name")
+   s.fsm = self
+
+
+   assert(s.class, "The state " .. s.name .. " has no class")
+   assert(type(s.class) == "table", "The state " .. s.name .. " has an unknown class")
+   return s.class:new(s)
 end
