@@ -26,23 +26,40 @@ require("fawkes.modinit")
 module(..., fawkes.modinit.module_init)
 local jsmod = require("fawkes.fsm.jumpstate")
 local JumpState = jsmod.JumpState
+local oo = require("fawkes.ootools")
 
 --- @class WaitState
 -- State that waits a specified number of seconds.
 -- @author Tim Niemueller
-WaitState = { add_transition     = JumpState.add_transition,
-	      add_precondition   = JumpState.add_precondition,
-	      add_precond_trans  = JumpState.add_precond_trans,
-	      get_transition     = JumpState.get_transition,
-	      get_transitions    = JumpState.get_transitions,
-	      clear_transitions  = JumpState.clear_transitions,
-	      try_transitions    = JumpState.try_transitions,
-	      last_transition    = JumpState.last_transition,
-	      init               = JumpState.init,
-	      loop               = JumpState.loop,
-	      exit               = JumpState.exit,
-	      prepare            = JumpState.prepare
-	   }
+WaitState = {}
+
+--- Create new jump state.
+-- @param o table with initializations for the object.
+-- @return Initialized FSM state
+function WaitState:new(o)
+   assert(o, "WaitState requires a table as argument")
+   local base = JumpState:new(o)
+   local params = self:extract_params(o)
+   
+   local ws = oo.create_instance(self, params, base)
+
+   ws:add_transition(o.next_state, WaitState.jumpcond_timeover, "Timeout")
+
+   return ws
+end
+
+--- Extract parameters from table
+-- Extracts parameters needed by this kind of state from a table
+-- @param o the table to take the parameters from
+function WaitState:extract_params(o)
+   local s = {}
+   assert(o.next_state,"WaitState " .. o.name .. " requires a next_state")
+
+   s.next_state = o.next_state
+   s.time_sec = o.time_sec
+
+   return s
+end
 
 --- Check if time has passed.
 -- @return true if time has passed, false otherwise
@@ -50,21 +67,6 @@ function WaitState:jumpcond_timeover()
    self.now = self.now or Time:new()
    self.now:stamp()
    return (self.now - self.endtime) >= 0
-end
-
---- Create new jump state.
--- @param o table with initializations for the object.
--- @return Initialized FSM state
-function WaitState:new(o)
-   local js = JumpState:new(o)
-   assert(js.next_state, "WaitState " .. js.name .. " requires a next_state")
-
-   setmetatable(js, self)
-   self.__index = self
-
-   js:add_transition(o.next_state, WaitState.jumpcond_timeover, "Timeout")
-
-   return js
 end
 
 --- Initialize WaitState.

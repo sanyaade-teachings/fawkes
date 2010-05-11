@@ -35,19 +35,7 @@ local JumpState     = fawkes.fsm.jumpstate.JumpState
 -- This special jump state allows for executing another FSM/HSM while the state
 -- is active. It can execute transition based on the state of the sub-FSM.
 -- @author Tim Niemueller
-SubFSMJumpState = { add_transition     = JumpState.add_transition,
-		    add_precondition   = JumpState.add_precondition,
-		    add_precond_trans  = JumpState.add_precond_trans,
-		    get_transition     = JumpState.get_transition,
-		    get_transitions    = JumpState.get_transitions,
-		    clear_transitions  = JumpState.clear_transitions,
-		    try_transitions    = JumpState.try_transitions,
-		    last_transition    = JumpState.last_transition,
-		    init               = JumpState.init,
-		    loop               = JumpState.loop,
-		    exit               = JumpState.exit,
-		    prepare            = JumpState.prepare
-		 }
+SubFSMJumpState = {}
 
 
 --- Create new state.
@@ -55,27 +43,33 @@ SubFSMJumpState = { add_transition     = JumpState.add_transition,
 -- @return Initialized FSM state
 function SubFSMJumpState:new(o)
    assert(o, "SubFSMJumpState requires a table as argument")
-   assert(o.name, "SubFSMJumpState requires a name")
-   assert(o.fsm, "SubFSMJumpState " .. o.name .. " must be assigned to a FSM")
-   assert(o.subfsm, "SubFSMJumpState " .. o.name .. " requires a sub-FSM")
-   assert(not getmetatable(o), "Meta table already set for SubFSMJumpState " .. o.name)
-   setmetatable(o, self)
-   self.__index = self
+   local base = JumpState:new(o)
+   local params = self:extract_params(o)
 
-   o.transitions   = o.transitions or {}
-   o.dotattr       = o.dotattr or {}
-   o.preconditions = {}
-   assert(type(o.transitions) == "table", "Transitions for " .. o.name .. " not a table")
-   assert(type(o.dotattr) == "table", "Dot attributes for " .. o.name .. " not a table")
+   local subs = oo.create_instance(self, params, base)
 
-   if o.subfsm.exit_state and o.exit_to then
-      o.final_transition = o:add_transition(o.exit_to, o.jumpcond_fsm_done, "FSM succeeded")
+   if subs.subfsm.exit_state and subs.exit_to then
+      subs.final_transition = subs:add_transition(subs.exit_to, subs.jumpcond_fsm_done, "FSM succeeded")
    end
-   if o.subfsm.fail_state and o.fail_to then
-      o.failure_transition = o:add_transition(o.fail_to, o.jumpcond_fsm_failed, "FSM failed")
+   if subs.subfsm.fail_state and subs.fail_to then
+      subs.failure_transition = subs:add_transition(subs.fail_to, subs.jumpcond_fsm_failed, "FSM failed")
    end
 
-   return o
+   return subs
+end
+
+--- Extract parameters from table
+-- Extracts parameters needed by this kind of state from a table
+-- @param o the table to take the parameters from
+function SubFSMJumpState:extract_params(o)
+   local s = {}
+   assert(type(o.subfsm) == "table", "SubFSMJumpState " .. o.name .. " requires a subfsm")
+
+   s.subfsm = o.subfsm
+   s.exit_to = o.exit_to
+   s.fail_to = o.fail_to
+
+   return s
 end
 
 --- Check if sub-FSM succeeded.

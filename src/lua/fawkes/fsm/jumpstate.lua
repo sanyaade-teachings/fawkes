@@ -58,18 +58,34 @@ JumpState = { comment           = "",
 -- @return Initialized FSM state
 function JumpState:new(o)
    assert(o, "JumpState requires a table as argument")
-   assert(o.name, "JumpState requires a name")
-   assert(o.fsm, "JumpState " .. o.name .. " requires a FSM")
-   assert(not getmetatable(o), "Meta table already set for object")
-   setmetatable(o, self)
+   local js = {}
+   self:extract_params_from_to(o,js)
+   setmetatable(js, self)
    self.__index = self
 
-   o.dotattr = o.dotattr or {}
-   o.transitions = o.transitions or {}
-   o.preconditions = {}
-   assert(type(o.transitions) == "table", "Transitions for " .. o.name .. " not a table")
+   return js
+end
 
-   return o
+--- Extract parameters from table
+-- Extracts parameters needed by this kind of state from a table
+-- and saves it in another table meant for state construction
+-- @param o the table to take the parameters from
+-- @param s the table to to save the parameters in
+function JumpState:extract_params_from_to(o,s)
+   assert(type(o.name) == "string", "JumpState requires a name")
+   assert(type(o.fsm) == "table", "JumpState " .. o.name .. " requires a FSM")
+
+   s.name = o.name
+   s.fsm = o.fsm
+   s.dotattr = o.dotattr or {}
+   s.transitions = o.transitions or {}
+   s.preconditions = {}
+   s.closure = o.closure
+   s.init = o.init
+   s.loop = o.loop
+
+   assert(type(s.transitions) == "table", "Transitions for " .. o.name .. " not a table")
+   assert(type(s.dotattr) == "table", "Dot attributes for " .. o.name .. " not a table")
 end
 
 --- Execute init routines.
