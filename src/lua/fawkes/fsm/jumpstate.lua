@@ -62,6 +62,7 @@ function JumpState:new(o)
    self:extract_params_from_to(o,js)
    setmetatable(js, self)
    self.__index = self
+   self.__tostring = function() return self.name end
 
    return js
 end

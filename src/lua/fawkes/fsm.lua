@@ -32,6 +32,7 @@ local jumpstmod  = require("fawkes.fsm.jumpstate")
 JumpState        = jumpstmod.JumpState
 local waitstmod  = require("fawkes.fsm.waitstate")
 WaitState        = waitstmod.WaitState
+local set     = require("fawkes.datastruct.set")
 
 local fsmgrapher = require("fawkes.fsm.grapher")
 
@@ -228,12 +229,12 @@ end
 -- @param description a string representation of the jump condition, can
 -- be a plain copy of the code as string or a verbal description, used for
 -- debugging and graph generation
-function FSM:add_default_transition(state, jumpcond, description)
+function FSM:add_default_transition(state, jumpcond, description, except)
    if self.debug then
       printf("%s: Adding default transition -> %s on %s (%s)",
 	     self.name, tostring(state), tostring(jumpcond), tostring(description))
    end
-   table.insert(self.default_transitions, {state=state, jumpcond=jumpcond, description=description})
+   table.insert(self.default_transitions, {state=state, jumpcond=jumpcond, description=description, except=except})
    for _,st in pairs(self.states) do
       self:apply_deftrans(st)
    end
@@ -249,7 +250,9 @@ function FSM:apply_deftrans(state)
       local compto = type(t.state) == "table" and state or state.name
 
       if compto ~= t.state
-	 and state.name ~= self.exit_state and state.name ~= self.fail_state then
+	 and state.name ~= self.exit_state and state.name ~= self.fail_state and
+	 not (t.except and (t.except[compto] or t.except[self.states[compto]] or
+			    (type(compto) == "table" and t.except[compto.name]))) then
 
 	 local exists = false
 	 for _,t2 in ipairs(state.transitions) do
@@ -497,6 +500,7 @@ function FSM:define_states(state_table)
    assert(state_table.export_to, "No environment to export states specified")
    for _,s in ipairs(state_table) do
       local state = self:create_state_from(s)
+      self:apply_deftrans(s)
       self.states[s.name] = state
       state_table.export_to[s.name] = state
    end
@@ -507,16 +511,84 @@ end
 -- definition itself must hold all parmaters nescessary to create a certain
 -- type of state. To know which parameters are need take a look in the
 -- corresponding state constructor. At least one has to specify the name 
--- (s.name) and class (s.class) of the state. The class has to be valid 
+-- (s.name) and class (s.class) of the state. The class has to be a valid 
 -- state class.
 -- @param s the state definition
 function FSM:create_state_from(s)
    s.name = s[1] or s.name
    assert(type(s.name) == "string", "JumpState requires a name")
+   assert(not self.states[s.name], "A state with the name " .. s.name .. "already exists")
    s.fsm = self
-
 
    assert(s.class, "The state " .. s.name .. " has no class")
    assert(type(s.class) == "table", "The state " .. s.name .. " has an unknown class")
+
    return s.class:new(s)
+end
+
+--- Define transitions for FSM
+-- Call this method to create transitions for the FSM
+-- @param trans_table the table with transtition definitions
+function FSM:define_transitions(trans_table)
+   for i,t in ipairs(trans_table) do
+      local from, to
+      if t[2] then
+	 from = t[1]
+	 to = t[2]
+      else
+	 to = t[1]
+      end
+
+      assert(type(to) == "table", "Trans. ".. i .. ": Target state needs to be a state (a table)")
+      if from then
+	 assert(type(from) == "table", "Trans. ".. i .. ": Source state needs to be a state (a table)")
+      end
+      assert(t.cond, "Trans. ".. i ..": Attempt to define transition  without condition")
+
+      local trans
+      if from then
+	 self:create_transition_from(t)
+      else
+	 self:create_default_transition_from(t)
+      end
+
+   end
+end
+
+--- Create and add a transition
+-- Creates a "from-to" transition and adds it to the
+-- corresponding state
+-- @param t the transition definition
+function FSM:create_transition_from(t)
+   local from = t[1]
+   local to = t[2]
+
+   local tr = from:add_transition(to, t.cond, t.desc)
+   if t.trans_dotattr then tr.dotattr = t.trans_dotattr end
+   if t.precond then
+      if self.debug then
+	 printf("%s: Making transition %s -> %s a precondition",
+		self.name, from, to)
+      end
+      s:add_precondition(tr)
+   end
+end
+
+--- Creates a default transitions
+-- Creates a default transition and adds it to the corresponding
+-- state
+-- @param t the transition definition
+function FSM:create_default_transition_from(t)
+   local to = t[1]
+   local except
+   if t.except then
+      except = set.create(t.except)
+   end
+
+   if self.debug then
+      printf("%s: Adding default transition to %s (cond: %s, desc: %s)",
+	     self.name, to.name, tostring(t.cond), tostring(t.desc))
+   end
+
+   self:add_default_transition(to, t.cond, t.desc, except)
 end

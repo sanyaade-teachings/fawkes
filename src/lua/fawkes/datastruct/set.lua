@@ -112,3 +112,12 @@ function intersection(a,b)
    end
    return intersect_set
 end
+
+-- Print all items of a set
+function tostring(set)
+   set_string = "{ "
+   for item in pairs(set) do
+      set_string = set_string .. tostring(item) .. " "
+   end
+   set_string = set_string .. "}"
+end
