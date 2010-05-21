@@ -26,6 +26,7 @@ require("fawkes.modinit")
 module(..., fawkes.modinit.module_init)
 
 require("fawkes.fsm.jumpstate")
+local oo = require("fawkes.ootools")
 
 -- Convenience shortcuts
 local JumpState     = fawkes.fsm.jumpstate.JumpState

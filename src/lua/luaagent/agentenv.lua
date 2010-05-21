@@ -30,11 +30,14 @@ local fsmstmod = require("fawkes.fsm.state")
 local skillenv = require("skiller.skillenv")
 local predlib  = require("fawkes.predlib")
 local grapher  = require("fawkes.fsm.grapher")
+local depinit  = require("fawkes.depinit")
 
 local fsmdsmod = require("fawkes.fsm.decisionstate")
 local fsmwsmod = require("fawkes.fsm.waitstate")
 local fsmsubsmod = require("fawkes.fsm.subfsmjumpstate")
 local agentssmod = require("luaagent.skillstate")
+local agentswmod = require("luaagent.skillwrapper")
+local SkillWrapper = agentswmod.SkillWrapper
 
 
 local agent = nil
@@ -70,10 +73,46 @@ function agent_module(module_name)
    local m = require(module_name)
    assert(m, "Could not load agent module")
 
+   assert(type(m.name) == "string", "Agent name not set or not a string")
+   assert(type(m.documentation) == "string", "Agent documentation missing or not a string")
+
+   local mt = getmetatable(m)
+   if mt == nil then
+      mt = {}
+   else
+      assert(mt.__index == nil, "Module metatable already has an __index function/table.")
+      assert(mt.__call == nil, "Module metatable already has an __call function/table.")
+   end
+
+   local indextable = {}
+
+   for k,v in pairs(skillstati) do
+      if string.match(k, "^S_([%a_]+)$") then indextable[k] = v end
+   end
+
+   if m.depends_skills then
+      assert(type(m.depends_skills) == "table", "Type of depends_skills not table")
+      for _,skill_name in ipairs(m.depends_skills) do
+	 assert(type(skill_name) == "string", "Type of element in depends_skills is not string")
+	 local sw = SkillWrapper:new{name=skill_name}
+	 indextable[sw.name] = sw
+      end
+   end
+
+   if m.depends_interfaces then
+      depinit.init_interfaces(m.name, m.depends_interfaces, indextable)
+   end
+
+   mt.__index = indextable
+
+   setmetatable(m, mt)
+
+   --[[
    local orig_depends_skills = m.depends_skills
    m.depends_skills = nil
    skillenv.skill_module(module_name)
    m.depends_skills = orig_depends_skills
+   --]]
 end
 
 --- Init agentenv.

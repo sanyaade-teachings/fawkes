@@ -81,7 +81,7 @@ function SkillChannel:stop()
    if self.statusval ~= skillstati.S_INACTIVE then
       skillenv.reset_skills_from_status(self.sandbox.__skill_status)
       skillenv.deactivate_skills(self.sandbox.dep_skills)
-      self.skill_string = ""
+      self.skillstring = ""
       self.sandbox      = nil
       self.func         = nil
       self.statusval    = skillstati.S_INACTIVE

@@ -114,10 +114,11 @@ function intersection(a,b)
 end
 
 -- Print all items of a set
-function tostring(set)
-   set_string = "{ "
-   for item in pairs(set) do
-      set_string = set_string .. tostring(item) .. " "
+function to_string(set)
+   item_list = {}
+   for item,_ in pairs(set) do
+      table.insert(item_list,tostring(item))
    end
-   set_string = set_string .. "}"
+   set_string = table.concat(item_list,", ")
+   return "{"..set_string.."}"
 end
