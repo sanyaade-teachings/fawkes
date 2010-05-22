@@ -274,3 +274,29 @@ function JumpState:jumpcond_nowriter()
    end
    return false
 end
+
+--- Create a timeout condition
+-- This function returns a function that can be used
+-- as a timeout condition for transitions
+-- @param time_sec the timeout in seconds
+-- @return true if the time has passed, false if not
+function JumpState:timeout(time_sec)
+   local now, endtime
+   return function()
+	     if not endtime then
+		endtime = Time:new()
+		endtime:stamp()
+		endtime:add(time_sec)
+	     end
+
+	     now = now or Time:new()
+	     now:stamp()
+	     if (now - endtime) >= 0 then
+		now = nil
+		endtime = nil
+		return true
+	     else
+		return false
+	     end
+	  end
+end
