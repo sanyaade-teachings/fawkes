@@ -384,12 +384,14 @@ function skill_depcheck(skill, dep_skills)
    assert(not dep_skills[skill.name],
 	  "Circular skill dependency in " .. skill.name .. " detected")
 
-   set.insert(dep_skills, skill.name)
+   if not skill.stateless then
+      set.insert(dep_skills, skill.name)
 
-   if skill.depends_skills then
-      for _,s in ipairs(skill.depends_skills) do
-	 dep_skills = set.union(dep_skills,
-				skill_depcheck(get_skill_module(s), dep_skills))
+      if skill.depends_skills then
+	 for _,s in ipairs(skill.depends_skills) do
+	    dep_skills = set.union(dep_skills,
+				   skill_depcheck(get_skill_module(s), dep_skills))
+	 end
       end
    end
 
@@ -510,6 +512,8 @@ function use_skill(module_name)
 	     "function nor FSM with valid exit state")
 
       m.execute = skill_fsm_execute_wrapper(m.fsm)
+   else
+      m.stateless = true
    end
    if not m.reset or type(m.reset) ~= "function" then
       -- no execute function, check if has fsm
