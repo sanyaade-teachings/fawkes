@@ -500,6 +500,7 @@ function FSM:define_states(state_table)
    assert(state_table.export_to, "No environment to export states specified")
    for _,s in ipairs(state_table) do
       local state = self:create_state_from(s)
+      state.closure = state_table.closure
       self:apply_deftrans(s)
       self.states[s.name] = state
       state_table.export_to[s.name] = state
@@ -533,17 +534,23 @@ function FSM:define_transitions(trans_table)
    for i,t in ipairs(trans_table) do
       local from, to
       if t[2] then
-	 from = t[1]
-	 to = t[2]
+	 from = assert(self.states[t[1]], "Attempt to define transition from" ..
+		       " undefined state " .. tostring(t[1])..".")
+	 to = assert(self.states[t[2]], "Attempt to define transition to" ..
+		       " undefined state " .. tostring(t[2])..".")
       else
-	 to = t[1]
+	 to = assert(self.states[t[1]], "Attempt to define default transition" ..
+		     " to undefined state " .. tostring(t[1])..".")
       end
 
-      assert(type(to) == "table", "Trans. ".. i .. ": Target state needs to be a state (a table)")
+      assert(type(to) == "table", "Trans. ".. i .. ": Target "..
+	  "state needs to be a state (a table)")
       if from then
-	 assert(type(from) == "table", "Trans. ".. i .. ": Source state needs to be a state (a table)")
+	 assert(type(from) == "table", "Trans. ".. i .. ": "..
+	     "Source state needs to be a state (a table)")
       end
-      assert(t.cond, "Trans. ".. i ..": Attempt to define transition  without condition")
+      assert(t.cond, "Trans. ".. i ..": Attempt to define "..
+	     "transition  without condition")
 
       local trans
       if from then
@@ -560,7 +567,7 @@ end
 -- corresponding state
 -- @param t the transition definition
 function FSM:create_transition_from(t)
-   local from = t[1]
+   local from = self.states[t[1]]
    local to = t[2]
 
    local tr = from:add_transition(to, t.cond, t.desc)
@@ -568,9 +575,9 @@ function FSM:create_transition_from(t)
    if t.precond then
       if self.debug then
 	 printf("%s: Making transition %s -> %s a precondition",
-		self.name, from, to)
+		self.name, from.name, to)
       end
-      s:add_precondition(tr)
+      from:add_precondition(tr)
    end
 end
 
@@ -587,7 +594,7 @@ function FSM:create_default_transition_from(t)
 
    if self.debug then
       printf("%s: Adding default transition to %s (cond: %s, desc: %s)",
-	     self.name, to.name, tostring(t.cond), tostring(t.desc))
+	     self.name, tostring(to), tostring(t.cond), tostring(t.desc))
    end
 
    self:add_default_transition(to, t.cond, t.desc, except)

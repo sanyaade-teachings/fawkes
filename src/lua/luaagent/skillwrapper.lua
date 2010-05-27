@@ -26,7 +26,7 @@ local oo = require("fawkes.ootools")
 local SkillExecutor = require("luaagent.skillexecutor")
 local skillstati = require("skiller.skillstati")
 
-SkillWrapper = { args = {}, status = S_INACTIVE }
+SkillWrapper = {debug = true}
 skiller = interfaces.reading.skiller
 
 --- Creates a new skill wrapper
@@ -36,6 +36,9 @@ function SkillWrapper:new(o)
    assert(o, "SkillWrapper requires a table as argument")
    assert(type(o.name) == "string", "SkillWrapper requires "..
        "a name which must be a string")
+   o.args = {}
+   o.status = skillstati.S_INACTIVE
+   o.debug = o.debug or self.debug
    return oo.create_instance(self, o)
 end
 
@@ -46,12 +49,16 @@ end
 -- @param args the arguments for the skill (e.g {arg1=a, arg2=b})
 -- @return the message id of the enqueued ExecSkillMessage
 function SkillWrapper:start(args)
-   args = args or {}
+   if self.debug then
+      print("SkillWrapper:start "..self.name)
+   end
+   local args = args or {}
    for k,v in pairs(args) do
       if not self.args[k] then
 	 self.args[k] = v
       end
    end
+
    local skill_string = self:get_skill_string()
    local msg = skiller.ExecSkillMessage:new(skill_string)
    return skiller:msgq_enqueue_copy(msg)
@@ -59,6 +66,9 @@ end
 
 --- Resets the skill wrapper
 function SkillWrapper:reset()
+   if self.debug then
+      print("SkillWrapper:reset "..self.name)
+   end
    self.fail = nil
    self.args = {}
 end

@@ -62,7 +62,6 @@ function JumpState:new(o)
    self:extract_params_from_to(o,js)
    setmetatable(js, self)
    self.__index = self
-   self.__tostring = function() return self.name end
 
    return js
 end
@@ -81,7 +80,6 @@ function JumpState:extract_params_from_to(o,s)
    s.dotattr = o.dotattr or {}
    s.transitions = o.transitions or {}
    s.preconditions = {}
-   s.closure = o.closure
    s.init = o.init
    s.loop = o.loop
 

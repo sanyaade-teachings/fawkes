@@ -58,6 +58,7 @@ end
 -- in the stop list, calls the states init funtion and
 -- then starts all skills in the start list
 function SkillState:do_init()
+   print("SkillState:do_init()")
    local rv = { self:try_transitions(self.preconditions) }
    if next(rv) then return unpack(rv) end
    self:stop_skills()
@@ -74,8 +75,14 @@ function SkillState:do_exit()
    SkillExecutor.clean_up()
 end
 
+function SkillState:reset()
+   self.last_trans = nil
+   SkillExecutor.clean_up()
+end
+
 --- Stops all skills in the states stop list
 function SkillState:stop_skills()
+   print("SkillState:stop_skills()")
    if type(self.stop) == "table" then
       for _,s in ipairs(self.stop) do
 	 SkillExecutor.stop(s)
@@ -87,6 +94,7 @@ end
 
 --- Starts all skills in stats start list
 function SkillState:start_skills()
+   print("SkillState:start_skills()")
    if self.start then
       for _,s in ipairs(self.start) do
 	 SkillExecutor.start(s)

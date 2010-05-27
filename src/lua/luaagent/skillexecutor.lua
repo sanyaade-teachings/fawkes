@@ -27,6 +27,8 @@ module(..., fawkes.modinit.module_init)
 
 local skillstati = require("skiller.skillstati")
 
+local debug = true
+
 local skiller = interfaces.reading.skiller
 local maxn_running_skills = skiller:maxlenof_msgid()
 local number_of_running_skills = 0
@@ -55,11 +57,15 @@ end
 -- Stops the execution and resets a given skill
 -- @param skill the skill wrapper for the skill we want to stop
 function stop(skill)
-   -- print("SkillExecutor: stop "..skill.name)
+   if debug then
+      print("SkillExecutor: stop "..skill.name)
+   end
    if running_skills[skill] then
       local ch_num = get_channel(skill)
-      local msg = skiller.StopExecMessage:new(ch_num)
-      skiller:msgq_enqueue_copy(msg)
+      if ch_num then
+	 local msg = skiller.StopExecMessage:new(ch_num)
+	 skiller:msgq_enqueue_copy(msg)
+      end
 
       skill:reset()
       running_skills[skill] = nil
@@ -70,7 +76,9 @@ end
 --- Stop the execution of all skills
 -- Stops the execution and resets all running skills
 function stop_all()
-   -- print("SkillExecutor: stop all")
+   if debug then
+      print("SkillExecutor: stop all")
+   end
    local msg = skiller.StopAllMessage:new()
    skiller:msgq_enqueue_copy(msg)
 
@@ -89,9 +97,12 @@ end
 -- @param skill_with_args a table which has for example the form
 -- {skill, {arg1=a, arg2=b}}. "skill" must be a skill wrapper.
 function start(skill_with_args)
-   skill = skill_with_args[1]
-   args = skill_with_args[2]
-   -- print("SkillExecutor: start " .. skill.name)
+   local skill = skill_with_args[1]
+   local args = skill_with_args[2]
+
+   if debug then
+      print("SkillExecutor: start "..skill.name)
+   end
 
    if running_skills[skill] then
       stop(skill)
@@ -123,7 +134,7 @@ function get_status(skill)
    return status
 end
 
---- Cleans up failed and final states
+--- Cleans up failed and final skills
 function clean_up()
    for skill,_ in pairs(running_skills) do
       local status = get_status(skill)
