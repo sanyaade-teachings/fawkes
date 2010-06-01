@@ -27,7 +27,7 @@ module(..., fawkes.modinit.module_init)
 
 local skillstati = require("skiller.skillstati")
 
-local debug = true
+local debug = false
 
 local skiller = interfaces.reading.skiller
 local maxn_running_skills = skiller:maxlenof_msgid()

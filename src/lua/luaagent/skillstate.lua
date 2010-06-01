@@ -50,6 +50,7 @@ function SkillState:extract_params(o)
    local s = {}
    s.start = o.start
    s.stop = o.stop
+   s.debug = o.debug
    return s
 end
 
@@ -58,7 +59,9 @@ end
 -- in the stop list, calls the states init funtion and
 -- then starts all skills in the start list
 function SkillState:do_init()
-   print("SkillState:do_init()")
+   if self.debug then
+      print("SkillState:do_init()")
+   end
    local rv = { self:try_transitions(self.preconditions) }
    if next(rv) then return unpack(rv) end
    self:stop_skills()
@@ -82,7 +85,9 @@ end
 
 --- Stops all skills in the states stop list
 function SkillState:stop_skills()
-   print("SkillState:stop_skills()")
+   if self.debug then
+      print("SkillState:stop_skills()")
+   end
    if type(self.stop) == "table" then
       for _,s in ipairs(self.stop) do
 	 SkillExecutor.stop(s)
@@ -94,7 +99,9 @@ end
 
 --- Starts all skills in stats start list
 function SkillState:start_skills()
-   print("SkillState:start_skills()")
+   if self.debug then
+      print("SkillState:start_skills()")
+   end
    if self.start then
       for _,s in ipairs(self.start) do
 	 SkillExecutor.start(s)

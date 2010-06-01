@@ -26,7 +26,7 @@ local oo = require("fawkes.ootools")
 local SkillExecutor = require("luaagent.skillexecutor")
 local skillstati = require("skiller.skillstati")
 
-SkillWrapper = {debug = true}
+SkillWrapper = {debug = false}
 skiller = interfaces.reading.skiller
 
 --- Creates a new skill wrapper
