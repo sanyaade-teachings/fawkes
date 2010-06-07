@@ -25,10 +25,13 @@ require("fawkes.logprint")
 local skillstati = require("skiller.skillstati")
 local shsmmod    = require("skiller.skillhsm")
 local wsmod      = require("fawkes.fsm.waitstate")
+local sssmod     = require("skiller.subskillstate")
+local dsmod      = require("fawkes.fsm.decisionstate")
 local depinit    = require("fawkes.depinit")
 local predlib    = require("fawkes.predlib")
 local grapher    = require("fawkes.fsm.grapher")
 local set        = require("fawkes.datastruct.set")
+
 
 local skills        = {}
 local active_skills = {}
@@ -558,8 +561,10 @@ function module_init(m)
    m.SkillHSM          = shsmmod.SkillHSM
    m.JumpState         = shsmmod.JumpState
    m.SkillJumpState    = shsmmod.SkillJumpState
+   m.SubSkillState     = sssmod.SubSkillState
    m.SubFSMJumpState   = shsmmod.SubFSMJumpState
    m.WaitState         = wsmod.WaitState
+   m.DecisionState     = dsmod.DecisionState
 end
 
 

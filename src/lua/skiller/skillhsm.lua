@@ -29,6 +29,7 @@ local jsmod = require("fawkes.fsm.jumpstate")
 local wsmod = require("fawkes.fsm.waitstate")
 local sjsmod = require("skiller.skill_jumpstates")
 local subfsmjsmod = require("fawkes.fsm.subfsmjumpstate")
+local oo = require("fawkes.ootools")
 
 local FSM         = fsmmod.FSM
 JumpState         = jsmod.JumpState
@@ -42,38 +43,17 @@ WaitState         = wsmod.WaitState
 -- @author Tim Niemueller
 SkillHSM = {current                 = nil,
 	    debug                   = false,
-	    export_states_to_parent = true,
-	    set_debug               = FSM.set_debug,
-	    set_error               = FSM.set_error,
-	    loop                    = FSM.loop,
-	    trans                   = FSM.trans,
-	    reset                   = FSM.reset,
-	    changed                 = FSM.changed,
-	    mark_changed            = FSM.mark_changed,
-	    set_changed             = FSM.set_changed,
-	    graph                   = FSM.graph,
-	    traced                  = FSM.traced,
-	    traced_state            = FSM.traced_state,
-	    traced_trans            = FSM.traced_trans,
-	    reset_trace             = FSM.reset_trace,
-	    add_state               = FSM.add_state,
-	    remove_state            = FSM.remove_state,
-	    get_start_state         = FSM.get_start_state,
-	    add_default_transition  = FSM.add_default_transition,
-	    apply_deftrans          = FSM.apply_deftrans,
-	    new_wait_state          = FSM.new_wait_state
+	    export_states_to_parent = true
 	   }
 
 --- Constructor.
 -- @param o object pre-initializer, must be a table.
 function SkillHSM:new(o)
-   local f = FSM:new(o)
-   setmetatable(o, self)
-   self.__index = self
+   local base = FSM:new(o)
+   shsm = oo.create_instance(self, o, base)
 
-   f:clear_states()
-
-   return f
+   shsm:clear_states()
+   return shsm
 end
 
 --- Clear all states.
