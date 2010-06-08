@@ -31,7 +31,6 @@ local debug = false
 
 local skiller = interfaces.reading.skiller
 local maxn_running_skills = skiller:maxlenof_msgid()
-local number_of_running_skills = 0
 local running_skills = {}
 
 --- Returns the skill channel a skill is running on
@@ -69,8 +68,7 @@ function stop(skill)
 
       skill:reset()
       running_skills[skill] = nil
-      number_of_running_skills = number_of_running_skills - 1
-   end
+    end
 end
 
 --- Stop the execution of all skills
@@ -108,15 +106,8 @@ function start(skill_with_args)
       stop(skill)
    end
 
-   if number_of_running_skills < maxn_running_skills then
-      msgid = skill:start(args)
-      running_skills[skill] = {msgid = msgid}
-      number_of_running_skills = number_of_running_skills + 1
-   else
-      print_warn("Failed to start %s. All skill channels occupied.",
-	      skill.name)
-      skill:set_failed()
-   end
+   msgid = skill:start(args)
+   running_skills[skill] = {msgid = msgid}
 end
 
 --- Get the status of a skill

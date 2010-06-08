@@ -95,6 +95,7 @@ function agent_module(module_name)
       for _,skill_name in ipairs(m.depends_skills) do
 	 assert(type(skill_name) == "string", "Type of element in depends_skills is not string")
 	 local sw = SkillWrapper:new{name=skill_name}
+	 assert(sw, "Unable to create skill wrapper for "..skill_name)
 	 indextable[sw.name] = sw
       end
    end
