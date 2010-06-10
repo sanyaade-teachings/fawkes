@@ -83,6 +83,18 @@ function SkillHSM:clear_states()
    self.state_changed = true
 end
 
+--- Reset FSM.
+-- Additionally to the normal FSM.reset a reset_skill() function is called 
+-- that is to implemented for skills that need cleanup, like reseting leds
+-- on the Nao.
+function SkillHSM:reset()
+   FSM.reset(self)
+   self.reset_skill()
+end
+
+function SkillHSM:reset_skill()
+end
+
 --- Simple state generation not supported for SkillHSM.
 -- Throws an error. Only jump states can be created for SkillHSMs.
 function SkillHSM:new_state()
