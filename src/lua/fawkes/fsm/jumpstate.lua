@@ -82,6 +82,7 @@ function JumpState:extract_params_from_to(o,s)
    s.preconditions = {}
    s.init = o.init
    s.loop = o.loop
+   s.closure = o.closure
 
    assert(type(s.transitions) == "table", "Transitions for " .. o.name .. " not a table")
    assert(type(s.dotattr) == "table", "Dot attributes for " .. o.name .. " not a table")

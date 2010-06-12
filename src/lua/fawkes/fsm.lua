@@ -499,8 +499,8 @@ end
 function FSM:define_states(state_table)
    assert(state_table.export_to, "No environment to export states specified")
    for _,s in ipairs(state_table) do
+      s.closure = state_table.closure
       local state = self:create_state_from(s)
-      state.closure = state_table.closure
       self:apply_deftrans(s)
       self.states[s.name] = state
       state_table.export_to[s.name] = state

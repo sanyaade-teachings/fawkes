@@ -70,7 +70,7 @@ function DecisionState:create_transitions_from_cond()
       negative = function () return not cond() end
    elseif type(cond) == "string" then
       positive = cond
-      negative = "not " .. cond
+      negative = "not (" .. cond ..")"
    else
       error("Wrong type of condition in DecisionState " .. self.name)
    end
