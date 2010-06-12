@@ -81,7 +81,7 @@ function stop_all()
    skiller:msgq_enqueue_copy(msg)
 
    for skill,_ in ipairs(running_skills) do
-      skill.reset()
+      skill:reset()
    end
    running_skills = {}
 end
