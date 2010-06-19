@@ -50,7 +50,7 @@ end
 -- @return the message id of the enqueued ExecSkillMessage
 function SkillWrapper:start(args)
    if self.debug then
-      print("SkillWrapper:start "..self.name)
+      print("SkillWrapper: start "..self.name)
    end
    local args = args or {}
    for k,v in pairs(args) do
@@ -67,7 +67,7 @@ end
 --- Resets the skill wrapper
 function SkillWrapper:reset()
    if self.debug then
-      print("SkillWrapper:reset "..self.name)
+      print("SkillWrapper: reset "..self.name)
    end
    self.fail = nil
    self.args = {}

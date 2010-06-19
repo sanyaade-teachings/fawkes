@@ -80,7 +80,7 @@ function stop_all()
    local msg = skiller.StopAllMessage:new()
    skiller:msgq_enqueue_copy(msg)
 
-   for skill,_ in ipairs(running_skills) do
+   for skill,_ in pairs(running_skills) do
       skill:reset()
    end
    running_skills = {}
@@ -127,10 +127,20 @@ end
 
 --- Cleans up failed and final skills
 function clean_up()
+   if debug then
+      print("SkillExecutor: cleanup")
+   end
    for skill,_ in pairs(running_skills) do
       local status = get_status(skill)
       if status == skillstati.S_FINAL or status == skillstati.S_FAILED then
+	 if debug then
+	    print("  clean "..skill.name)
+	 end
 	 stop(skill)
+      else
+	 if debug then
+	    print("  keep "..skill.name)
+	 end
       end
    end
 end
