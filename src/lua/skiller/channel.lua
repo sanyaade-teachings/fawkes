@@ -69,6 +69,7 @@ function SkillChannel:exec(skillstring)
    assert(self.sandbox == nil, "Skill is already being executed.")
    self.skillstring = skillstring
    self.sandbox     = skillenv.gensandbox()
+   self.sandbox.__skill_status = { final={}, failed={}, running={} }
    self.func        = loadstring(skillstring)
    self.statusval   = skillstati.S_RUNNING
    setfenv(self.func, self.sandbox)
