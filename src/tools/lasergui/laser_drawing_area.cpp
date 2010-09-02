@@ -326,9 +326,12 @@ LaserDrawingArea::on_expose_event(GdkEventExpose* event)
     //    __last_xc += __translation_x;
     //    __last_yc += __translation_y;
     cr->translate(__xc, __yc);
-  
     cr->save();
-    if ( (__laser360_if == NULL) && (__laser720_if == NULL) ) {
+
+    if ( (__laser360_if == NULL) && (__laser720_if == NULL) &&
+	 __l_objpos_if_legs == NULL && __l_track_if == NULL ){
+      //	 (__l_objpos_if_legs->size() == 0 || (*__l_objpos_if_legs->begin()) == NULL )  &&
+      //	 (__l_track_if->size() == 0 ||  (*__l_objpos_if_legs->begin()) == NULL )) {
       Cairo::TextExtents te;
       std::string t = "Not connected to BlackBoard";
       cr->set_source_rgb(1, 0, 0);
@@ -336,26 +339,47 @@ LaserDrawingArea::on_expose_event(GdkEventExpose* event)
       cr->get_text_extents(t, te);
       cr->move_to(- te.width / 2, -te.height / 2);
       cr->show_text(t);
-    } else if ( (__laser360_if && ! __laser360_if->has_writer()) ||
-		(__laser720_if && ! __laser720_if->has_writer()) ) {
+    } else if ( ((__laser360_if && ! __laser360_if->has_writer()) ||
+		 (__laser720_if && ! __laser720_if->has_writer()))  &&
+		(__l_objpos_if_legs!= NULL && __l_objpos_if_legs->size() > 0 && !(*__l_objpos_if_legs->begin())->has_writer()) &&
+		(__l_track_if != NULL && __l_track_if->size() > 0 && !(*__l_track_if->begin())->has_writer()) ){
       Cairo::TextExtents te;
-      std::string t = "No writer for 360° laser interface";
-      if (__laser720_if) t = "No writer for 720° laser interface";
+      std::string t = "No writer for the interfaces";
       cr->set_source_rgb(1, 0, 0);
       cr->set_font_size(20);
       cr->get_text_extents(t, te);
       cr->move_to(- te.width / 2, -te.height / 2);
       cr->show_text(t);
+      
     } else {
-
-      if (! __break_drawing) {
-	if (__laser360_if)  __laser360_if->read();
-	if (__laser720_if)  __laser720_if->read();
+      if (__robot_drawer)  __robot_drawer->draw_robot(window, cr);
+      
+      if ( (__laser360_if &&  __laser360_if->has_writer()) ||
+	   (__laser720_if &&  __laser720_if->has_writer())){
+	
+	if (! __break_drawing) {
+	  if (__laser360_if)  __laser360_if->read();
+	  if (__laser720_if)  __laser720_if->read();
+	}
+	
+	draw_beams(window, cr);
+	
+	draw_segments(window, cr);
+	
+	const float radius = 4 / __zoom_factor;
+	if (__line_if) {
+	  __line_if->read();
+	  cr->rectangle(-__line_if->world_y() - radius * 0.5, -__line_if->world_x() - radius * 0.5, radius, radius);
+	  cr->rectangle(-__line_if->relative_y() - radius * 0.5, -__line_if->relative_x() - radius * 0.5, radius, radius);
+	  cr->fill_preserve();
+	  cr->stroke();
+	  cr->move_to(-__line_if->world_y(), -__line_if->world_x());
+	  cr->line_to(-__line_if->relative_y(), -__line_if->relative_x());
+	  cr->stroke();
+	}
       }
 
-      draw_beams(window, cr);
-      if (__robot_drawer)  __robot_drawer->draw_robot(window, cr);
-      draw_segments(window, cr);
+
       draw_persons_legs(window, cr);
 
       if(__switch_if != NULL && __switch_if->has_writer()){
@@ -363,6 +387,7 @@ LaserDrawingArea::on_expose_event(GdkEventExpose* event)
 	__switch_if->msgq_enqueue(esm);
       }
     }
+    
     cr->restore();
 
     cr->save();
@@ -820,17 +845,20 @@ void
 LaserDrawingArea::draw_segments(Glib::RefPtr<Gdk::Window> &window,
 				Cairo::RefPtr<Cairo::Context> &cr)
 {
-  float *distances = __laser360_if ? __laser360_if->distances() : __laser720_if->distances();
-  size_t nd = __laser_segmentation_if->maxlenof_distances();
-  const float nd_factor = 360.0 / nd;
-
-  cr->save();
+  
+  
   /* DRAW SEGMENTS (draw the segment interiors again with other color*/
   if( __laser_segmentation_if && __laser_segmentation_if->has_writer()){
+
+    float *distances = __laser360_if ? __laser360_if->distances() : __laser720_if->distances();
+    size_t nd = __laser_segmentation_if->maxlenof_distances();
+    const float nd_factor = 360.0 / nd;    
+    cr->save();
+
+
     if(!__break_drawing)
       __laser_segmentation_if->read();
     float * segmentations = __laser_segmentation_if->distances();
-    size_t nd = __laser_segmentation_if->maxlenof_distances();
     //	cr->set_source_rgba(0,0,0,0.5);
     cr->set_source_rgb(1,1,0);
 
