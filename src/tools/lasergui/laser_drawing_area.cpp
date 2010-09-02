@@ -40,7 +40,8 @@ using namespace fawkes;
 
 /** @class LaserDrawingArea "laser_drawing_area.h"
  * Laser drawing area.
- * Derived version of Gtk::DrawingArea that renders values of a laser interface.
+ * Derived version of Gtk::DrawingArea that // // render
+ values of a laser interface.
  * @author Tim Niemueller
  */
 
@@ -657,6 +658,7 @@ LaserDrawingArea::draw_persons_legs(Glib::RefPtr<Gdk::Window> &window,
 	unsigned int j(0);
 	float x = x_positions1[i];
 	float y = y_positions1[i];
+	int last_compound_position (-1);
 	if(b_compound_track){
 	  while(j < track_length2 && timestamps2[j] < timestamps1[i]){
 	    ++j;
@@ -680,6 +682,10 @@ LaserDrawingArea::draw_persons_legs(Glib::RefPtr<Gdk::Window> &window,
 	      y = (y_positions1[i] + y_positions2[j])/2.0;
 	    }
 	  }
+	  if ( j == track_length2 - 1 ){
+	    last_compound_position = (int) i;
+	  }
+	    
 	  std::pair<float,float> pos = transform_coords_from_fawkes(x,y);
 	  //cr->move_to(pos.first - radius, pos.second);
 	  //	  cr->arc(pos.first, pos.second, radius, 0, 2*M_PI);
@@ -735,8 +741,25 @@ LaserDrawingArea::draw_persons_legs(Glib::RefPtr<Gdk::Window> &window,
 	cr->set_line_width(original_line_width * 2.5);
 	//	printf("line width orig: %f, new%f\n", original_line_width, cr->get_line_width());
 	cr->stroke();
+	if ( last_compound_position != -1 ){
+	  x = x_positions1[track_length1 - 1];
+	  y = y_positions1[track_length1 - 1];
+
+	  std::pair<float,float> pos = transform_coords_from_fawkes(x_positions1[track_length1 - 1],y_positions1[track_length1 - 1]);
+	  cr->move_to(pos.first - radius, pos.second);
+	  cr->arc(pos.first, pos.second, radius, 0, 2*M_PI);
+	  
+
+	  cr->move_to(pos.first, pos.second);
+	  
+	  os = transform_coords_from_fawkes(x_positions2[track_length2 - 1],y_positions2[track_length2 - 1]);
+	  cr->line_to(pos.first, pos.second);
+	  cr->move_to(pos.first - radius, pos.second);
+	  cr->arc(pos.first, pos.second, radius, 0, 2*M_PI);
+	  cr->set_source_rgb(1,0,0);
+	  cr->stroke();
+	}
 	cr->set_line_width(original_line_width);
-	
       }
       else{
 	break;
