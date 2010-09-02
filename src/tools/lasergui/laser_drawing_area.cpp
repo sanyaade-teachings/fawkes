@@ -43,6 +43,7 @@ using namespace fawkes;
  * Derived version of Gtk::DrawingArea that // // render
  values of a laser interface.
  * @author Tim Niemueller
+ * @author Masrur Doostdar
  */
 
 #ifdef HAVE_GLADEMM
@@ -85,7 +86,38 @@ LaserDrawingArea::LaserDrawingArea(BaseObjectType* cobject,
   signal_motion_notify_event().connect(sigc::mem_fun(*this, &LaserDrawingArea::on_motion_notify_event));
 #endif
 
-  //Glib::RefPtr<Gdk::Window> window = get_window();
+  Glib::RefPtr<Gdk::Window> window = get_window();
+
+
+  __fcd_save = new Gtk::FileChooserDialog("Save Graph",
+					  Gtk::FILE_CHOOSER_ACTION_SAVE);
+  __fcd_recording = new Gtk::FileChooserDialog("Recording Directory",
+						 Gtk::FILE_CHOOSER_ACTION_CREATE_FOLDER);
+
+  //Add response buttons the the dialog:
+  __fcd_save->add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+  __fcd_save->add_button(Gtk::Stock::SAVE, Gtk::RESPONSE_OK);
+  __fcd_recording->add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+  __fcd_recording->add_button(Gtk::Stock::OK, Gtk::RESPONSE_OK);
+
+  __filter_pdf = new Gtk::FileFilter();
+  __filter_pdf->set_name("Portable Document Format (PDF)");
+  __filter_pdf->add_pattern("*.pdf");
+  __filter_svg = new Gtk::FileFilter();
+  __filter_svg->set_name("Scalable Vector Graphic (SVG)");
+  __filter_svg->add_pattern("*.svg");
+  __filter_png = new Gtk::FileFilter();
+  __filter_png->set_name("Portable Network Graphic (PNG)");
+  __filter_png->add_pattern("*.png");
+  __filter_dot = new Gtk::FileFilter();
+  __filter_dot->set_name("DOT Graph");
+  __filter_dot->add_pattern("*.dot");
+  __fcd_save->add_filter(*__filter_pdf);
+  __fcd_save->add_filter(*__filter_svg);
+  __fcd_save->add_filter(*__filter_png);
+  __fcd_save->add_filter(*__filter_dot);
+  __fcd_save->set_filter(*__filter_pdf);
+
 }
 #endif
 
@@ -119,6 +151,14 @@ LaserDrawingArea::LaserDrawingArea()
   signal_button_press_event().connect(sigc::mem_fun(*this, &LaserDrawingArea::on_button_press_event));
   signal_motion_notify_event().connect(sigc::mem_fun(*this, &LaserDrawingArea::on_motion_notify_event));
 #endif
+
+  delete __fcd_save;
+  delete __fcd_recording;
+  delete __filter_pdf;
+  delete __filter_svg;
+  delete __filter_png;
+  delete __filter_dot;
+
 }
 
 
@@ -1110,4 +1150,130 @@ LaserDrawingArea::transform_coords_from_fawkes(float p_x, float p_y){
   pos.first =  -p_y ;
   pos.second=  -p_x ;
   return pos;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void
+SkillGuiGraphDrawingArea::save_dotfile(const char *filename)
+{
+  FILE *f = fopen(filename, "w");
+  if (f) {
+    fwrite(__graph.c_str(), __graph.length(), 1, f);
+    fclose(f);
+  }
+}
+
+
+/** Enable/disable recording.
+ * @param recording true to enable recording, false otherwise
+ * @return true if recording is enabled now, false if it is disabled.
+ * Enabling the recording may fail for example if the user chose to abort
+ * the directory creation process.
+ */
+bool
+SkillGuiGraphDrawingArea::set_recording(bool recording)
+{
+  if (recording) {
+    Gtk::Window *w = dynamic_cast<Gtk::Window *>(get_toplevel());
+    __fcd_recording->set_transient_for(*w);
+    int result = __fcd_recording->run();
+    if (result == Gtk::RESPONSE_OK) {
+      __record_directory = __fcd_recording->get_filename();
+      __recording = true;
+    }
+    __fcd_recording->hide();
+  } else {
+    __recording = false;
+  }
+  return __recording;
+}
+
+
+/** save current graph. */
+void
+SkillGuiGraphDrawingArea::save()
+{
+  Gtk::Window *w = dynamic_cast<Gtk::Window *>(get_toplevel());
+  __fcd_save->set_transient_for(*w);
+
+  int result = __fcd_save->run();
+  if (result == Gtk::RESPONSE_OK) {
+
+    Gtk::FileFilter *f = __fcd_save->get_filter();
+    std::string filename = __fcd_save->get_filename();
+    if (filename != "") {
+      if (f == __filter_dot) {
+	save_dotfile(filename.c_str());
+      } else {
+	Cairo::RefPtr<Cairo::Surface> surface;
+
+	bool write_to_png = false;
+	if (f == __filter_pdf) {
+	  surface = Cairo::PdfSurface::create(filename, __bbw, __bbh);
+	} else if (f == __filter_svg) {
+	  surface = Cairo::SvgSurface::create(filename, __bbw, __bbh);
+	} else if (f == __filter_png) {
+	  surface = Cairo::ImageSurface::create(Cairo::FORMAT_ARGB32,
+						(int)ceilf(__bbw),
+						(int)ceilf(__bbh));
+	  write_to_png = true;
+	}
+
+	if (surface) {
+	  __cairo = Cairo::Context::create(surface);
+	  
+	  bool old_scale_override = __scale_override;
+	  double old_tx = __translation_x;
+	  double old_ty = __translation_y;
+	  double old_scale = __scale;
+	  __translation_x = __pad_x; //??
+	  __translation_y = __bbh - __pad_y;
+	  __scale = 1.0;
+	  __scale_override = true;
+
+	  Agraph_t *g = agmemread((char *)__graph.c_str()); //?? graph?
+	  if (g) {
+	    gvLayout(__gvc, g, (char *)"dot");
+	    gvRender(__gvc, g, (char *)"skillguicairo", NULL);
+	    gvFreeLayout(__gvc, g);
+	    agclose(g);
+	  }
+
+	  if (write_to_png) {
+	    surface->write_to_png(filename);
+	  }
+
+	  __cairo.clear();
+
+	  __translation_x = old_tx;
+	  __translation_y = old_ty;
+	  __scale = old_scale;
+	  __scale_override = old_scale_override;
+	}
+      }
+
+    } else {
+      Gtk::MessageDialog md(*w, "Invalid filename",
+			    /* markup */ false, Gtk::MESSAGE_ERROR,
+			    Gtk::BUTTONS_OK, /* modal */ true);
+      md.set_title("Invalid File Name");
+      md.run();
+    }
+  }
+
+  __fcd_save->hide();
 }
