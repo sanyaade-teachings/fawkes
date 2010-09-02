@@ -5,6 +5,8 @@
  *  Created: Thu Oct 09 18:20:21 2008
  *  Copyright  2008-2010  Tim Niemueller [www.niemueller.de]
  *
+ *  $Id: laser_drawing_area.cpp 2839 2009-07-22 18:25:57Z doostdar $
+ *
  ****************************************************************************/
 
 /*  This program is free software; you can redistribute it and/or modify
@@ -32,7 +34,7 @@
 #include <utils/misc/string_conversions.h>
 
 //#define LASERGUI_DEBUG_PRINT_TRACKS
-#define CFG_PRINT_NR_TRACKELEMENTS 5
+#define CFG_PRINT_NR_TRACKELEMENTS 1
 
 using namespace fawkes;
 
@@ -606,15 +608,15 @@ LaserDrawingArea::draw_persons_legs(Glib::RefPtr<Gdk::Window> &window,
   if (__l_track_if) {
 
     std::list<Position2DTrackInterface*>::iterator track_if_itt;;  
-    const float radius (0.1);
+    const float radius (0.07);
     float* x_positions1;
     float* y_positions1;
     int* timestamps1;
-    float* x_positions2 = NULL;
-    float* y_positions2 = NULL;
-    unsigned int track_length1 = 0;
-    unsigned int track_length2 = 0;
-    int* timestamps2 = NULL;
+    float* x_positions2;
+    float* y_positions2;
+    unsigned int track_length1(0);
+    unsigned int track_length2(0);
+    int* timestamps2;
     unsigned int id;
     cr->set_font_size(0.03);
 #ifdef LASERGUI_DEBUG_PRINT_TRACKS
@@ -632,10 +634,16 @@ LaserDrawingArea::draw_persons_legs(Glib::RefPtr<Gdk::Window> &window,
 	track_length1 = (*track_if_itt)->length();
 	id = (*track_if_itt)->track_id();
 	++track_if_itt;
+#ifdef LASERGUI_DEBUG_PRINT_TRACKS
+	printf("\n    trackid %d\n", id);
+#endif
 	if( track_if_itt != __l_track_if->end() && (*track_if_itt)->has_writer()){
 	  if(!__break_drawing)
 	    (*track_if_itt)->read();
-	  if( (*track_if_itt)->is_valid() && (*track_if_itt)->track_id()==id ){
+	  if( (*track_if_itt)->is_valid() && (*track_if_itt)->track_id() == id ){
+#ifdef LASERGUI_DEBUG_PRINT_TRACKS
+	    printf("compound!\n");
+#endif
 	    b_compound_track = true;
 	    x_positions2=(*track_if_itt)->track_x_positions();
 	    y_positions2=(*track_if_itt)->track_y_positions();
@@ -644,22 +652,18 @@ LaserDrawingArea::draw_persons_legs(Glib::RefPtr<Gdk::Window> &window,
 	    ++track_if_itt;
 	  }
 	}
-#ifdef LASERGUI_DEBUG_PRINT_TRACKS
-	printf("\n    trackid %d\n", id);
-#endif
+
 	unsigned int i(0);
 	unsigned int j(0);
 	float x = x_positions1[i];
 	float y = y_positions1[i];
 	if(b_compound_track){
-	  while(j+1 < track_length2 && timestamps2[j] < timestamps1[i]){
+	  while(j < track_length2 && timestamps2[j] < timestamps1[i]){
 	    ++j;
 	  }
-	  if(timestamps2[j] == timestamps1[i]){
-	    x += x_positions2[i];
-	    x /= 2;
-	    y += y_positions2[i];
-	    y /=2;
+	  if(j  <  track_length2 && timestamps2[j] == timestamps1[i]){
+	    x = (x_positions1[i] + x_positions2[j])/2.0;
+	    y = (y_positions1[i] + y_positions2[j])/2.0;
 	  }
 	}
 	std::pair<float,float> pos = transform_coords_from_fawkes(x,y);
@@ -668,14 +672,12 @@ LaserDrawingArea::draw_persons_legs(Glib::RefPtr<Gdk::Window> &window,
 	  x = x_positions1[i];
 	  y = y_positions1[i];
 	  if(b_compound_track){
-	    while(j+1 < track_length2 && timestamps2[j] < timestamps1[i]){
+	    while(j < track_length2 && timestamps2[j] < timestamps1[i]){
 	      ++j;
 	    }
-	    if(timestamps2[j] == timestamps1[i]){
-	      x += x_positions2[i];
-	      x /= 2;
-	      y += y_positions2[i];
-	      y /=2;
+	    if(j  <  track_length2 && timestamps2[j] == timestamps1[i]){
+	      x = (x_positions1[i] + x_positions2[j])/2.0;
+	      y = (y_positions1[i] + y_positions2[j])/2.0;
 	    }
 	  }
 	  std::pair<float,float> pos = transform_coords_from_fawkes(x,y);
@@ -688,7 +690,7 @@ LaserDrawingArea::draw_persons_legs(Glib::RefPtr<Gdk::Window> &window,
 	  std::string t = StringConversions::to_string(timestamps1[i]);
 	  //      cr->move_to(begin_x, begin_y);
 	  cr->show_text(t);
-	  cr->move_to(pos.first, pos.second);
+	  //	  cr->move_to(pos.first, pos.second);
 #ifdef LASERGUI_DEBUG_PRINT_TRACKS
 	  printf("( %f,%f,[%d] )", pos.first, pos.second, timestamps1[i] );
 #endif
@@ -716,7 +718,7 @@ LaserDrawingArea::draw_persons_legs(Glib::RefPtr<Gdk::Window> &window,
 	  }
 	  
 	  std::pair<float,float> pos = transform_coords_from_fawkes(x_positions1[i],y_positions1[i]);
-	  cr->move_to(pos.first - radius, pos.second);
+	  cr->move_to(pos.first + radius, pos.second);
 	  cr->arc(pos.first, pos.second, radius, 0, 2*M_PI);
 	  
 	  if(b_compound_track && timestamps2[j] == timestamps1[i]){
@@ -724,12 +726,16 @@ LaserDrawingArea::draw_persons_legs(Glib::RefPtr<Gdk::Window> &window,
 	    
 	    std::pair<float,float> pos = transform_coords_from_fawkes(x_positions2[j],y_positions2[j]);
 	    cr->line_to(pos.first, pos.second);
-	    cr->move_to(pos.first - radius, pos.second);
+	    cr->move_to(pos.first + radius, pos.second);
 	    cr->arc(pos.first, pos.second, radius, 0, 2*M_PI);
 	  }
 	}
-	cr->set_source_rgb(0,0,1);
+	cr->set_source_rgb(1,0,0);
+	double original_line_width = cr->get_line_width();
+	cr->set_line_width(original_line_width * 2.5);
+	//	printf("line width orig: %f, new%f\n", original_line_width, cr->get_line_width());
 	cr->stroke();
+	cr->set_line_width(original_line_width);
 	
       }
       else{
