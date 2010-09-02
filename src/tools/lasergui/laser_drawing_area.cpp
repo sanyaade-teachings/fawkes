@@ -352,6 +352,10 @@ LaserDrawingArea::on_expose_event(GdkEventExpose* event)
       cr->show_text(t);
       
     } else {
+      cr->scale(__zoom_factor, __zoom_factor);
+      cr->rotate(__rotation);
+      cr->set_line_width(1. / __zoom_factor);
+
       if (__robot_drawer)  __robot_drawer->draw_robot(window, cr);
       
       if ( (__laser360_if &&  __laser360_if->has_writer()) ||
