@@ -76,7 +76,8 @@ class LaserGuiGtkWindow : public Gtk::Window
     refxml->get_widget("tb_trimvals", __tb_trimvals);
     refxml->get_widget("tb_rotation", __tb_rotation);
     refxml->get_widget("tb_legtracker", __tb_legtracker);
-    refxml->get_widget("tb_stop", __tb_stop);
+    refxml->get_widget("tb_break", __tb_break);
+    refxml->get_widget("tb_forward", __tb_forward);
     refxml->get_widget("tb_zoom_in", __tb_zoom_in);
     refxml->get_widget("tb_zoom_out", __tb_zoom_out);
     refxml->get_widget("tb_exit", __tb_exit);
@@ -92,7 +93,8 @@ class LaserGuiGtkWindow : public Gtk::Window
     __tb_trimvals->set_sensitive(false);
     __tb_rotation->set_sensitive(false);
     __tb_legtracker->set_sensitive(false);
-    __tb_stop->set_sensitive(false);
+    __tb_break->set_sensitive(false);
+    __tb_forward->set_sensitive(false);
     __tb_zoom_in->set_sensitive(false);
     __tb_zoom_out->set_sensitive(false);
 
@@ -107,13 +109,18 @@ class LaserGuiGtkWindow : public Gtk::Window
     __tb_legtracker->signal_clicked().connect(sigc::mem_fun(*this, &LaserGuiGtkWindow::on_legtracker_toggled));
     __tb_trimvals->signal_clicked().connect(sigc::mem_fun(*this, &LaserGuiGtkWindow::on_trimvals_toggled));
     __tb_rotation->signal_clicked().connect(sigc::mem_fun(*this, &LaserGuiGtkWindow::on_rotation_toggled));
-    __tb_stop->signal_clicked().connect(sigc::mem_fun(*this, &LaserGuiGtkWindow::on_stop_toggled));
+    __tb_break->signal_clicked().connect(sigc::mem_fun(*this, &LaserGuiGtkWindow::on_break_toggled));
+    __tb_forward->signal_clicked().connect(sigc::mem_fun(*this, &LaserGuiGtkWindow::on_forward_clicked));
     __tb_exit->signal_clicked().connect(sigc::mem_fun(*this, &LaserGuiGtkWindow::on_exit_clicked));
 
     __connection_dispatcher.signal_connected().connect(sigc::mem_fun(*this, &LaserGuiGtkWindow::on_connect));
     __connection_dispatcher.signal_disconnected().connect(sigc::mem_fun(*this, &LaserGuiGtkWindow::on_disconnect));
 
     b_first_time_legtracker_connected = true;
+    
+    __ifd = NULL;
+    __ifd_legs = NULL;
+    __ifd_tracks = NULL;
   }
 
 
@@ -181,7 +188,8 @@ class LaserGuiGtkWindow : public Gtk::Window
       __tb_trimvals->set_sensitive(true);
       __tb_rotation->set_sensitive(true);
       __tb_legtracker->set_sensitive(true);
-      __tb_stop->set_sensitive(true);
+      __tb_break->set_sensitive(true);
+      __tb_forward->set_sensitive(true);
       __tb_zoom_in->set_sensitive(true);
       __tb_zoom_out->set_sensitive(true);
     } catch (Exception &e) {
@@ -282,7 +290,8 @@ class LaserGuiGtkWindow : public Gtk::Window
     __tb_trimvals->set_sensitive(false);
     __tb_rotation->set_sensitive(false);
     __tb_legtracker->set_sensitive(false);
-    __tb_stop->set_sensitive(false);
+    __tb_break->set_sensitive(false);
+    __tb_forward->set_sensitive(false);
     __tb_zoom_in->set_sensitive(false);
     __tb_zoom_out->set_sensitive(false);
   }
@@ -299,10 +308,26 @@ class LaserGuiGtkWindow : public Gtk::Window
   }
   
 
-  /** Event handler for stop button */
-  void on_stop_toggled()
+  /** Event handler for break button */
+  void on_break_toggled()
   {
-    __area->toggle_break_drawing();
+    if(__switch_if != NULL && __switch_if->has_writer()){
+      SwitchInterface::EnableSwitchMessage *esm = new SwitchInterface::EnableSwitchMessage();
+      __switch_if->msgq_enqueue(esm);
+    }
+    
+    //__area->toggle_break_drawing();
+  }
+
+
+  /** Event handler for forward button */
+  void on_forward_clicked()
+  {
+    if(__switch_if != NULL && __switch_if->has_writer()){
+      SwitchInterface::SetMessage *sm = new SwitchInterface::SetMessage(true,1);
+      __switch_if->msgq_enqueue(sm);
+    }
+    //    printf("forward\n");
   }
 
   /** Event handler for resolution button. */
@@ -392,7 +417,7 @@ class LaserGuiGtkWindow : public Gtk::Window
 	delete __ifd_legs;
 	__bb->unregister_listener(__ifd_legs);
       }
-      if(__ifd_legs != NULL){
+      if(__ifd_tracks != NULL){
 	delete __ifd_tracks;
       __bb->unregister_listener(__ifd_tracks);
       }      
@@ -530,7 +555,8 @@ class LaserGuiGtkWindow : public Gtk::Window
   Gtk::ToggleToolButton              *__tb_trimvals;
   Gtk::ToggleToolButton              *__tb_rotation;
   Gtk::ToggleToolButton              *__tb_legtracker;
-  Gtk::ToggleToolButton              *__tb_stop;
+  Gtk::ToggleToolButton              *__tb_break;
+  Gtk::ToolButton                    *__tb_forward;
   Gtk::ToolButton                    *__tb_zoom_in;
   Gtk::ToolButton                    *__tb_zoom_out;
   Gtk::ToolButton                    *__tb_exit;

@@ -386,11 +386,10 @@ LaserDrawingArea::on_expose_event(GdkEventExpose* event)
 
 
       draw_persons_legs(window, cr);
-
-      if(__switch_if != NULL && __switch_if->has_writer()){
-	SwitchInterface::EnableSwitchMessage *esm = new SwitchInterface::EnableSwitchMessage();
-	__switch_if->msgq_enqueue(esm);
-      }
+      // if(__switch_if != NULL && __switch_if->has_writer()){
+      // 	SwitchInterface::EnableSwitchMessage *esm = new SwitchInterface::EnableSwitchMessage();
+      // 	__switch_if->msgq_enqueue(esm);
+      // }
     }
     
     cr->restore();
@@ -640,14 +639,14 @@ LaserDrawingArea::draw_persons_legs(Glib::RefPtr<Gdk::Window> &window,
 
     std::list<Position2DTrackInterface*>::iterator track_if_itt;;  
     const float radius (0.07);
-    float* x_positions1;
-    float* y_positions1;
-    int* timestamps1;
-    float* x_positions2;
-    float* y_positions2;
+    float* x_positions1 (NULL) ;
+    float* y_positions1 (NULL);
+    int* timestamps1 (NULL);
+    float* x_positions2 (NULL);
+    float* y_positions2 (NULL);
     unsigned int track_length1(0);
     unsigned int track_length2(0);
-    int* timestamps2;
+    int* timestamps2 (NULL);
     unsigned int id;
 
 #ifdef LASERGUI_DEBUG_PRINT_TRACKS
@@ -957,6 +956,7 @@ LaserDrawingArea::toggle_break_drawing()
 {
   __break_drawing = ! __break_drawing;
 }
+
 
 
 /** Button press event handler.
