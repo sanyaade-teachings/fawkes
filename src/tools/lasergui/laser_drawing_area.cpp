@@ -356,6 +356,7 @@ LaserDrawingArea::on_expose_event(GdkEventExpose* event)
       cr->rotate(__rotation);
       cr->set_line_width(1. / __zoom_factor);
 
+
       if (__robot_drawer)  __robot_drawer->draw_robot(window, cr);
       
       if ( (__laser360_if &&  __laser360_if->has_writer()) ||
@@ -648,12 +649,13 @@ LaserDrawingArea::draw_persons_legs(Glib::RefPtr<Gdk::Window> &window,
     unsigned int track_length2(0);
     int* timestamps2;
     unsigned int id;
-    cr->set_font_size(0.03);
+
 #ifdef LASERGUI_DEBUG_PRINT_TRACKS
     printf("\n\n################################\n");
 #endif
     for( track_if_itt = __l_track_if->begin(); 
 	 track_if_itt != __l_track_if->end() && (*track_if_itt)->has_writer();) {
+      cr->set_font_size(0.03);
       bool b_compound_track(false);
       if(!__break_drawing)
 	(*track_if_itt)->read();
@@ -740,7 +742,7 @@ LaserDrawingArea::draw_persons_legs(Glib::RefPtr<Gdk::Window> &window,
 
 	cr->stroke();
 	
-	
+	cr->set_source_rgb(0,0,1);	
 	i = std::max(0, (int) track_length1 - CFG_PRINT_NR_TRACKELEMENTS);
 	j = 0;
 	for (; i < track_length1; ++i){
@@ -752,40 +754,66 @@ LaserDrawingArea::draw_persons_legs(Glib::RefPtr<Gdk::Window> &window,
 	    }
 	  }
 	  
-	  std::pair<float,float> pos = transform_coords_from_fawkes(x_positions1[i],y_positions1[i]);
-	  cr->move_to(pos.first + radius, pos.second);
-	  cr->arc(pos.first, pos.second, radius, 0, 2*M_PI);
-	  
-	  if(b_compound_track && timestamps2[j] == timestamps1[i]){
-	    cr->move_to(pos.first, pos.second);
-	    
-	    std::pair<float,float> pos = transform_coords_from_fawkes(x_positions2[j],y_positions2[j]);
-	    cr->line_to(pos.first, pos.second);
+	  if( !b_compound_track || i < track_length1 - 1 ){
+	    std::pair<float,float> pos = transform_coords_from_fawkes(x_positions1[i],y_positions1[i]);
 	    cr->move_to(pos.first + radius, pos.second);
 	    cr->arc(pos.first, pos.second, radius, 0, 2*M_PI);
+	    
+	    std::string t = "S";
+	    if(b_compound_track)
+	      t = "C";
+	    
+	    cr->move_to(pos.first - (radius * 1/2) , pos.second   + (radius * 2/3) );
+	    cr->set_font_size(0.12);	  
+	    cr->show_text(t);
+
+	    
+	    if(b_compound_track && timestamps2[j] == timestamps1[i]){
+	      cr->move_to(pos.first, pos.second);
+	      
+	      std::pair<float,float> pos = transform_coords_from_fawkes(x_positions2[j],y_positions2[j]);
+	      cr->line_to(pos.first, pos.second);
+	      cr->move_to(pos.first + radius, pos.second);
+	      cr->arc(pos.first, pos.second, radius, 0, 2*M_PI);
+
+	      cr->move_to(pos.first - (radius * 1/2) , pos.second   + (radius * 2/3) );
+	      t = "C2";
+	      cr->show_text(t);
+	      
+	    }
 	  }
 	}
-	cr->set_source_rgb(1,0,0);
 	double original_line_width = cr->get_line_width();
 	cr->set_line_width(original_line_width * 2.5);
 	//	printf("line width orig: %f, new%f\n", original_line_width, cr->get_line_width());
 	cr->stroke();
+
 	if ( last_compound_position != -1 ){
+	  cr->set_source_rgb(1,0,0);
 	  x = x_positions1[track_length1 - 1];
 	  y = y_positions1[track_length1 - 1];
-
-	  std::pair<float,float> pos = transform_coords_from_fawkes(x_positions1[track_length1 - 1],y_positions1[track_length1 - 1]);
-	  cr->move_to(pos.first - radius, pos.second);
-	  cr->arc(pos.first, pos.second, radius, 0, 2*M_PI);
 	  
+	  std::pair<float,float> pos = transform_coords_from_fawkes(x_positions1[last_compound_position],y_positions1[last_compound_position]);
+	  cr->move_to(pos.first + radius, pos.second);
+	  cr->arc(pos.first, pos.second, radius, 0, 2*M_PI);
+	
+
+	  cr->move_to(pos.first - (radius * 1/2) , pos.second   + (radius * 2/3) );
+	  cr->set_font_size(0.12);	  
+	  std::string t = "C";
+	  cr->show_text(t);
 
 	  cr->move_to(pos.first, pos.second);
 	  
 	  pos = transform_coords_from_fawkes(x_positions2[track_length2 - 1],y_positions2[track_length2 - 1]);
 	  cr->line_to(pos.first, pos.second);
-	  cr->move_to(pos.first - radius, pos.second);
+	  cr->move_to(pos.first + radius, pos.second);
 	  cr->arc(pos.first, pos.second, radius, 0, 2*M_PI);
-	  cr->set_source_rgb(1,0,0);
+
+	  cr->move_to(pos.first - (radius * 1/2) , pos.second   + (radius * 2/3) );
+	  cr->set_font_size(0.12);	  
+	  cr->show_text(t);
+
 	  cr->stroke();
 	}
 	cr->set_line_width(original_line_width);
