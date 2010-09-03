@@ -43,6 +43,7 @@ using namespace fawkes;
  * Derived version of Gtk::DrawingArea that // // render
  values of a laser interface.
  * @author Tim Niemueller
+ * @author Masrur Doostdar
  */
 
 #ifdef HAVE_GLADEMM
@@ -74,18 +75,46 @@ LaserDrawingArea::LaserDrawingArea(BaseObjectType* cobject,
   __break_drawing = false;
   __first_draw = true;
 
+ __recording = false;
   __visdisp = new VisualDisplay2D();
 
   add_events(Gdk::SCROLL_MASK | Gdk::BUTTON_MOTION_MASK |
 	     Gdk::BUTTON_PRESS_MASK );
-
+  
 #ifndef GLIBMM_DEFAULT_SIGNAL_HANDLERS_ENABLED
   signal_expose_event().connect(sigc::mem_fun(*this, &LaserDrawingArea::on_expose_event));
   signal_button_press_event().connect(sigc::mem_fun(*this, &LaserDrawingArea::on_button_press_event));
   signal_motion_notify_event().connect(sigc::mem_fun(*this, &LaserDrawingArea::on_motion_notify_event));
 #endif
 
-  //Glib::RefPtr<Gdk::Window> window = get_window();
+  Glib::RefPtr<Gdk::Window> window = get_window();
+
+
+  __fcd_save = new Gtk::FileChooserDialog("Save Graph",
+					  Gtk::FILE_CHOOSER_ACTION_SAVE);
+  __fcd_recording = new Gtk::FileChooserDialog("Recording Directory",
+					       Gtk::FILE_CHOOSER_ACTION_CREATE_FOLDER);
+
+  //Add response buttons the the dialog:
+  __fcd_save->add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+  __fcd_save->add_button(Gtk::Stock::SAVE, Gtk::RESPONSE_OK);
+  __fcd_recording->add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+  __fcd_recording->add_button(Gtk::Stock::OK, Gtk::RESPONSE_OK);
+
+  __filter_pdf = new Gtk::FileFilter();
+  __filter_pdf->set_name("Portable Document Format (PDF)");
+  __filter_pdf->add_pattern("*.pdf");
+  __filter_svg = new Gtk::FileFilter();
+  __filter_svg->set_name("Scalable Vector Graphic (SVG)");
+  __filter_svg->add_pattern("*.svg");
+  __filter_png = new Gtk::FileFilter();
+  __filter_png->set_name("Portable Network Graphic (PNG)");
+  __filter_png->add_pattern("*.png");
+  __fcd_save->add_filter(*__filter_pdf);
+  __fcd_save->add_filter(*__filter_svg);
+  __fcd_save->add_filter(*__filter_png);
+  __fcd_save->set_filter(*__filter_pdf);
+
 }
 #endif
 
@@ -119,14 +148,20 @@ LaserDrawingArea::LaserDrawingArea()
   signal_button_press_event().connect(sigc::mem_fun(*this, &LaserDrawingArea::on_button_press_event));
   signal_motion_notify_event().connect(sigc::mem_fun(*this, &LaserDrawingArea::on_motion_notify_event));
 #endif
-}
 
+}
 
 /** Destructor. */
 LaserDrawingArea::~LaserDrawingArea()
 {
+  delete __fcd_save;
+  delete __fcd_recording;
+  delete __filter_pdf;
+  delete __filter_svg;
+  delete __filter_png;
   delete __visdisp;
 }
+
 
 /** Set ObjectPosition interfaces.
  * @param  l_objpos_if_persons list of objectposition interfaces for persons
@@ -288,10 +323,12 @@ LaserDrawingArea::set_rotation(float rot_rad)
 }
 
 
+
 /** Expose event handler.
  * @param event event info structure.
  * @return signal return value
  */
+
 bool
 LaserDrawingArea::on_expose_event(GdkEventExpose* event)
 {
@@ -299,99 +336,111 @@ LaserDrawingArea::on_expose_event(GdkEventExpose* event)
   Glib::RefPtr<Gdk::Window> window = get_window();
   if(window) {
     Gtk::Allocation allocation = get_allocation();
-
+    __width = allocation.get_width();
+    __height = allocation.get_height();
+    
     if(__first_draw)
     {
       __first_draw = false;
-      const int width = allocation.get_width();
-      const int height = allocation.get_height();
     
       // coordinates for the center of the window
-      __xc = width / 2;
-      __yc = height / 2;
+      __xc = __width / 2;
+      __yc = __height / 2;
     }
-    Cairo::RefPtr<Cairo::Context> cr = window->create_cairo_context();
-    cr->set_line_width(1.0);
 
-    // clip to the area indicated by the expose event so that we only redraw
-    // the portion of the window that needs to be redrawn
-    cr->rectangle(event->area.x, event->area.y,
-		  event->area.width, event->area.height);
-    cr->set_source_rgb(1, 1, 1);
-    cr->fill_preserve();
-    cr->clip();
-    cr->set_source_rgb(0, 0, 0);
-    //cr->set_source_rgba(0,0,0,1);
+  Cairo::RefPtr<Cairo::Context> cr = window->create_cairo_context();
+  // clip to the area indicated by the expose event so that we only redraw
+  // the portion of the window that needs to be redrawn
+  cr->rectangle(event->area.x, event->area.y,
+		event->area.width, event->area.height);
+  cr->set_source_rgb(1, 1, 1);
+  cr->fill_preserve();
+  cr->clip();
+  
+  draw(cr);
+  }
 
-    //    __last_xc += __translation_x;
-    //    __last_yc += __translation_y;
-    cr->translate(__xc, __yc);
-    cr->save();
+  // record();
 
-    if ( (__laser360_if == NULL) && (__laser720_if == NULL) &&
-	 __l_objpos_if_legs == NULL && __l_track_if == NULL ){
-      //	 (__l_objpos_if_legs->size() == 0 || (*__l_objpos_if_legs->begin()) == NULL )  &&
-      //	 (__l_track_if->size() == 0 ||  (*__l_objpos_if_legs->begin()) == NULL )) {
-      Cairo::TextExtents te;
-      std::string t = "Not connected to BlackBoard";
-      cr->set_source_rgb(1, 0, 0);
-      cr->set_font_size(20);
-      cr->get_text_extents(t, te);
-      cr->move_to(- te.width / 2, -te.height / 2);
-      cr->show_text(t);
-    } else if ( ((__laser360_if && ! __laser360_if->has_writer()) ||
-		 (__laser720_if && ! __laser720_if->has_writer()))  &&
-		(__l_objpos_if_legs!= NULL && __l_objpos_if_legs->size() > 0 && !(*__l_objpos_if_legs->begin())->has_writer()) &&
-		(__l_track_if != NULL && __l_track_if->size() > 0 && !(*__l_track_if->begin())->has_writer()) ){
-      Cairo::TextExtents te;
-      std::string t = "No writer for the interfaces";
-      cr->set_source_rgb(1, 0, 0);
-      cr->set_font_size(20);
-      cr->get_text_extents(t, te);
-      cr->move_to(- te.width / 2, -te.height / 2);
-      cr->show_text(t);
-      
-    } else {
-      cr->scale(__zoom_factor, __zoom_factor);
-      cr->rotate(__rotation);
-      cr->set_line_width(1. / __zoom_factor);
+  return true;
+}
 
+/** Draw to the cairo-context
+ * @param cr refpointer to the cairo-context to be drawn to
+ * @return signal return value
+ */
+bool
+LaserDrawingArea::draw(Cairo::RefPtr<Cairo::Context> &cr) 
+{
 
-      if (__robot_drawer)  __robot_drawer->draw_robot(window, cr);
-      
-      if ( (__laser360_if &&  __laser360_if->has_writer()) ||
-	   (__laser720_if &&  __laser720_if->has_writer())){
-	
-	if (! __break_drawing) {
-	  if (__laser360_if)  __laser360_if->read();
-	  if (__laser720_if)  __laser720_if->read();
-	}
-	
-	draw_beams(window, cr);
-	
-	//	draw_segments(window, cr);
-	
-	const float radius = 4 / __zoom_factor;
-	if (__line_if) {
-	  __line_if->read();
-	  cr->rectangle(-__line_if->world_y() - radius * 0.5, -__line_if->world_x() - radius * 0.5, radius, radius);
-	  cr->rectangle(-__line_if->relative_y() - radius * 0.5, -__line_if->relative_x() - radius * 0.5, radius, radius);
-	  cr->fill_preserve();
-	  cr->stroke();
-	  cr->move_to(-__line_if->world_y(), -__line_if->world_x());
-	  cr->line_to(-__line_if->relative_y(), -__line_if->relative_x());
-	  cr->stroke();
-	}
-      }
+  
+  cr->set_line_width(1.0);
+  
+  cr->set_source_rgb(0, 0, 0);
+  //cr->set_source_rgba(0,0,0,1);
 
-
-      draw_persons_legs(window, cr);
-      // if(__switch_if != NULL && __switch_if->has_writer()){
-      // 	SwitchInterface::EnableSwitchMessage *esm = new SwitchInterface::EnableSwitchMessage();
-      // 	__switch_if->msgq_enqueue(esm);
-      // }
-    }
+  //    __last_xc += __translation_x;
+  //    __last_yc += __translation_y;
+  cr->translate(__xc, __yc);
+  cr->save();
+  
+  if ( (__laser360_if == NULL) && (__laser720_if == NULL) &&
+       __l_objpos_if_legs == NULL && __l_track_if == NULL ){
+    //	 (__l_objpos_if_legs->size() == 0 || (*__l_objpos_if_legs->begin()) == NULL )  &&
+    //	 (__l_track_if->size() == 0 ||  (*__l_objpos_if_legs->begin()) == NULL )) {
+    Cairo::TextExtents te;
+    std::string t = "Not connected to BlackBoard";
+    cr->set_source_rgb(1, 0, 0);
+    cr->set_font_size(20);
+    cr->get_text_extents(t, te);
+    cr->move_to(- te.width / 2, -te.height / 2);
+    cr->show_text(t);
+  } else if ( ((__laser360_if && ! __laser360_if->has_writer()) ||
+	       (__laser720_if && ! __laser720_if->has_writer()))  &&
+	      (__l_objpos_if_legs!= NULL && __l_objpos_if_legs->size() > 0 && !(*__l_objpos_if_legs->begin())->has_writer()) &&
+	      (__l_track_if != NULL && __l_track_if->size() > 0 && !(*__l_track_if->begin())->has_writer()) ){
+    Cairo::TextExtents te;
+    std::string t = "No writer for the interfaces";
+    cr->set_source_rgb(1, 0, 0);
+    cr->set_font_size(20);
+    cr->get_text_extents(t, te);
+    cr->move_to(- te.width / 2, -te.height / 2);
+    cr->show_text(t);
     
+  } else {
+    cr->scale(__zoom_factor, __zoom_factor);
+    cr->rotate(__rotation);
+    cr->set_line_width(1. / __zoom_factor);
+    
+    
+    Glib::RefPtr<Gdk::Window> window = get_window();
+    if (__robot_drawer)  __robot_drawer->draw_robot(window,cr);
+    
+    if ( (__laser360_if &&  __laser360_if->has_writer()) ||
+	 (__laser720_if &&  __laser720_if->has_writer())){
+      
+      if (! __break_drawing) {
+	if (__laser360_if)  __laser360_if->read();
+	if (__laser720_if)  __laser720_if->read();
+      }
+      
+      draw_beams(cr);
+      
+      //	draw_segments(cr);
+      
+      const float radius = 4 / __zoom_factor;
+      if (__line_if) {
+	__line_if->read();
+	cr->rectangle(-__line_if->world_y() - radius * 0.5, -__line_if->world_x() - radius * 0.5, radius, radius);
+	cr->rectangle(-__line_if->relative_y() - radius * 0.5, -__line_if->relative_x() - radius * 0.5, radius, radius);
+	cr->fill_preserve();
+	cr->stroke();
+	cr->move_to(-__line_if->world_y(), -__line_if->world_x());
+	cr->line_to(-__line_if->relative_y(), -__line_if->relative_x());
+	cr->stroke();
+      }
+    }
+
     cr->restore();
 
     cr->save();
@@ -427,22 +476,25 @@ LaserDrawingArea::on_expose_event(GdkEventExpose* event)
       }
     }
     cr->restore();
-
+    
+    draw_persons_legs(cr);
+    // if(__switch_if != NULL && __switch_if->has_writer()){
+    // 	SwitchInterface::EnableSwitchMessage *esm = new SwitchInterface::EnableSwitchMessage();
+    // 	__switch_if->msgq_enqueue(esm);
+    // }
   }
-
+  
   return true;
 }
 
 
 /** Draw scale box.
  * Draws a circle with a radius of 1m around the robot.
- * @param window Gdk window
  * @param cr Cairo context to draw to. It is assumed that possible transformations
  * have been setup before.
  */
 void
-LaserDrawingArea::draw_scalebox(Glib::RefPtr<Gdk::Window> &window,
-				Cairo::RefPtr<Cairo::Context> &cr)
+LaserDrawingArea::draw_scalebox(Cairo::RefPtr<Cairo::Context> &cr)
 {
   cr->save();
   cr->set_source_rgba(0, 0, 0.8, 0.2);
@@ -454,13 +506,11 @@ LaserDrawingArea::draw_scalebox(Glib::RefPtr<Gdk::Window> &window,
 
 /** Draw Beams.
  * Draws the beams as lines, circles or hull, depending on draw mode.
- * @param window Gdk window
  * @param cr Cairo context to draw to. It is assumed that possible transformations
  * have been setup before.
  */
 void
-LaserDrawingArea::draw_beams(Glib::RefPtr<Gdk::Window> &window,
-			     Cairo::RefPtr<Cairo::Context> &cr)
+LaserDrawingArea::draw_beams(Cairo::RefPtr<Cairo::Context> &cr)
 {
   float *distances = __laser360_if ? __laser360_if->distances() : __laser720_if->distances();
   size_t nd = __laser360_if ? __laser360_if->maxlenof_distances() : __laser720_if->maxlenof_distances();
@@ -481,8 +531,9 @@ LaserDrawingArea::draw_beams(Glib::RefPtr<Gdk::Window> &window,
   //cr->scale(__zoom_factor, __zoom_factor);
   cr->rotate(__rotation);
   cr->set_line_width(1. / __zoom_factor);
-  
-  draw_scalebox(window, cr);
+  //  draw_scalebox(window, cr);
+  draw_scalebox(cr);
+
 
   if ( __draw_mode == MODE_LINES ) {
     for (size_t i = 0; i < nd; i += __resolution) {
@@ -524,13 +575,11 @@ LaserDrawingArea::draw_beams(Glib::RefPtr<Gdk::Window> &window,
 
 /** Draw person legs.
  * Draws the legs of persons
- * @param window Gdk window
  * @param cr Cairo context to draw to. It is assumed that possible transformations
  * have been setup before.
  */
 void
-LaserDrawingArea::draw_persons_legs(Glib::RefPtr<Gdk::Window> &window,
-				    Cairo::RefPtr<Cairo::Context> &cr)
+LaserDrawingArea::draw_persons_legs(Cairo::RefPtr<Cairo::Context> &cr)
 {
   std::list<ObjectPositionInterface*>::iterator objpos_if_itt;;
 
@@ -970,21 +1019,18 @@ LaserDrawingArea::draw_persons_legs(Glib::RefPtr<Gdk::Window> &window,
   }
   */
   //  cr->stroke();
-
   cr->restore();
 }
 
 
 /** Draw laser segments as produced by leg tracker application.
- * @param window Gdk window
  * @param cr Cairo context to draw to. It is assumed that possible transformations
  * have been setup before.
  */
 void
-LaserDrawingArea::draw_segments(Glib::RefPtr<Gdk::Window> &window,
-				Cairo::RefPtr<Cairo::Context> &cr)
+LaserDrawingArea::draw_segments(Cairo::RefPtr<Cairo::Context> &cr)
 {
-  
+  cr->save();
   
   /* DRAW SEGMENTS (draw the segment interiors again with other color*/
   if( __laser_segmentation_if && __laser_segmentation_if->has_writer()){
@@ -1113,4 +1159,145 @@ LaserDrawingArea::transform_coords_from_fawkes(float p_x, float p_y){
   pos.first =  -p_y ;
   pos.second=  -p_x ;
   return pos;
+}
+
+
+
+
+
+
+
+
+/** Enable/disable recording.
+ * @param recording true to enable recording, false otherwise
+ * @return true if recording is enabled now, false if it is disabled.
+ * Enabling the recording may fail for example if the user chose to abort
+ * the directory creation process.
+ */
+bool
+LaserDrawingArea::set_recording(bool recording)
+{
+  
+  if (recording) {
+    Gtk::Window *w = dynamic_cast<Gtk::Window *>(get_toplevel());
+    __fcd_recording->set_transient_for(*w);
+    int result = __fcd_recording->run();
+    if (result == Gtk::RESPONSE_OK) {
+      __record_directory = __fcd_recording->get_filename();
+      __recording = true;
+    }
+    __fcd_recording->hide();
+  } else {
+    __recording = false;
+  }
+  return __recording;
+ 
+  return true;
+}
+
+
+
+/** save current figure to pdf,svg or png. */
+void
+LaserDrawingArea::save()
+{
+  Gtk::Allocation allocation = get_allocation();
+  __width = allocation.get_width();
+  __height = allocation.get_height();
+
+  Gtk::Window *w = dynamic_cast<Gtk::Window *>(get_toplevel());
+  __fcd_save->set_transient_for(*w);
+
+  int result = __fcd_save->run();
+  if (result == Gtk::RESPONSE_OK) {
+    
+    Gtk::FileFilter *f = __fcd_save->get_filter();
+    std::string filename = __fcd_save->get_filename();
+    if (filename != "") {
+      Cairo::RefPtr<Cairo::Surface> surface;
+      
+      bool write_to_png = false;
+      if (f == __filter_pdf) {
+	surface = Cairo::PdfSurface::create(filename, __width, __height);
+      } else if (f == __filter_svg) {
+	surface = Cairo::SvgSurface::create(filename, __width, __height);
+      } else if (f == __filter_png) {
+	surface = Cairo::ImageSurface::create(Cairo::FORMAT_ARGB32,
+					      (int)ceilf(__width),
+					      (int)ceilf(__height));
+	write_to_png = true;
+      }
+
+
+
+      if (surface) {
+	Cairo::RefPtr<Cairo::Context> cr = Cairo::Context::create(surface);
+	draw(cr);
+	
+	if (write_to_png) {
+	  surface->write_to_png(filename);
+	}
+	
+	cr.clear();
+      }
+      
+    } else {
+      Gtk::MessageDialog md(*w, "Invalid filename",
+			    /* markup */ false, Gtk::MESSAGE_ERROR,
+			    Gtk::BUTTONS_OK, /* modal */ true);
+      md.set_title("Invalid File Name");
+      md.run();
+    }
+  }
+
+  __fcd_save->hide();
+}
+
+
+
+/** record current figure as png to a folder prespecified */
+void
+LaserDrawingArea::record()
+{
+  Gtk::Allocation allocation = get_allocation();
+  __width = allocation.get_width();
+  __height = allocation.get_height();
+
+
+  if ( __recording ) {
+    char *filename;
+    timespec t;
+    if (clock_gettime(CLOCK_REALTIME, &t) == 0) {
+      struct tm tms;
+      localtime_r(&t.tv_sec, &tms);
+
+      if ( asprintf(&filename, "%s/%04i%02i%02i-%02i%02i%02i.%09li.png",
+		    __record_directory.c_str(),
+		    tms.tm_year + 1900, tms.tm_mon + 1, tms.tm_mday,
+		    tms.tm_hour, tms.tm_min, tms.tm_sec, t.tv_nsec) != -1) {
+
+	//printf("Would record to filename %s\n", filename);
+	
+	Cairo::RefPtr<Cairo::Surface> surface  = 
+	  Cairo::ImageSurface::create(Cairo::FORMAT_ARGB32,
+				      (int)ceilf(__width),
+				      (int)ceilf(__height));
+	
+	if (surface) {
+	  Cairo::RefPtr<Cairo::Context> cr = Cairo::Context::create(surface);
+	  draw(cr);
+	  surface->write_to_png(filename);
+	  cr.clear();
+	}
+	
+	free(filename);
+      } else {
+	printf("Warning: Could not create file name for recording, skipping figure\n");
+      }
+    } else {
+      printf("Warning: Could not time recording, skipping graph\n");
+    }
+  }
+
+
 }

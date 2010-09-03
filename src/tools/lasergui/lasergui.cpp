@@ -81,6 +81,8 @@ class LaserGuiGtkWindow : public Gtk::Window
     refxml->get_widget("tb_zoom_in", __tb_zoom_in);
     refxml->get_widget("tb_zoom_out", __tb_zoom_out);
     refxml->get_widget("tb_exit", __tb_exit);
+    refxml->get_widget("tb_figuresave", __tb_figuresave);
+    refxml->get_widget("tb_figurerecord", __tb_figurerecord);
     refxml->get_widget("dlg_ltopen", __dlg_ltopen);
     refxml->get_widget("pgb_ltopen", __pgb_ltopen);
 
@@ -112,7 +114,8 @@ class LaserGuiGtkWindow : public Gtk::Window
     __tb_break->signal_clicked().connect(sigc::mem_fun(*this, &LaserGuiGtkWindow::on_break_toggled));
     __tb_forward->signal_clicked().connect(sigc::mem_fun(*this, &LaserGuiGtkWindow::on_forward_clicked));
     __tb_exit->signal_clicked().connect(sigc::mem_fun(*this, &LaserGuiGtkWindow::on_exit_clicked));
-
+    __tb_figuresave->signal_clicked().connect(sigc::mem_fun(*__area, &LaserDrawingArea::save));
+    __tb_figurerecord->signal_clicked().connect(sigc::mem_fun(*this, &LaserGuiGtkWindow::on_recording_toggled));
     __connection_dispatcher.signal_connected().connect(sigc::mem_fun(*this, &LaserGuiGtkWindow::on_connect));
     __connection_dispatcher.signal_disconnected().connect(sigc::mem_fun(*this, &LaserGuiGtkWindow::on_disconnect));
 
@@ -121,7 +124,12 @@ class LaserGuiGtkWindow : public Gtk::Window
     __ifd = NULL;
     __ifd_legs = NULL;
     __ifd_tracks = NULL;
-  }
+    // create timer
+    sigc::connection conn = 
+      Glib::signal_timeout().connect( sigc::mem_fun( *this, &LaserGuiGtkWindow::record ), 100 );
+    
+}
+
 
 
  protected:
@@ -539,6 +547,24 @@ class LaserGuiGtkWindow : public Gtk::Window
   {
     Gtk::Main::quit();
   }
+  
+  /** Event handler for recording button */
+  void
+  on_recording_toggled()
+  {
+    bool active = __tb_figurerecord->get_active();
+    if (__area->set_recording(active) != active) {
+      __tb_figurerecord->set_active(!active);
+    }
+  }
+
+  bool
+  record() { 
+    __area->record();
+    return true;
+  }
+
+  
 
  private:
   BlackBoard                        *__bb;
@@ -578,6 +604,8 @@ class LaserGuiGtkWindow : public Gtk::Window
   Gtk::ToolButton                    *__tb_zoom_in;
   Gtk::ToolButton                    *__tb_zoom_out;
   Gtk::ToolButton                    *__tb_exit;
+  Gtk::ToolButton                    *__tb_figuresave;
+  Gtk::ToggleToolButton              *__tb_figurerecord;
 
   Gtk::Dialog                        *__dlg_ltopen;
   Gtk::ProgressBar                   *__pgb_ltopen;
@@ -593,7 +621,8 @@ main(int argc, char** argv)
 
    LaserGuiGtkWindow *window = NULL;
    refxml->get_widget_derived("wnd_lasergui", window);
-
+   
+   
    Gtk::Main::run(*window);
 
    return 0;

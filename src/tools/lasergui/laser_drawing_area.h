@@ -61,6 +61,7 @@ class LaserDrawingArea
 #endif
   ~LaserDrawingArea();
 
+
   void set_laser360_if(fawkes::Laser360Interface *laser_if);
   void set_laser720_if(fawkes::Laser720Interface *laser_if);
   void reset_laser_ifs();
@@ -84,20 +85,22 @@ class LaserDrawingArea
   
   void toggle_break_drawing();
 
+  void save();
+  void record();
+  bool set_recording(bool recording);
+
+
  protected:
   virtual bool on_expose_event(GdkEventExpose* event);
+  virtual bool draw(Cairo::RefPtr<Cairo::Context> &cr);
   virtual bool on_scroll_event(GdkEventScroll *event);
   virtual bool on_motion_notify_event(GdkEventMotion *event);
   virtual bool on_button_press_event(GdkEventButton *event);
 
-  void draw_beams(Glib::RefPtr<Gdk::Window> &window,
-		  Cairo::RefPtr<Cairo::Context> &cr);
-  void draw_segments(Glib::RefPtr<Gdk::Window> &window,
-		     Cairo::RefPtr<Cairo::Context> &cr);
-  void draw_scalebox(Glib::RefPtr<Gdk::Window> &window,
-		     Cairo::RefPtr<Cairo::Context> &cr);
-  void draw_persons_legs(Glib::RefPtr<Gdk::Window> &window,
-			 Cairo::RefPtr<Cairo::Context> &cr);
+  void draw_beams(Cairo::RefPtr<Cairo::Context> &cr);
+  void draw_segments(Cairo::RefPtr<Cairo::Context> &cr);
+  void draw_scalebox(Cairo::RefPtr<Cairo::Context> &cr);
+  void draw_persons_legs(Cairo::RefPtr<Cairo::Context> &cr);
   std::pair<float,float> transform_coords_from_fawkes(float p_x, float p_y);
 
 
@@ -126,6 +129,17 @@ class LaserDrawingArea
   double __last_mouse_y;
   double __xc;
   double __yc;
+  int __width;
+  int __height;
+  
+  Gtk::FileChooserDialog *__fcd_save;
+  Gtk::FileChooserDialog *__fcd_recording;
+  Gtk::FileFilter *__filter_pdf;
+  Gtk::FileFilter *__filter_svg;
+  Gtk::FileFilter *__filter_png;
+
+  bool __recording;
+  std::string __record_directory;
 
   fawkes::CairoRobotDrawer  *__robot_drawer;
 
