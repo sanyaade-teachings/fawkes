@@ -12,7 +12,6 @@ OccupancyGrid::OccupancyGrid(int width, int height,
   m_Height = height;
   m_CellWidth = cell_width;
   m_CellHeight = cell_height;
-  
   initGrid();
 }
 

@@ -55,6 +55,8 @@ const float Laser::LASER_X_OFFSET = 0.21;
 // Initialize the Laser by giving the Laser_Client to it, and 
 // calculating the number of readings we get ( the size of the pos array )
 // and initialize it directly
+//Laser::Laser( Laser360Interface * laser,
+//	      string remoteHostname )
 Laser::Laser( Laser360Interface * laser,
 	      string remoteHostname )
 {
@@ -64,7 +66,8 @@ Laser::Laser( Laser360Interface * laser,
   m_pLaserScannerObj = laser;
 
  // m_NumberOfReadings = m_pLaserScannerObj->GetNumberOfValues();
-  m_NumberOfReadings = (int) ( sizeof(m_pLaserScannerObj->distances())/sizeof(float) );
+ // m_NumberOfReadings = (int) ( sizeof(m_pLaserScannerObj->distances())/sizeof(float) );
+  m_NumberOfReadings = m_pLaserScannerObj->maxlenof_distances();
   //m_Resolution = m_pLaserScannerObj->GetResolution();
 
   if ( m_NumberOfReadings < 1 )
@@ -139,7 +142,8 @@ int Laser::UpdateLaser( )
   newtime = &(newtime->stamp());
   
   //m_NumberOfReadings = m_pLaserScannerObj->GetNumberOfValues();
-  m_NumberOfReadings = (int) ( sizeof(m_pLaserScannerObj->distances())/sizeof(float) );
+  //m_NumberOfReadings = (int) ( sizeof(m_pLaserScannerObj->distances())/sizeof(float) );
+  m_NumberOfReadings = m_pLaserScannerObj->maxlenof_distances();
   // get all readings
   CalculateReadings();
   CalculatePositions();
@@ -156,6 +160,7 @@ void Laser::CalculateReadings()
 	m_pReadings->SetRadians(i, number2rad( i, m_NumberOfReadings ) );
 	//m_pReadings->SetLength(i, max( m_pLaserScannerObj->GetDistNr( i ) - 0.02, 0.0 ) );
         m_pReadings->SetLength(i, max( m_pLaserScannerObj->distances(i) - 0.02, 0.0 ) );
+       // m_pReadings->SetLength(i, max( m_pLaserScannerObj->distances(i) - 0.21, 0.0 ) );
     }
 }
 

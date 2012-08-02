@@ -204,8 +204,12 @@ inline CAbstractDriveMode::CAbstractDriveMode(Logger *logger, Configuration *con
   m_ProposedTranslation = 0.0;
   m_ProposedRotation = 0.0;
   m_DriveModeName = MovingNotAllowed;
-
-  m_sHostname = std::string( getenv( "HOSTNAME" ) );
+  try{
+    m_sHostname = std::string( getenv( "HOSTNAME" ) );
+  }
+  catch(...){
+    m_sHostname = "";
+  }
 /*
   // read m_cMaxTransDec and m_cMaxRotDec
   string confFileName = "../cfg/robocup/colli.cfg";

@@ -65,7 +65,6 @@
 using namespace std;
 using namespace fawkes;
 
-  //OccupancyGrid( width, height, cell_width, cell_height )
 // Constructor
 CLaserOccupancyGrid::CLaserOccupancyGrid( Logger* logger, Configuration *config, Laser * laser, int width, int height,int cell_width, int cell_height ):
 OccupancyGrid( width, height, cell_width, cell_height )
@@ -74,7 +73,9 @@ OccupancyGrid( width, height, cell_width, cell_height )
   m_Width = width;
   m_CellWidth = cell_width;
   m_CellHeight = cell_height;*/
-  loggerGrid = logger; 
+  
+  loggerGrid = logger;
+  loggerGrid->log_info("laser occupancy grid","grid width: %d , grid height: %d , cell width: %d , cell height: %d\n",width,height,cell_width,cell_height); 
   loggerGrid->log_info("CLaserOccupancyGrid","CLaserOccupancyGrid(Constructor): Entering\n");
   m_pLaser = laser;
   m_pRoboShape = new RoboShape(logger,config);
@@ -311,6 +312,10 @@ void CLaserOccupancyGrid::IntegrateOldReadings( int midX, int midY, float inc, f
     m_vOldReadings.push_back( old_readings[i] );
 }
 
+inline HomPoint transformLaser2Motor( const HomPoint &laser_point )
+{
+  return HomPoint( laser_point.x()-0.2, laser_point.y() );
+}
 
 void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
 						float inc, float vel )
@@ -322,11 +327,12 @@ void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
   float oldp_x = 1000.0;
   float oldp_y = 1000.0;
 
-  for ( int i = 0; i < numberOfReadings; i++ )
+  for ( int i = 0; i < numberOfReadings; i++ ){
       if ( m_pLaser->GetReadingLength(i) >= m_MinimumLaserLength )
       {
 	// point = transformLaser2Motor(Point(m_pLaser->GetReadingPosX(i), m_pLaser->GetReadingPosY(i)));
-	point = HomPoint(m_pLaser->GetReadingPosX(i), m_pLaser->GetReadingPosY(i)); // *
+        //point = transformLaser2Motor(HomPoint(m_pLaser->GetReadingPosX(i), m_pLaser->GetReadingPosY(i)));
+	point = HomPoint(m_pLaser->GetReadingPosX(i), m_pLaser->GetReadingPosY(i)); 
 	p_x = point.x();
 	p_y = point.y();
 	if ( !((p_x == 0.0) && (p_y == 0.0)) && 
@@ -350,14 +356,14 @@ void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
 		    
 		float rad = normalize_rad( m_pLaser->GetRadiansForReading( i ) );
 		float length = 0.0;
-		//		    length = m_pRoboShape->GetRobotLengthforRad( rad );
+		//length = m_pRoboShape->GetRobotLengthforRad( rad );
 
 		if (fabs(normalize_mirror_rad(rad)) < M_PI_2)
 		  length = m_pRoboShape->GetRobotLengthforRad( deg2rad( 90 ) );
 		else
 		  length = m_pRoboShape->GetRobotLengthforRad( rad );
 
-		length = max( 4.0, ((length + inc - dec)*100.0)/m_CellWidth );
+		  length = max( 4.0, ((length + inc - dec)*100.0)/m_CellWidth );
 		    
 		   if ( !m_pLaser->IsPipe( rad ) )
 		   {
@@ -365,15 +371,16 @@ void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
                     //Point p; p.x = posX; p.y = posY;
                     //integrateObstacle( Ellipse( p, height, length, 0.0 ) );
 		    if ( !Contained( p_x, p_y ) )
-		      {
+		    {
 			m_vOldReadings.push_back( p_x );
 			m_vOldReadings.push_back( p_y );
 			m_vOldReadings.push_back( 0.0 );
-		      }
 		     }
+		   }
 	      }
 	  }
       }
+     }
 }
 
 

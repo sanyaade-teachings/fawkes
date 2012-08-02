@@ -146,6 +146,25 @@ private:
 };
 
 
+// ** util function, not completely supported in fawkes ** //
+inline  float TimeDiff(Time *currentTime,Time *m_OldTimestamp)
+{
+  long timediffSec = currentTime->in_sec() - m_OldTimestamp->in_sec();
+  long timediffUsec = currentTime->in_usec() - m_OldTimestamp->in_usec();
+  if( timediffUsec < 0 )
+    {
+      timediffSec--;
+      timediffUsec += 1000000;
+    }
+  else if( timediffUsec >= 1000000 )
+    {
+      timediffSec++;
+      timediffUsec -= 1000000;
+    }
+
+  float timediff = (float)timediffSec +( ((float)timediffUsec)/1000000.0 );
+  return timediff;
+}
 
 /* ************************************************************************** */
 /* ********************  BASE IMPLEMENTATION DETAILS  *********************** */
@@ -228,12 +247,14 @@ inline void CBaseMotorInstruct::SetCommand(  )
       //SetDesiredRotation( m_execRotation );
       motor_if->set_omega( m_execRotation );
   
+  motor_if->write();
   // Send the commands to the motor. No controlling afterwards done!!!!
   //SendCommand();
   MotorInterface::TransRotMessage *msg = new MotorInterface::TransRotMessage(motor_if->vx(),motor_if->vy(),motor_if->omega());
+  //MotorInterface::TransRotMessage *msg = new MotorInterface::TransRotMessage(1.5,0.0,0.0); // ** for test if it works remotely ** //
   motor_if_read->msgq_enqueue(msg);
   //motor_if->set_motor_state(motor_if->DRIVE_MODE_TRANS_ROT);
-  //cout << "motor velocity: " << motor_if->vx() << endl;
+   //cout << "motor velocity: " << motor_if->vx() << endl;
   //cout << "motor rotation: "<< motor_if->omega() << endl;
 }
 
@@ -252,7 +273,7 @@ inline void CBaseMotorInstruct::Drive( float proposedTrans, float proposedRot )
   float timediff = currentTime - m_OldTimestamp;
   float time_factor = ( (timediff*1000.0) / m_Frequency);
 
-  if (time_factor < 0.5)
+  if (time_factor < 0.5) 
     {
       BB_DBG(1) << "CBaseMotorInstruct( Drive ): "
 		<< "Blackboard timing(case 1) strange, time_factor is " 
@@ -275,10 +296,13 @@ inline void CBaseMotorInstruct::Drive( float proposedTrans, float proposedRot )
   Time *currentTime = new Time();
   currentTime = &(currentTime->stamp());
   //float timediff = currentTime - m_OldTimestamp;
-  float timediff = currentTime->in_sec() - m_OldTimestamp->in_sec();
-  //cout << "time factor is: " << timediff << endl;
+
+  float timediff = TimeDiff(currentTime,m_OldTimestamp);
+//  loggerTmp->log_info("CBaseMotorInstruct","timediff is: %f , frequency is: %f \n",timediff,m_Frequency);
+  // ** for now, just for test ** //
   float time_factor = ( (timediff*1000.0) / m_Frequency );
-  if(time_factor < 0.5)
+
+/*  if(time_factor < 0.5)
     {
       loggerTmp->log_info("CBaseMotorInstruct","CBaseMotorInstruct( Drive ): Blackboard timing(case 1) strange, time_factor is %f\n",time_factor); 
     }
@@ -289,7 +313,7 @@ inline void CBaseMotorInstruct::Drive( float proposedTrans, float proposedRot )
   else
     {
       ;
-    }
+    }*/
   // getting current performed values
   //m_currentRotation    = GetMotorDesiredRotation();
   //m_currentTranslation = GetMotorDesiredTranslation();
@@ -298,6 +322,8 @@ inline void CBaseMotorInstruct::Drive( float proposedTrans, float proposedRot )
 
   // calculate maximum allowed rotation change between proposed and desired values
   m_desiredRotation = proposedRot;
+  // ** TODO for test time_factor ** //
+  time_factor = 1.0;
   m_execRotation    = CalculateRotation( m_currentRotation, m_desiredRotation, time_factor );
 //  cout << "rotation calculated: " << m_execRotation << endl;
   // calculate maximum allowed translation change between proposed and desired values

@@ -53,6 +53,7 @@
 
 //#include <interfaces/laser_client.h>
 #include <interfaces/Laser360Interface.h>
+#include <interfaces/Laser720Interface.h>
 #include "robo_laserpoint.h"
 #include <utils/time/time.h>
 //#include <utils/config_reader/config_reader.h>
@@ -84,9 +85,11 @@ class Laser
    *  \exception (int 2) The readings array could not be allocated!
    *  @param laser is the bbClients Laser_Client.
    */
-  Laser( Laser360Interface *laser,
-	 string remoteHostname="default" ) ; 
+  //Laser( Laser360Interface *laser,
+	// string remoteHostname="default" ) ; 
 
+  Laser( Laser360Interface *laser,
+	 string remoteHostname="default" ) ;
 
   /** Destructor.
    */
@@ -172,6 +175,7 @@ class Laser
   // VARIABLES
   
   // the laser
+  //Laser360Interface *m_pLaserScannerObj;
   Laser360Interface *m_pLaserScannerObj;
   Time * newtime;
   Time * oldtime;

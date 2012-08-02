@@ -333,9 +333,8 @@ HomPoint CSearch::CalculateLocalTrajectoryPoint( )
 bool CSearch::IsObstacleBetween( const HomPoint &a, const HomPoint &b, 
 				 const int maxcount )
 {
-  if (a.x() == b.x() && a.y() == b.y() ) 
+  if (a.x() == b.x() && a.y() == b.y() )
     return false;
-
   int count = 0;
   float prob = 0.0;
 

@@ -210,7 +210,9 @@ void CSelectDriveMode::Update( bool escape )
   m_ProposedRotation = 0.0;
 
   // choose the correct drive mode!
-  ColliModes desiredMode = MovingNotAllowed;
+//  ColliModes desiredMode = MovingNotAllowed;
+  //ColliModes desiredMode = SlowForward;
+  ColliModes desiredMode = ModerateAllowBackward;
 /*  if ( escape == true )
     {
       if ( m_EscapeFlag == 0 && 
@@ -249,7 +251,7 @@ void CSelectDriveMode::Update( bool escape )
     {
       m_EscapeFlag = 0;
       //desiredMode  = (ColliModes)(m_pColliTarget->GetColliMode());
-      desiredMode  = (ColliModes)(m_pColliTarget->flags()); // ** NOT SURE
+      // TODO desiredMode  = (ColliModes)(m_pColliTarget->flags()); // ** NOT SURE
     }
 
   // now search this specific drive mode in the list

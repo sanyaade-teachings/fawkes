@@ -20,7 +20,8 @@ void ColliThread::init()
   }
   else
   {
-    m_ColliFrequency = (int)(1000.0/(float)config->get_int( "/plugins/colli/Colli_FREQUENCY" ));
+    //m_ColliFrequency = (int)(1000.0/(float)config->get_int( "/plugins/colli/Colli_FREQUENCY" ));
+    m_ColliFrequency = (int)(100000.0/(float)config->get_int( "/plugins/colli/Colli_FREQUENCY" ));
     //cout << "Colli_FREQUENCY " <<m_ColliFrequency << endl;
   }
 
@@ -202,14 +203,15 @@ void ColliThread::finalize()
 // ============================================================================ //
 // ============================================================================ //
 //
+//--------------------------------------------------------------------------------------------
 void ColliThread::loop()
 {
   // to be on the sure side of life
   m_ProposedTranslation = 0.0;
   m_ProposedRotation    = 0.0;
-
   // Update blackboard data 
   UpdateBB();
+  
 //  BBPing();
  // BBOperate();
 /* TODO
@@ -324,14 +326,16 @@ void ColliThread::loop()
       UpdateOwnModules();
       //m_pColliDataObj->SetFinal( false );
       m_pColliDataObj->set_final( false );
-
+      m_pColliDataObj->write();
       /* TODO if ( m_pMopoObj->GetAllowMove() == false )
       {
         m_pMopoObj->RecoverEmergencyStop();
         BBOperate();
       }*/
-      
-
+      if ( m_pMopoObj->motor_state () == m_pMopoObj->MOTOR_DISABLED )
+      {
+        m_pMotorInstruct->Drive( 0.0, 0.0 ); 
+      }
 
       // Check, if one of our positions (robo-, laser-gridpos is not valid) => Danger!
       if ( CheckEscape() == true || escape_count > 0 )
@@ -384,6 +388,7 @@ void ColliThread::loop()
         { // only orienting to do and moving possible
           if (m_ColliStatus == OrientAtTarget)
             {
+              logger->log_info(name(),"colli state: orient at target\n");
               m_ProposedTranslation = 0.0;
               // turn faster if angle-diff is high
 //            m_ProposedRotation    = 1.5*normalize_mirror_rad( m_pColliTargetObj->GetTargetOri() -
@@ -401,13 +406,16 @@ void ColliThread::loop()
             }
           else
             { // search for a path
+               //logger->log_info(name(),"to update grid\n");
                m_pSearch->Update( (int)m_RoboGridPos.x(), (int)m_RoboGridPos.y(),
                                  (int)m_TargetGridPos.x(), (int)m_TargetGridPos.y() );
               if ( m_pSearch->UpdatedSuccessful() )
                 { //   if path exists, 
+                  logger->log_info(name(),"update successful");
                   m_LocalGridTarget = m_pSearch->GetLocalTarget();
                   m_LocalGridTrajec = m_pSearch->GetLocalTrajec();
-
+               //   logger->log_info(name(),"local grid target: targetx = %f, targety = %f\n",m_LocalGridTarget.x(),m_LocalGridTarget.y());
+                 // logger->log_info(name(),"local grid trajectory: trajx = %f, trajy = %f\n",m_LocalGridTrajec.x(),m_LocalGridTarget.y());
                   // coordinate transformation from grid coordinates to relative robot coordinates
                   m_LocalTarget = HomPoint( (m_LocalGridTarget.x() - m_RoboGridPos.x())*m_pLaserOccGrid->getCellWidth()/100.0,
                                           (m_LocalGridTarget.y() - m_RoboGridPos.y())*m_pLaserOccGrid->getCellHeight()/100.0 );
@@ -425,6 +433,7 @@ void ColliThread::loop()
               else
                 { // else stop
                   // BB_DBG(1) << "   Drive Mode: Update not successful ---> stopping!" << endl;
+                  logger->log_info(name(),"   Drive Mode: Update not successful ---> stopping!\n");
                   m_LocalTarget = HomPoint( 0.0, 0.0 );
                   m_LocalTrajec = HomPoint( 0.0, 0.0 );
                   m_ProposedTranslation = 0.0;
@@ -439,15 +448,16 @@ void ColliThread::loop()
               m_pColliDataObj->set_y( m_LocalTarget.y() );
               m_pColliDataObj->set_dest_x( m_LocalTrajec.x() );
               m_pColliDataObj->set_dest_y( m_LocalTrajec.y() );
+              m_pColliDataObj->write();
+             // mcolli->draw();
             }
         }
     }
-
-  //  cout << "I want to realize " << m_ProposedTranslation << ", " << m_ProposedRotation << endl;
+  cout << "I want to realize " << m_ProposedTranslation << ", " << m_ProposedRotation << endl;
   // Realize drive mode proposal with realization module
   m_pMotorInstruct->Drive( m_ProposedTranslation, m_ProposedRotation );
 
-  //  cout << endl << endl;
+  cout << endl << endl;
  
   // Send motor and colli data away.
   //m_pColliDataObj->UpdateBB();
@@ -459,11 +469,17 @@ void ColliThread::loop()
 //-----------------------------------------------------------
 void ColliThread::RegisterAtBlackboard()
 {
-  m_pMopoObj = blackboard->open_for_writing<MotorInterface>("Motor");
-  m_pLaserScannerObj = blackboard->open_for_reading<Laser360Interface>("Laser"); 
-  m_pColliTargetObj = blackboard->open_for_reading<NavigatorInterface>("Navigator");
+  m_pMopoObj = blackboard->open_for_writing<MotorInterface>("Motor Write");
+  //m_pLaserScannerObj = blackboard->open_for_writing<Laser360Interface>("Laser Filtered");
+  m_pLaserScannerObj = blackboard->open_for_reading<Laser360Interface>("Laser");
+  m_pColliTargetObj = blackboard->open_for_reading<NavigatorInterface>("NavigatorTarget");
   m_pColliDataObj = blackboard->open_for_writing<NavigatorInterface>("Navigator"); 
 
+  m_pLaserScannerObjTest = blackboard->open_for_writing<Laser360Interface>("Laser output");
+
+  /*laser720 = blackboard->open_for_reading<Laser720Interface>("Laser lase_edl");
+  laser720->read();*/
+  
   m_pMopoObj->read();
   m_pLaserScannerObj->read();
   m_pColliTargetObj->read();
@@ -471,6 +487,16 @@ void ColliThread::RegisterAtBlackboard()
   
   m_pColliDataObj->set_final( true );
   m_pColliDataObj->write(); 
+
+  //m_pLaserScannerObjTest->write();
+  //cout << "blackboard initialization done" << endl;
+  
+  //laserDeadSpots = blackboard->open_for_writing<Laser360Interface>("Laser Dead Spots");
+  ninit = blackboard->open_for_writing<NavigatorInterface>("NavigatorTarget");
+  ninit->set_dest_x(1.0);
+  ninit->set_dest_y(1.0);
+  ninit->set_dest_ori(0.0);
+  ninit->write();   
 }
 //--------------------------------------------------------------------------
 /// Initialize all modules used by the Colli
@@ -483,7 +509,6 @@ void ColliThread::InitializeModules()
   m_pLaser->UpdateLaser(); 
 
   // SECOND(!): the occupancy grid (it uses the laser)
-  //m_pLaserOccGrid = new CLaserOccupancyGrid( m_pLaserScannerObj );
 
   // set the cell width and heigth to 5 cm and the grid size to 7.5 m x 7.5 m.
   // this are 750/5 x 750/5 grid cells -> (750x750)/5 = 22500 grid cells
@@ -491,9 +516,9 @@ void ColliThread::InitializeModules()
   m_pLaserOccGrid->setWidth(  (int)((m_OccGridWidth*100)/m_pLaserOccGrid->getCellWidth()) );
   m_pLaserOccGrid->setCellHeight( m_OccGridCellHeight );
   m_pLaserOccGrid->setHeight( (int)((m_OccGridHeight*100)/m_pLaserOccGrid->getCellHeight()) );*/
-  m_pLaserOccGrid = new CLaserOccupancyGrid( logger, config, m_pLaser, m_OccGridCellWidth, m_OccGridCellHeight,
-                                           (int) (m_OccGridWidth*100)/m_OccGridCellWidth, 
-                                           (int)((m_OccGridHeight*100)/m_OccGridCellHeight) );
+  m_pLaserOccGrid = new CLaserOccupancyGrid( logger, config, m_pLaser, (int) ((m_OccGridWidth*100)/m_OccGridCellWidth),
+                                            (int)((m_OccGridHeight*100)/m_OccGridCellHeight), 
+                                            m_OccGridCellWidth, m_OccGridCellHeight);
   // THIRD(!): the search component (it uses the occ grid (without the laser)
   m_pSearch = new CSearch( logger, config, m_pLaserOccGrid );
 
@@ -530,7 +555,16 @@ void ColliThread::UpdateBB()
 {
   //m_pLaserScannerObj->Update();
   m_pLaserScannerObj->read();
-  //m_pMopoObj->Update();
+  /*laser720->read();
+  float *data_out = filterspots(laser720);
+  m_pLaserScannerObj->set_distances(data_out);
+  m_pLaserScannerObj->write();
+  m_pLaserScannerObj->read();*/
+  /*float *data_out = filterspots(m_pLaserScannerObj);
+  laserDeadSpots->set_distances(data_out);
+  laserDeadSpots->write();*/
+  
+
   m_pMopoObj->read();
   //m_pColliTargetObj->Update();
   m_pColliTargetObj->read();
@@ -589,21 +623,24 @@ void ColliThread::UpdateColliStateMachine()
       m_TargetPointX = targetX;
       m_TargetPointY = targetY;
       m_ColliStatus = DriveToTarget;
+      logger->log_info(name(),"colli state: drive to target\n");
       return;
     }
   else if ( (orient == true) &&
             ( fabs( normalize_mirror_rad(curPosO - targetO) ) > 0.1 ) )
     {
+      logger->log_info(name(),"colli state: orient at target\n");
       m_ColliStatus = OrientAtTarget;
       return;
     }
   else
     {
+      logger->log_info(name(),"colli state: nothing to do\n");
       m_ColliStatus = NothingToDo;
       return;
     }
-
-  cout << "**** COLLI ****: Here I should never never be" << endl;
+  
+  logger->log_info(name(),"**** COLLI ****: Here I should never never be\n");
   return;
 
 }
@@ -656,7 +693,7 @@ void ColliThread::UpdateOwnModules()
 
   int robopos_x = laserpos_x + (int)(motor_distance/m_pLaserOccGrid->getCellWidth());
   int robopos_y = laserpos_y;
-
+  
   // coordinate transformation for target point
   //float aX = m_TargetPointX - m_pMotorInstruct->GetCurrentX();
   float aX = m_TargetPointX - m_pMopoObj->odometry_position_x ();
@@ -700,9 +737,8 @@ void ColliThread::UpdateOwnModules()
     }
 
   // update the laser
-  //m_pLaser->UpdateLaser();
-  m_pLaserScannerObj->read();
-
+  m_pLaser->UpdateLaser();
+  //m_pLaserScannerObj->read();
   // Robo increasement for robots
   float m_RoboIncrease = 0.0;
 
@@ -789,12 +825,14 @@ void ColliThread::UpdateOwnModules()
 bool ColliThread::CheckEscape()
 {
   //if ((float)m_pLaserOccGrid->getProb((int)m_RoboGridPos.X(),(int)m_RoboGridPos.Y()) == _COLLI_CELL_OCCUPIED_ )
-  if ((float)m_pLaserOccGrid->getProb((int)m_RoboGridPos.x(),(int)m_RoboGridPos.y()) == _COLLI_CELL_OCCUPIED_ )
+  if ((float)m_pLaserOccGrid->getProb((int)m_RoboGridPos.x(),(int)m_RoboGridPos.y()) ==  _COLLI_CELL_OCCUPIED_ )
     {
+      //logger->log_info(name(),"must be escaped\n");
       return true;
     }
   else
     {
+      //logger->log_info( name(),"No escape\n");
       return false;
     }
 }

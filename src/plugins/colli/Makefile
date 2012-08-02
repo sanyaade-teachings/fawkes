@@ -1,7 +1,7 @@
 
 BASEDIR = ../../../
 
-include $(BASEDIR)/etc/buildsys/config.mk
+include $(BASEDIR)/etc/buildsys/config.mk	
 	
 
 

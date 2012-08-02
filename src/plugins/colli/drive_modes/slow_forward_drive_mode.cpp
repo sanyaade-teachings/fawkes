@@ -254,6 +254,7 @@ void CSlowForwardDriveModule::Update()
   m_ProposedTranslation = 0.0;
   m_ProposedRotation    = 0.0;
 
+  //loggerSlowFor->log_info("slow forward","local target is: %f,%f\n",m_LocalTargetX,m_LocalTargetY);
   float dist_to_target = sqrt( pow((m_LocalTargetX),2) + pow((m_LocalTargetY),2) );
   float alpha          = atan2( m_LocalTargetY, m_LocalTargetX );
   float dist_to_trajec = sqrt( pow((m_LocalTrajecX),2) + pow((m_LocalTrajecY),2) );
@@ -273,7 +274,8 @@ void CSlowForwardDriveModule::Update()
 
   // last time border check............. IMPORTANT!!!
   // because the motorinstructor just tests robots physical borders.
-  if ( dist_to_target < 0.04 )
+  loggerSlowFor->log_info("slow forward","dist to target: %f\n",dist_to_target);
+  if ( dist_to_target <= 0.04 )
     {
       m_ProposedTranslation = 0.0;
       m_ProposedRotation    = 0.0;
@@ -289,7 +291,7 @@ void CSlowForwardDriveModule::Update()
       if (m_ProposedRotation < -m_MaxRotation)
 	m_ProposedRotation = -m_MaxRotation;
 
-      if ( m_StopAtTarget == false && dist_to_target < 1.0 )
+      if ( (m_StopAtTarget == false) && (dist_to_target < 1.0) )
 	{
 	  // Reduziere die rotationsgeschwindigkeiten, damit keine wilden lenkmanoever kommen
 	  //  wenn stop on target = false ist.
