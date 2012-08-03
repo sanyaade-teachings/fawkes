@@ -1,8 +1,14 @@
 #include "colli_thread.h"
-
+#ifdef HAVE_VISUAL_DEBUGGING
+#  include "visualization_thread_base.h"
+#endif
 ColliThread::ColliThread()
   : Thread("ColliThread", Thread::OPMODE_CONTINUOUS)
 {
+ #ifdef HAVE_VISUAL_DEBUGGING
+  visthread_ = NULL;
+ #endif
+
 }
 //--------------------------------------------------------------
 ColliThread::~ColliThread()
@@ -204,8 +210,33 @@ void ColliThread::finalize()
 // ============================================================================ //
 //
 //--------------------------------------------------------------------------------------------
+void ColliThread::visualize_cells()
+{
+  vector<HomPoint > cells;
+  //logger->log_info(name(),"grid size: %d,%d\n",m_pLaserOccGrid->getWidth(),m_pLaserOccGrid->getHeight());
+  for ( int gridY = 0; gridY < m_pLaserOccGrid->getHeight(); gridY++ )
+  {
+    for ( int gridX = 0; gridX < m_pLaserOccGrid->getWidth(); gridX++ )
+    {
+      if ( m_pLaserOccGrid->getProb( gridX, gridY ) == _COLLI_CELL_OCCUPIED_ )
+      //if ( m_pLaserOccGrid->getProb( gridX, gridY ) == _COLLI_CELL_NEAR_ )
+      {
+        HomPoint p(gridX,gridY);
+        cells.push_back(p); 
+         //m_pVis->draw_point( 2*gridX, 2*gridY );
+      }
+    }
+  }
+  //visthread_->visualize("/bese_laser",cells);
+  visthread_->visualize("/base_link",cells);
+}
+//--------------------------------------------------------------------------------------------
 void ColliThread::loop()
 {
+  #ifdef HAVE_VISUAL_DEBUGGING
+  visualize_cells();
+  #endif
+
   // to be on the sure side of life
   m_ProposedTranslation = 0.0;
   m_ProposedRotation    = 0.0;
@@ -836,3 +867,12 @@ bool ColliThread::CheckEscape()
       return false;
     }
 }
+//-------------------------------------------------------------------------------------------------------------------
+#ifdef HAVE_VISUAL_DEBUGGING
+void ColliThread::set_visualization_thread(ColliVisualizationThreadBase *visthread)
+{
+  visthread_ = visthread;
+  if(visthread_ ) cout << "visualization thread set"<< endl;
+}
+#endif
+

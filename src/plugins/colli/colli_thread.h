@@ -57,7 +57,9 @@ using namespace std;
 
 
 const string default_hostname = "";
-
+#ifdef HAVE_VISUAL_DEBUGGING
+class ColliVisualizationThreadBase;
+#endif
 
 class ColliThread
 : public fawkes::Thread,
@@ -67,6 +69,12 @@ class ColliThread
   public fawkes::BlackBoardAspect
 {
  public:
+ #ifdef HAVE_VISUAL_DEBUGGING
+  ColliVisualizationThreadBase *visthread_;
+  void visualize_cells();
+  void set_visualization_thread(ColliVisualizationThreadBase *visthread);
+ #endif
+
   ColliThread();
   virtual ~ColliThread();
   virtual void init();
@@ -153,7 +161,7 @@ class ColliThread
   bool CheckEscape();
 
  protected: virtual void run() { Thread::run(); }
-
+ 
 };
 
 #endif
