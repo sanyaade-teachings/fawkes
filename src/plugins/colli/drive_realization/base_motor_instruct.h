@@ -217,42 +217,78 @@ inline void CBaseMotorInstruct::SetCommand(  )
   // SJ TODO!!!
 */
   // Translation borders
+  float vx,vy,omega;
+  vy = 0.0;
   if ( fabs(m_execTranslation) < 0.05 )
+  {
     //SetDesiredTranslation( 0.0 );
     motor_if->set_vx(0.0);
+    vx = 0.0;
+  }
   else
+  {
     if ( fabs(m_execTranslation) > 3.0 )
+    {
       if ( m_execTranslation > 0.0 )
+      {
 	//SetDesiredTranslation( 3.0 );
         motor_if->set_vx(3.0);
+        vx = 3.0;
+      }
       else
+      {
 	//SetDesiredTranslation( -3.0 );
         motor_if->set_vx(-3.0);
+        vx = -3.0;
+      }
+    }
     else
+    {
       //SetDesiredTranslation( m_execTranslation );
       motor_if->set_vx( m_execTranslation );
+      vx = m_execTranslation;
+    }
+  }
   // Rotation borders
   if ( fabs(m_execRotation) < 0.01 )
+  {
     //SetDesiredRotation( 0.0 );
     motor_if->set_omega(0.0);
+    omega = 0.0;
+  }
   else
+  {
     if ( fabs(m_execRotation) > 2*M_PI )
+    {
       if ( m_execRotation > 0.0 )
+      {
 	//SetDesiredRotation( 2*M_PI );
         motor_if->set_omega(2*M_PI);
+        omega = 2*M_PI;
+      }
       else
+      {
 	//SetDesiredRotation( -2*M_PI );
         motor_if->set_omega(-2*M_PI);
+        omega = -2*M_PI;
+      }
+    }
     else
+    {
       //SetDesiredRotation( m_execRotation );
       motor_if->set_omega( m_execRotation );
-  
+      omega = m_execRotation;
+    }
+  }
   motor_if->write();
   // Send the commands to the motor. No controlling afterwards done!!!!
   //SendCommand();
-  MotorInterface::TransRotMessage *msg = new MotorInterface::TransRotMessage(motor_if->vx(),motor_if->vy(),motor_if->omega());
+  //motor_if->read();
+  //MotorInterface::TransRotMessage *msg = new MotorInterface::TransRotMessage(motor_if->vx(),motor_if->vy(),motor_if->omega());
+  MotorInterface::TransRotMessage *msg = new MotorInterface::TransRotMessage(vx,vy,omega);
   //MotorInterface::TransRotMessage *msg = new MotorInterface::TransRotMessage(1.5,0.0,0.0); // ** for test if it works remotely ** //
   motor_if_read->msgq_enqueue(msg);
+  
   //motor_if->set_motor_state(motor_if->DRIVE_MODE_TRANS_ROT);
    //cout << "motor velocity: " << motor_if->vx() << endl;
   //cout << "motor rotation: "<< motor_if->omega() << endl;

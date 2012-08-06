@@ -171,6 +171,26 @@ void Laser::CalculatePositions()
     m_pReadings->SetPos(i);
 }
 
+void Laser::transform(tf::TransformListener *tf_listener)
+{
+  for ( int i = 0; i < m_NumberOfReadings; i++ )
+  {
+    float posX = m_pReadings->GetPosX(i);
+    float posY = m_pReadings->GetPosY(i);
+    tf::Stamped<tf::Point> base_point;
+    tf::Stamped<tf::Point> laser_point(tf::Point(posX,posY,0),fawkes::Time(0, 0),"/base_laser"); 
+    try{
+      tf_listener->transform_point("/base_link", laser_point, base_point);
+      
+    }catch(...){
+      cout << "can't transform to the base link" << endl;
+    }
+    m_pReadings->SetPosX(i,base_point.x());
+    m_pReadings->SetPosY(i,base_point.y()); 
+  }
+  
+}
+
 /* =========================================================================================== */
 /* GETTER STUFF */
 /* =========================================================================================== */

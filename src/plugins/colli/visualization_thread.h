@@ -35,13 +35,19 @@ class ColliVisualizationThread
   virtual void loop();
   virtual void finalize();
 
-  virtual void visualize(const std::string &frame_id,vector<HomPoint> &cells) throw();
-
+  virtual void visualize(const std::string &frame_id,vector<HomPoint> &cells,HomPoint &m_RoboGridPos,HomPoint &m_LaserGridPos) throw();
+  virtual void visualize_occ(vector<float > &data) throw();
  private:
   fawkes::Mutex mutex_;
   std::string frame_id_;
   ros::Publisher *vispub_;
+  ros::Publisher *robpub_;
+  ros::Publisher *laserpub_;
+  ros::Publisher *gridpub_;
   vector<HomPoint > cells_;
-};
+  vector<float > data_;
+  HomPoint robo_pos_;
+  HomPoint laser_pos_;
+}; 
 
 #endif

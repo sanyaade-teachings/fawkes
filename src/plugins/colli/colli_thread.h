@@ -6,6 +6,7 @@
 #include <aspect/configurable.h>
 #include <aspect/logging.h>
 #include <aspect/blackboard.h>
+#include <aspect/tf.h>
 #include <utils/time/clock.h>
 #include <utils/math/types.h>
 #include <utils/math/angle.h>
@@ -66,6 +67,7 @@ class ColliThread
   public fawkes::ClockAspect,
   public fawkes::LoggingAspect,
   public fawkes::ConfigurableAspect,
+  public fawkes::TransformAspect,
   public fawkes::BlackBoardAspect
 {
  public:
@@ -73,6 +75,7 @@ class ColliThread
   ColliVisualizationThreadBase *visthread_;
   void visualize_cells();
   void set_visualization_thread(ColliVisualizationThreadBase *visthread);
+  void visualize_grid();
  #endif
 
   ColliThread();

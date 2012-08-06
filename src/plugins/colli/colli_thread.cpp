@@ -210,6 +210,7 @@ void ColliThread::finalize()
 // ============================================================================ //
 //
 //--------------------------------------------------------------------------------------------
+ #ifdef HAVE_VISUAL_DEBUGGING
 void ColliThread::visualize_cells()
 {
   vector<HomPoint > cells;
@@ -228,13 +229,30 @@ void ColliThread::visualize_cells()
     }
   }
   //visthread_->visualize("/bese_laser",cells);
-  visthread_->visualize("/base_link",cells);
+  visthread_->visualize("/base_link",cells,m_RoboGridPos,m_LaserGridPos);
 }
+#endif
+
+#ifdef HAVE_VISUAL_DEBUGGING
+void ColliThread::visualize_grid()
+{
+  vector<float > data;
+  for ( int gridY = 0; gridY < m_pLaserOccGrid->getHeight(); gridY++ )
+  {
+    for ( int gridX = 0; gridX < m_pLaserOccGrid->getWidth(); gridX++ )
+    {
+      data.push_back(m_pLaserOccGrid->getProb( gridX, gridY ) / 10);
+    }
+  } 
+  visthread_->visualize_occ(data);
+}
+#endif
 //--------------------------------------------------------------------------------------------
 void ColliThread::loop()
 {
   #ifdef HAVE_VISUAL_DEBUGGING
   visualize_cells();
+ // visualize_grid();
   #endif
 
   // to be on the sure side of life
@@ -538,7 +556,7 @@ void ColliThread::InitializeModules()
   // FIRST(!): the laserinterface (uses the laserscanner)
   m_pLaser = new Laser( m_pLaserScannerObj, "" );
   m_pLaser->UpdateLaser(); 
-
+  m_pLaser->transform(tf_listener);
   // SECOND(!): the occupancy grid (it uses the laser)
 
   // set the cell width and heigth to 5 cm and the grid size to 7.5 m x 7.5 m.
@@ -769,6 +787,7 @@ void ColliThread::UpdateOwnModules()
 
   // update the laser
   m_pLaser->UpdateLaser();
+  m_pLaser->transform(tf_listener);
   //m_pLaserScannerObj->read();
   // Robo increasement for robots
   float m_RoboIncrease = 0.0;

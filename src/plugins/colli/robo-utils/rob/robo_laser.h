@@ -60,7 +60,9 @@
 
 #include <string.h>
 #include <string>
-
+//#include<ros/ros.h>
+//#include <geometry_msgs/PointStamped.h>
+#include <tf/transform_listener.h>
 using namespace fawkes;
 using namespace std;
 
@@ -109,7 +111,8 @@ class Laser
    *            1 is an error occured;
    */
   int UpdateLaser( );
-
+   
+  void transform(tf::TransformListener *listener);
 
   // ================================================= //
   // Return the actual readings. Nothing interpolated. //
