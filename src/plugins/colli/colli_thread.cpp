@@ -545,6 +545,7 @@ void ColliThread::RegisterAtBlackboard()
   ninit->set_dest_x(1.0);
   ninit->set_dest_y(1.0);
   ninit->set_dest_ori(0.0);
+  ninit->set_colliMode(NavigatorInterface::ModerateAllowBackward);
   ninit->write();   
 }
 //--------------------------------------------------------------------------

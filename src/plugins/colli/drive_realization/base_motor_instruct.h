@@ -285,6 +285,7 @@ inline void CBaseMotorInstruct::SetCommand(  )
   //SendCommand();
   //motor_if->read();
   //MotorInterface::TransRotMessage *msg = new MotorInterface::TransRotMessage(motor_if->vx(),motor_if->vy(),motor_if->omega());
+  //loggerTmp->log_info("drive realization","vx %f, vy %f, omega %f",vx,vy,omega );
   MotorInterface::TransRotMessage *msg = new MotorInterface::TransRotMessage(vx,vy,omega);
   //MotorInterface::TransRotMessage *msg = new MotorInterface::TransRotMessage(1.5,0.0,0.0); // ** for test if it works remotely ** //
   motor_if_read->msgq_enqueue(msg);
