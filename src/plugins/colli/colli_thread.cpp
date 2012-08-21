@@ -214,6 +214,7 @@ void ColliThread::finalize()
 void ColliThread::visualize_cells()
 {
   vector<HomPoint > cells;
+  vector<HomPoint > laser_points;
   //logger->log_info(name(),"grid size: %d,%d\n",m_pLaserOccGrid->getWidth(),m_pLaserOccGrid->getHeight());
   for ( int gridY = 0; gridY < m_pLaserOccGrid->getHeight(); gridY++ )
   {
@@ -224,12 +225,20 @@ void ColliThread::visualize_cells()
       {
         HomPoint p(gridX,gridY);
         cells.push_back(p); 
-         //m_pVis->draw_point( 2*gridX, 2*gridY );
       }
     }
   }
   //visthread_->visualize("/bese_laser",cells);
-  visthread_->visualize("/base_link",cells,m_RoboGridPos,m_LaserGridPos);
+  for( int i = 0; i < m_pLaser->GetNumberOfReadings(); i++ )
+  {
+    float posx = m_pLaser->GetReadingPosX(i);
+    float posy = m_pLaser->GetReadingPosY(i);
+    HomPoint plaser(posx,posy);
+    laser_points.push_back(plaser);
+  }
+ //cout << "number of readings "<<m_pLaser->GetNumberOfReadings() << endl;
+ std::vector< HomPoint > plan = m_pSearch->GetPlan();
+ visthread_->visualize("/base_link",cells,m_RoboGridPos,m_LaserGridPos,laser_points,plan,m_TargetGridPos);
 }
 #endif
 
@@ -519,17 +528,18 @@ void ColliThread::loop()
 void ColliThread::RegisterAtBlackboard()
 {
   m_pMopoObj = blackboard->open_for_writing<MotorInterface>("Motor Write");
+  mopo_obj = blackboard->open_for_reading<MotorInterface>("Motor");
   //m_pLaserScannerObj = blackboard->open_for_writing<Laser360Interface>("Laser Filtered");
   m_pLaserScannerObj = blackboard->open_for_reading<Laser360Interface>("Laser");
   m_pColliTargetObj = blackboard->open_for_reading<NavigatorInterface>("NavigatorTarget");
   m_pColliDataObj = blackboard->open_for_writing<NavigatorInterface>("Navigator"); 
 
-  m_pLaserScannerObjTest = blackboard->open_for_writing<Laser360Interface>("Laser output");
+  //m_pLaserScannerObjTest = blackboard->open_for_writing<Laser360Interface>("Laser output");
 
   /*laser720 = blackboard->open_for_reading<Laser720Interface>("Laser lase_edl");
   laser720->read();*/
-  
-  m_pMopoObj->read();
+  mopo_obj->read();
+  m_pMopoObj->write();
   m_pLaserScannerObj->read();
   m_pColliTargetObj->read();
   m_pColliDataObj->read();
@@ -545,7 +555,8 @@ void ColliThread::RegisterAtBlackboard()
   ninit->set_dest_x(1.0);
   ninit->set_dest_y(1.0);
   ninit->set_dest_ori(0.0);
-  ninit->set_colliMode(NavigatorInterface::ModerateAllowBackward);
+  //ninit->set_security_distance(0.05);
+//  ninit->set_colliMode(NavigatorInterface::ModerateAllowBackward);
   ninit->write();   
 }
 //--------------------------------------------------------------------------
@@ -579,7 +590,7 @@ void ColliThread::InitializeModules()
 
   // AFTER MOTOR INSTRUCT: the motor propose values object
   //m_pSelectDriveMode = new CSelectDriveMode( m_pMotorInstruct, m_pLaser, m_pColliTargetObj, logger );
-  m_pSelectDriveMode = new CSelectDriveMode( m_pMopoObj, m_pLaser, m_pColliTargetObj, logger, config ); // ** just for test
+  m_pSelectDriveMode = new CSelectDriveMode( m_pMopoObj, m_pLaser, m_pColliTargetObj, logger, config ); 
  
   // Initialization of colli state machine:
   // Currently nothing is to accomplish
@@ -605,6 +616,13 @@ void ColliThread::UpdateBB()
 {
   //m_pLaserScannerObj->Update();
   m_pLaserScannerObj->read();
+  mopo_obj->read();
+  m_pMopoObj->set_odometry_position_x(mopo_obj->odometry_position_x());
+  m_pMopoObj->set_odometry_position_y(mopo_obj->odometry_position_y());
+  m_pMopoObj->set_odometry_orientation(mopo_obj->odometry_orientation());
+  m_pMopoObj->set_vx(mopo_obj->vx());  
+  m_pMopoObj->set_omega(mopo_obj->omega());
+  m_pMopoObj->write();
   /*laser720->read();
   float *data_out = filterspots(laser720);
   m_pLaserScannerObj->set_distances(data_out);
@@ -722,7 +740,9 @@ void ColliThread::UpdateOwnModules()
                                                 (int)(5*fabs(m_pMopoObj->vx())+3) ) );
 
     }
-
+    m_pLaserOccGrid->setCellWidth( (int)m_OccGridCellWidth );
+    m_pLaserOccGrid->setCellHeight( (int)m_OccGridCellHeight );
+  
   // Calculate discrete position of the laser whicj is different for RWI Robots
   int laserpos_x;
 
@@ -734,13 +754,11 @@ void ColliThread::UpdateOwnModules()
     {
       laserpos_x = (int)(m_pLaserOccGrid->getWidth() / 2);
     }
-
   int laserpos_y = (int)(m_pLaserOccGrid->getHeight() / 2);
   //laserpos_x -= (int)( m_pMotorInstruct->GetMotorDesiredTranslation()*m_pLaserOccGrid->getWidth() / (2*3.0) );
   laserpos_x -= (int)( m_pMopoObj->vx()*m_pLaserOccGrid->getWidth() / (2*3.0) );
   laserpos_x  = max ( laserpos_x, 10 );
   laserpos_x  = min ( laserpos_x, (int)(m_pLaserOccGrid->getWidth()-10) );
-
   int robopos_x = laserpos_x + (int)(motor_distance/m_pLaserOccGrid->getCellWidth());
   int robopos_y = laserpos_y;
   
@@ -789,7 +807,6 @@ void ColliThread::UpdateOwnModules()
   // update the laser
   m_pLaser->UpdateLaser();
   m_pLaser->transform(tf_listener);
-  //m_pLaserScannerObj->read();
   // Robo increasement for robots
   float m_RoboIncrease = 0.0;
 

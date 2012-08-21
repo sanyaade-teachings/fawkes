@@ -24,7 +24,8 @@ class ColliVisualizationThreadBase
 
   virtual ~ColliVisualizationThreadBase();
 
-  virtual void visualize(const std::string &frame_id,vector<HomPoint> &cells,HomPoint &m_RoboGridPos,HomPoint &m_LaserGridPos) throw()=0;
+  virtual void visualize(const std::string &frame_id,vector<HomPoint> &cells,HomPoint &m_RoboGridPos,HomPoint &m_LaserGridPos, vector<HomPoint> &laser_cells,
+                         vector< HomPoint > &plan,HomPoint &m_TargetGridPos) throw()=0;
   virtual void visualize_occ(vector<float > &data ) throw()=0;
 };
 

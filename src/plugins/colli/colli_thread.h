@@ -85,6 +85,7 @@ class ColliThread
 
   virtual void finalize();
  private:
+  fawkes::MotorInterface  *mopo_obj;
   fawkes::MotorInterface  *m_pMopoObj;
   fawkes::Laser360Interface *m_pLaserScannerObj;
   //fawkes::Laser720Interface *m_pLaserScannerObj;

@@ -122,7 +122,10 @@ CSearch::~CSearch()
   delete m_pAStar;
 }
 
-
+std::vector< HomPoint >  CSearch::GetPlan()
+{
+  return m_vPlan;
+}
 
 // Perform an Update by searching in the occgrid for a plan
 //   from robopos to targetpos

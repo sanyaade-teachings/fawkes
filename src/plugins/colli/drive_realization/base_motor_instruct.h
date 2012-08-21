@@ -281,14 +281,18 @@ inline void CBaseMotorInstruct::SetCommand(  )
     }
   }
   motor_if->write();
+  /*motor_if_read->read();
+  motor_if->set_odometry_position_x(motor_if_read->odometry_position_x());
+  motor_if->set_odometry_position_y(motor_if_read->odometry_position_y());  
+  motor_if->set_odometry_orientation(motor_if_read->odometry_orientation());*/
   // Send the commands to the motor. No controlling afterwards done!!!!
   //SendCommand();
   //motor_if->read();
   //MotorInterface::TransRotMessage *msg = new MotorInterface::TransRotMessage(motor_if->vx(),motor_if->vy(),motor_if->omega());
   //loggerTmp->log_info("drive realization","vx %f, vy %f, omega %f",vx,vy,omega );
-  MotorInterface::TransRotMessage *msg = new MotorInterface::TransRotMessage(vx,vy,omega);
+   MotorInterface::TransRotMessage *msg = new MotorInterface::TransRotMessage(vx,vy,omega);
   //MotorInterface::TransRotMessage *msg = new MotorInterface::TransRotMessage(1.5,0.0,0.0); // ** for test if it works remotely ** //
-  motor_if_read->msgq_enqueue(msg);
+   motor_if_read->msgq_enqueue(msg);
   
   //motor_if->set_motor_state(motor_if->DRIVE_MODE_TRANS_ROT);
    //cout << "motor velocity: " << motor_if->vx() << endl;

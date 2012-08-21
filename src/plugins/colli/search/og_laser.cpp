@@ -265,7 +265,7 @@ void CLaserOccupancyGrid::IntegrateOldReadings( int midX, int midY, float inc, f
 	oldpos_y = m_vOldReadings[i+1];
 
 	newpos_x =  -xdiff + (  oldpos_x * m_pTrigTable->GetCos( oridiff ) +
-			        oldpos_y * m_pTrigTable->GetSin( oridiff ) );
+				        oldpos_y * m_pTrigTable->GetSin( oridiff ) );
 	newpos_y =  -ydiff + ( -oldpos_x * m_pTrigTable->GetSin( oridiff ) +
 			        oldpos_y * m_pTrigTable->GetCos( oridiff ) );
 
@@ -275,9 +275,6 @@ void CLaserOccupancyGrid::IntegrateOldReadings( int midX, int midY, float inc, f
  	int number_of_old_reading = (int)
  	  (normalize_degree( ( 360.0/(m_pLaser->GetNumberOfReadings()) ) *
  			     rad2deg(angle_to_old_reading) ) );
-        /*int number_of_old_reading = (int)
-          (normalize_degree( ( 360.0/ ((int) ( sizeof(m_pLaser->distances())/sizeof(float) )) ) *
-                             rad2deg(angle_to_old_reading) ) );*/
 	bool SollEintragen = true;
 
  	if ( pow(( m_pLaser->GetReadingLength( number_of_old_reading ) - 0.3 ),2) > sqr_distance_to_old_reading )
@@ -290,6 +287,7 @@ void CLaserOccupancyGrid::IntegrateOldReadings( int midX, int midY, float inc, f
  	  {
 	    float posX = midX + (int)((newpos_x*100.0) / ((float)m_CellWidth ));
 	    float posY = midY + (int)((newpos_y*100.0) / ((float)m_CellHeight ));
+
 	    if ( posX > 4.0 && posX < m_Width-5 &&
 		 posY > 4.0 && posY < m_Height-5 )
 	      {
@@ -342,7 +340,7 @@ void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
 	    oldp_y = p_y;
 	    posX = midX + (int)((p_x*100.0) / ((float)m_CellWidth ));
 	    posY = midY + (int)((p_y*100.0) / ((float)m_CellHeight ));
-
+            
 	    if ( !( posX <= 5 || posX >= m_Width-6 ||
 		    posY <= 5 || posY >= m_Height-6 ) )
 	      {
@@ -368,8 +366,6 @@ void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
 		   if ( !m_pLaser->IsPipe( rad ) )
 		   {
 		    integrateObstacle( Ellipse( HomPoint( posX, posY ), height, length, 0.0 ) );
-                    //Point p; p.x = posX; p.y = posY;
-                    //integrateObstacle( Ellipse( p, height, length, 0.0 ) );
 		    if ( !Contained( p_x, p_y ) )
 		    {
 			m_vOldReadings.push_back( p_x );
@@ -412,8 +408,8 @@ void CLaserOccupancyGrid::integrateObstacle( Ellipse ellipse )
   // i = x offset, i+1 = y offset, i+2 is cost
   for ( unsigned int i = 0; i < fast_ellipse.size(); i+=3 )
     {
-      posY = centery + fast_ellipse[i];
-      posX = centerx + fast_ellipse[i+1];
+      posY = centery + fast_ellipse[i+1];
+      posX = centerx + fast_ellipse[i];
             
       if ( (posX > 0) && (posX < m_Width) && 
 	   (posY > 0) && (posY < m_Height) &&

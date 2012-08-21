@@ -94,6 +94,8 @@ public:
   // precondition: update had to be called.
   bool UpdatedSuccessful();
 
+  // ** getter for visualization ** //
+  std::vector< HomPoint > GetPlan();
 
 private:
 
