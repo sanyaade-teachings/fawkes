@@ -40,14 +40,14 @@ class ColliManualControl
 ColliManualControl::ColliManualControl(int argc, char **argv): argp(argc, argv, "hr:p:li")
 {
   init_bb();
-
-  m_Target = bb_if->open_for_writing<NavigatorInterface>("NavigatorTarget");
-
+  m_Target = bb_if->open_for_reading<NavigatorInterface>("NavigatorTarget");
+  
+/*  m_Target = bb_if->open_for_writing<NavigatorInterface>("NavigatorTarget");
   m_Target->set_dest_x(0.0);
   m_Target->set_dest_y(0.0);
   m_Target->set_dest_ori(0.0);
-  m_Target->set_colliMode(NavigatorInterface::ModerateAllowBackward);
-  m_Target->write();
+//  m_Target->set_colliMode(NavigatorInterface::ModerateAllowBackward);
+  m_Target->write();*/
 }
 //-----------------------------------------------------------------------------
 ColliManualControl::~ColliManualControl()
@@ -59,7 +59,10 @@ void ColliManualControl::init_bb()
 {
   host = (char *)"localhost";
   port = 1910;
+  bool free_host = argp.parse_hostport("r", &host, &port);
   bb_if = new RemoteBlackBoard(host, port);
+  if (free_host)  
+    free(host);
 }
 //-----------------------------------------------------------------------------
 void ColliManualControl::test()
@@ -67,16 +70,19 @@ void ColliManualControl::test()
   ArgumentParser *argp_;
   //const char **argv = argp.argv();
   argp_ = new ArgumentParser(argp);
- 
+  float tar_x = -1;
+  float tar_y = -1;
   const std::vector< const char * > &items = argp_->items();
   for (unsigned int i = 0; i < items.size(); i++)
   {
     if( strcmp(items[i],"coordx") == 0 )
     {
       if(items.size() > i+1){
-      m_Target->set_dest_x(argp_->parse_item_float(++i));
+      //m_Target->set_dest_x(argp_->parse_item_float(++i));
+      i++;
       float p = argp_->parse_item_float(i);
       cout << "coordx " << p << endl;
+      tar_x = p;
       }
       else
        cout << "no x coordinate provided" << endl;
@@ -84,14 +90,16 @@ void ColliManualControl::test()
     if( strcmp(items[i],"coordy") == 0 )
     {
       if(items.size() > i+1){
-      m_Target->set_dest_y(argp_->parse_item_float(++i));
+     // m_Target->set_dest_y(argp_->parse_item_float(++i));
+      i++;
       float p = argp_->parse_item_float(i);
       cout << "coordy " << p << endl;
+      tar_y = p;
       }
       else
        cout << "no y coordinate provided" << endl;
     }
-    if(strcmp(items[i],"drive_mode") == 0 )
+   /* if(strcmp(items[i],"drive_mode") == 0 )
     {
       if(items.size() > i+1 )
       {
@@ -132,10 +140,17 @@ void ColliManualControl::test()
   //        m_Target->set_colliMode(NavigatorInterface::MovingNotAllowed);
         }
       }
-    }    
+    }*/    
   }
-  m_Target->write();
-  cout << "target drive mode: " << m_Target->GetColliMode() << endl;
+ // m_Target->write();
+//  cout << "target drive mode: " << m_Target->GetColliMode() << endl;
+  if(( tar_x != -1 ) && ( tar_y != -1 ))
+  {
+    NavigatorInterface::ObstacleMessage *msg = new NavigatorInterface::ObstacleMessage();
+    msg->set_x(tar_x);
+    msg->set_y(tar_y);
+    m_Target->msgq_enqueue(msg);
+  }
 }
 
 void ColliManualControl::run()

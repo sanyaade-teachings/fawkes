@@ -237,31 +237,33 @@ void ColliThread::visualize_cells()
     laser_points.push_back(plaser);
   }
  //cout << "number of readings "<<m_pLaser->GetNumberOfReadings() << endl;
+ //logger->log_info(name(),"cell size is: %d,%d", m_pLaserOccGrid->getCellWidth(),m_pLaserOccGrid->getCellHeight());
  std::vector< HomPoint > plan = m_pSearch->GetPlan();
- visthread_->visualize("/base_link",cells,m_RoboGridPos,m_LaserGridPos,laser_points,plan,m_TargetGridPos);
+ HomPoint target(m_pColliTargetObj->dest_x(),m_pColliTargetObj->dest_y());
+ 
+ //logger->log_info(name(),"current velocity is: %f,%f",m_pMopoObj->vx(),m_pMopoObj->omega());
+// float m_des_x = m_pMopoObj->vx() * cos(m_pMopoObj->omega());
+// float m_des_y = m_pMopoObj->vx() * sin(m_pMopoObj->omega());
+ float m_des_x = m_ProposedTranslation * cos(m_ProposedRotation);
+ float m_des_y = m_ProposedTranslation * sin(m_ProposedRotation);
+
+ HomPoint motor_des(m_des_x,m_des_y);
+ mopo_obj->read();
+ float m_x = mopo_obj->vx() * cos(mopo_obj->omega());
+ float m_y = mopo_obj->vx() * sin(mopo_obj->omega());
+ HomPoint motor_real(m_x,m_y);
+ //logger->log_info(name(),"next change must be: %f,%f",m_x,m_y);
+ visthread_->visualize("/base_link",cells,m_RoboGridPos,m_LaserGridPos,laser_points,plan,motor_des,
+                       m_pLaserOccGrid->getCellWidth(),m_pLaserOccGrid->getCellHeight(),target,
+                       m_OccGridWidth,m_OccGridHeight,motor_real);
 }
 #endif
 
-#ifdef HAVE_VISUAL_DEBUGGING
-void ColliThread::visualize_grid()
-{
-  vector<float > data;
-  for ( int gridY = 0; gridY < m_pLaserOccGrid->getHeight(); gridY++ )
-  {
-    for ( int gridX = 0; gridX < m_pLaserOccGrid->getWidth(); gridX++ )
-    {
-      data.push_back(m_pLaserOccGrid->getProb( gridX, gridY ) / 10);
-    }
-  } 
-  visthread_->visualize_occ(data);
-}
-#endif
 //--------------------------------------------------------------------------------------------
 void ColliThread::loop()
 {
   #ifdef HAVE_VISUAL_DEBUGGING
   visualize_cells();
- // visualize_grid();
   #endif
 
   // to be on the sure side of life
@@ -384,7 +386,7 @@ void ColliThread::loop()
       UpdateOwnModules();
       //m_pColliDataObj->SetFinal( false );
       m_pColliDataObj->set_final( false );
-      m_pColliDataObj->write();
+    //  m_pColliDataObj->write();
       /* TODO if ( m_pMopoObj->GetAllowMove() == false )
       {
         m_pMopoObj->RecoverEmergencyStop();
@@ -506,7 +508,7 @@ void ColliThread::loop()
               m_pColliDataObj->set_y( m_LocalTarget.y() );
               m_pColliDataObj->set_dest_x( m_LocalTrajec.x() );
               m_pColliDataObj->set_dest_y( m_LocalTrajec.y() );
-              m_pColliDataObj->write();
+    //          m_pColliDataObj->write();
              // mcolli->draw();
             }
         }
@@ -546,18 +548,20 @@ void ColliThread::RegisterAtBlackboard()
   
   m_pColliDataObj->set_final( true );
   m_pColliDataObj->write(); 
-
+  m_pColliTargetObj->read();
   //m_pLaserScannerObjTest->write();
   //cout << "blackboard initialization done" << endl;
   
   //laserDeadSpots = blackboard->open_for_writing<Laser360Interface>("Laser Dead Spots");
   ninit = blackboard->open_for_writing<NavigatorInterface>("NavigatorTarget");
-  ninit->set_dest_x(1.0);
+  
+ /* ninit = blackboard->open_for_writing<NavigatorInterface>("NavigatorTarget");
+  ninit->set_dest_x(2.0);
   ninit->set_dest_y(1.0);
   ninit->set_dest_ori(0.0);
   //ninit->set_security_distance(0.05);
 //  ninit->set_colliMode(NavigatorInterface::ModerateAllowBackward);
-  ninit->write();   
+  ninit->write(); */
 }
 //--------------------------------------------------------------------------
 /// Initialize all modules used by the Colli
@@ -568,7 +572,7 @@ void ColliThread::InitializeModules()
   // FIRST(!): the laserinterface (uses the laserscanner)
   m_pLaser = new Laser( m_pLaserScannerObj, "" );
   m_pLaser->UpdateLaser(); 
-  m_pLaser->transform(tf_listener);
+  //m_pLaser->transform(tf_listener);
   // SECOND(!): the occupancy grid (it uses the laser)
 
   // set the cell width and heigth to 5 cm and the grid size to 7.5 m x 7.5 m.
@@ -634,6 +638,17 @@ void ColliThread::UpdateBB()
   
 
   m_pMopoObj->read();
+
+  if((! ninit->msgq_empty()))
+  {
+    NavigatorInterface::ObstacleMessage *msgTmp = ninit->msgq_first_safe(msgTmp);
+    ninit->set_dest_x(msgTmp->x());
+    ninit->set_dest_y(msgTmp->y());
+    ninit->set_dest_ori(0.0);
+    ninit->write();
+    ninit->msgq_pop();
+  } 
+
   //m_pColliTargetObj->Update();
   m_pColliTargetObj->read();
   //m_pColliDataObj->Update();
@@ -740,8 +755,6 @@ void ColliThread::UpdateOwnModules()
                                                 (int)(5*fabs(m_pMopoObj->vx())+3) ) );
 
     }
-    m_pLaserOccGrid->setCellWidth( (int)m_OccGridCellWidth );
-    m_pLaserOccGrid->setCellHeight( (int)m_OccGridCellHeight );
   
   // Calculate discrete position of the laser whicj is different for RWI Robots
   int laserpos_x;
@@ -806,7 +819,7 @@ void ColliThread::UpdateOwnModules()
 
   // update the laser
   m_pLaser->UpdateLaser();
-  m_pLaser->transform(tf_listener);
+  //m_pLaser->transform(tf_listener);
   // Robo increasement for robots
   float m_RoboIncrease = 0.0;
 
