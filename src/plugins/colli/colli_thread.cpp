@@ -17,6 +17,7 @@ ColliThread::~ColliThread()
 //-------------------------------------------------------------
 void ColliThread::init()
 {
+  
   logger->log_info(name(),"COLLI (Constructor): Constructing...\n");
   if (!config->exists("/plugins/colli/Colli_FREQUENCY") )
   {
@@ -248,9 +249,11 @@ void ColliThread::visualize_cells()
  float m_des_y = m_ProposedTranslation * sin(m_ProposedRotation);
 
  HomPoint motor_des(m_des_x,m_des_y);
- mopo_obj->read();
- float m_x = mopo_obj->vx() * cos(mopo_obj->omega());
- float m_y = mopo_obj->vx() * sin(mopo_obj->omega());
+ /*float m_x = mopo_obj->vx() * cos(mopo_obj->omega());
+ float m_y = mopo_obj->vx() * sin(mopo_obj->omega());*/
+ float m_x = m_pMopoObj->vx() * cos(m_pMopoObj->omega());
+ float m_y = m_pMopoObj->vx() * sin(m_pMopoObj->omega());
+ //logger->log_info(name(),"motor remote velocity is: %f", mopo_obj->vx());
  HomPoint motor_real(m_x,m_y);
  //logger->log_info(name(),"next change must be: %f,%f",m_x,m_y);
  visthread_->visualize("/base_link",cells,m_RoboGridPos,m_LaserGridPos,laser_points,plan,motor_des,
@@ -265,7 +268,6 @@ void ColliThread::loop()
   #ifdef HAVE_VISUAL_DEBUGGING
   visualize_cells();
   #endif
-
   // to be on the sure side of life
   m_ProposedTranslation = 0.0;
   m_ProposedRotation    = 0.0;
@@ -529,19 +531,28 @@ void ColliThread::loop()
 //-----------------------------------------------------------
 void ColliThread::RegisterAtBlackboard()
 {
-  m_pMopoObj = blackboard->open_for_writing<MotorInterface>("Motor Write");
-  mopo_obj = blackboard->open_for_reading<MotorInterface>("Motor");
-  //m_pLaserScannerObj = blackboard->open_for_writing<Laser360Interface>("Laser Filtered");
+ /* string brutusStr = "172.16.35.32";
+  char* brutus = new char[brutusStr.length()+1];
+  strcpy(brutus,brutusStr.c_str());
+  try {
+    bb_ = new RemoteBlackBoard(brutus, 1910);
+    cout << "successfully connected to brutus." << endl;
+  } catch (Exception &e) {
+    cout << "can not connect to brutus." << endl;
+  }*/
+
+  //m_pMopoObj = blackboard->open_for_writing<MotorInterface>("Motor Write");
+  m_pMopoObj = blackboard->open_for_reading<MotorInterface>("Motor Brutus");
+ // mopo_obj = blackboard->open_for_reading<MotorInterface>("Motor");
+ // mopo_obj = bb_->open_for_reading<MotorInterface>("Motor");
   m_pLaserScannerObj = blackboard->open_for_reading<Laser360Interface>("Laser");
   m_pColliTargetObj = blackboard->open_for_reading<NavigatorInterface>("NavigatorTarget");
-  m_pColliDataObj = blackboard->open_for_writing<NavigatorInterface>("Navigator"); 
+  m_pColliDataObj = blackboard->open_for_writing<NavigatorInterface>("Navigator Temp"); 
 
-  //m_pLaserScannerObjTest = blackboard->open_for_writing<Laser360Interface>("Laser output");
 
-  /*laser720 = blackboard->open_for_reading<Laser720Interface>("Laser lase_edl");
-  laser720->read();*/
-  mopo_obj->read();
-  m_pMopoObj->write();
+  //mopo_obj->read();
+  //m_pMopoObj->write();
+  m_pMopoObj->read();
   m_pLaserScannerObj->read();
   m_pColliTargetObj->read();
   m_pColliDataObj->read();
@@ -549,10 +560,7 @@ void ColliThread::RegisterAtBlackboard()
   m_pColliDataObj->set_final( true );
   m_pColliDataObj->write(); 
   m_pColliTargetObj->read();
-  //m_pLaserScannerObjTest->write();
-  //cout << "blackboard initialization done" << endl;
   
-  //laserDeadSpots = blackboard->open_for_writing<Laser360Interface>("Laser Dead Spots");
   ninit = blackboard->open_for_writing<NavigatorInterface>("NavigatorTarget");
   
  /* ninit = blackboard->open_for_writing<NavigatorInterface>("NavigatorTarget");
@@ -572,7 +580,7 @@ void ColliThread::InitializeModules()
   // FIRST(!): the laserinterface (uses the laserscanner)
   m_pLaser = new Laser( m_pLaserScannerObj, "" );
   m_pLaser->UpdateLaser(); 
-  //m_pLaser->transform(tf_listener);
+  m_pLaser->transform(tf_listener);
   // SECOND(!): the occupancy grid (it uses the laser)
 
   // set the cell width and heigth to 5 cm and the grid size to 7.5 m x 7.5 m.
@@ -620,21 +628,13 @@ void ColliThread::UpdateBB()
 {
   //m_pLaserScannerObj->Update();
   m_pLaserScannerObj->read();
-  mopo_obj->read();
+  /*mopo_obj->read();
   m_pMopoObj->set_odometry_position_x(mopo_obj->odometry_position_x());
   m_pMopoObj->set_odometry_position_y(mopo_obj->odometry_position_y());
   m_pMopoObj->set_odometry_orientation(mopo_obj->odometry_orientation());
   m_pMopoObj->set_vx(mopo_obj->vx());  
   m_pMopoObj->set_omega(mopo_obj->omega());
-  m_pMopoObj->write();
-  /*laser720->read();
-  float *data_out = filterspots(laser720);
-  m_pLaserScannerObj->set_distances(data_out);
-  m_pLaserScannerObj->write();
-  m_pLaserScannerObj->read();*/
-  /*float *data_out = filterspots(m_pLaserScannerObj);
-  laserDeadSpots->set_distances(data_out);
-  laserDeadSpots->write();*/
+  m_pMopoObj->write();*/
   
 
   m_pMopoObj->read();

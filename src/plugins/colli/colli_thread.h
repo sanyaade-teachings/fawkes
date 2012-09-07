@@ -16,6 +16,7 @@
 #include <interfaces/Position2DTrackInterface.h>
 #include <interfaces/NavigatorInterface.h>
 #include <geometry/hom_point.h>
+#include <blackboard/remote.h>
 
 #include "drive_realization/quadratic_motor_instruct.h"
 #include "drive_modes/select_drive_mode.h"
@@ -32,6 +33,7 @@
 #define _COLLI_CELL_FAR_           2.0 // far from an obstacle| COST  2!
 #define _COLLI_CELL_FREE_          1.0 // default free value  | COST  1!
 #endif
+
 //#incluse "colli_laser.h"
 // Colli States
 enum ColliState
@@ -96,6 +98,7 @@ class ColliThread
   fawkes::Laser720Interface *laser720;  
   fawkes::NavigatorInterface *ninit;
   fawkes::Laser360Interface *laserDeadSpots;
+  fawkes::BlackBoard * bb_;
 
   Laser*                          m_pLaser;            // laser interface for easy use
   CSearch*                        m_pSearch;           // our plan module which calculates the info

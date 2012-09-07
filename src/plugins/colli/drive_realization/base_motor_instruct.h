@@ -186,10 +186,10 @@ inline CBaseMotorInstruct::CBaseMotorInstruct( MotorInterface * motor, float fre
   // ** m_OldTimestamp.Stamp();
   m_Frequency = frequency;
 // ** in order to send messages to motor plugin
-  char *host = (char *)"localhost";
+/*  char *host = (char *)"localhost";
   unsigned short int port = 1910;
   bb_if = new RemoteBlackBoard(host, port);
-  motor_if_read = bb_if->open_for_reading<MotorInterface>("Motor");
+  motor_if_read = bb_if->open_for_reading<MotorInterface>("Motor"); */
 // **
   loggerTmp->log_info("BaseMotorInstruct","CBaseMotorInstruct(Constructor): Exiting\n");
 }
@@ -200,7 +200,7 @@ inline CBaseMotorInstruct::CBaseMotorInstruct( MotorInterface * motor, float fre
 inline CBaseMotorInstruct::~CBaseMotorInstruct()
 {
   loggerTmp->log_info("BaseMotorInstruct","CBaseMotorInstruct(Destructor): Entering\n");
-  bb_if->close(motor_if_read);
+  //bb_if->close(motor_if_read);
   loggerTmp->log_info("BaseMotorInstruct","CBaseMotorInstruct(Destructor): Exiting\n");
 }
 
@@ -222,7 +222,7 @@ inline void CBaseMotorInstruct::SetCommand(  )
   if ( fabs(m_execTranslation) < 0.05 )
   {
     //SetDesiredTranslation( 0.0 );
-    motor_if->set_vx(0.0);
+  //  motor_if->set_vx(0.0);
     vx = 0.0;
   }
   else
@@ -232,20 +232,20 @@ inline void CBaseMotorInstruct::SetCommand(  )
       if ( m_execTranslation > 0.0 )
       {
 	//SetDesiredTranslation( 3.0 );
-        motor_if->set_vx(3.0);
+       // motor_if->set_vx(3.0);
         vx = 3.0;
       }
       else
       {
 	//SetDesiredTranslation( -3.0 );
-        motor_if->set_vx(-3.0);
+       // motor_if->set_vx(-3.0);
         vx = -3.0;
       }
     }
     else
     {
       //SetDesiredTranslation( m_execTranslation );
-      motor_if->set_vx( m_execTranslation );
+     // motor_if->set_vx( m_execTranslation );
       vx = m_execTranslation;
     }
   }
@@ -253,7 +253,7 @@ inline void CBaseMotorInstruct::SetCommand(  )
   if ( fabs(m_execRotation) < 0.01 )
   {
     //SetDesiredRotation( 0.0 );
-    motor_if->set_omega(0.0);
+   // motor_if->set_omega(0.0);
     omega = 0.0;
   }
   else
@@ -263,25 +263,25 @@ inline void CBaseMotorInstruct::SetCommand(  )
       if ( m_execRotation > 0.0 )
       {
 	//SetDesiredRotation( 2*M_PI );
-        motor_if->set_omega(2*M_PI);
+       // motor_if->set_omega(2*M_PI);
         omega = 2*M_PI;
       }
       else
       {
 	//SetDesiredRotation( -2*M_PI );
-        motor_if->set_omega(-2*M_PI);
+       // motor_if->set_omega(-2*M_PI);
         omega = -2*M_PI;
       }
     }
     else
     {
       //SetDesiredRotation( m_execRotation );
-      motor_if->set_omega( m_execRotation );
+      //motor_if->set_omega( m_execRotation );
       omega = m_execRotation;
     }
   }
-  motor_if->write();
-  /*motor_if_read->read();
+  /*motor_if->write();
+  motor_if_read->read();
   motor_if->set_odometry_position_x(motor_if_read->odometry_position_x());
   motor_if->set_odometry_position_y(motor_if_read->odometry_position_y());  
   motor_if->set_odometry_orientation(motor_if_read->odometry_orientation());*/
@@ -289,10 +289,11 @@ inline void CBaseMotorInstruct::SetCommand(  )
   //SendCommand();
   //motor_if->read();
   //MotorInterface::TransRotMessage *msg = new MotorInterface::TransRotMessage(motor_if->vx(),motor_if->vy(),motor_if->omega());
-  //loggerTmp->log_info("drive realization","vx %f, vy %f, omega %f",vx,vy,omega );
+   //loggerTmp->log_info("drive realization","vx %f, vy %f, omega %f",vx,vy,omega );
    MotorInterface::TransRotMessage *msg = new MotorInterface::TransRotMessage(vx,vy,omega);
-  //MotorInterface::TransRotMessage *msg = new MotorInterface::TransRotMessage(1.5,0.0,0.0); // ** for test if it works remotely ** //
-   motor_if_read->msgq_enqueue(msg);
+   motor_if->msgq_enqueue(msg);
+   //loggerTmp->log_info("drive realization","motor message sent");
+  // motor_if_read->msgq_enqueue(msg);
   
   //motor_if->set_motor_state(motor_if->DRIVE_MODE_TRANS_ROT);
    //cout << "motor velocity: " << motor_if->vx() << endl;
