@@ -28,6 +28,7 @@ class ColliManualControl
   void init_bb();
   void test();
   void run();
+  void print_usage();
  private:
   NavigatorInterface *m_Target;
   BlackBoard *bb_if;
@@ -53,16 +54,23 @@ ColliManualControl::ColliManualControl(int argc, char **argv): argp(argc, argv, 
 ColliManualControl::~ColliManualControl()
 {
   bb_if->close(m_Target);
+  delete bb_if;
 }
 //----------------------------------------------------------------------------
 void ColliManualControl::init_bb()
 {
   host = (char *)"localhost";
   port = 1910;
-  bool free_host = argp.parse_hostport("r", &host, &port);
   bb_if = new RemoteBlackBoard(host, port);
-  if (free_host)  
-    free(host);
+}
+//------------------------------------------------------------------------------
+void ColliManualControl::print_usage()
+{
+    printf("Usage: [-h] <command>\n"
+         " -h              This help message\n"
+         " Command:\n"
+         "coordx [targetx] coordy [targety]\n");
+
 }
 //-----------------------------------------------------------------------------
 void ColliManualControl::test()
@@ -70,6 +78,13 @@ void ColliManualControl::test()
   ArgumentParser *argp_;
   //const char **argv = argp.argv();
   argp_ = new ArgumentParser(argp);
+  if ( argp_->has_arg("h") ) 
+  {
+    //cout << "help message requested" << endl;
+    print_usage();
+    exit(0);
+  }
+
   float tar_x = -1;
   float tar_y = -1;
   const std::vector< const char * > &items = argp_->items();
@@ -151,12 +166,18 @@ void ColliManualControl::test()
     msg->set_y(tar_y);
     m_Target->msgq_enqueue(msg);
   }
+  else 
+  {
+    print_usage();
+    exit(0);
+  }
 }
 
 void ColliManualControl::run()
 {
   test();
-  while(true){
+  while(true)
+  {
   }
 }
 //----------------------------------------------------------------------------
