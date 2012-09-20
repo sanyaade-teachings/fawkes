@@ -35,6 +35,7 @@ class ColliManualControl
   ArgumentParser argp;
   char* host;
   unsigned short int port;
+  float tar_x,tar_y;
  // ArgumentParser *argp;
 };
 //-----------------------------------------------------------------------------
@@ -42,7 +43,8 @@ ColliManualControl::ColliManualControl(int argc, char **argv): argp(argc, argv, 
 {
   init_bb();
   m_Target = bb_if->open_for_reading<NavigatorInterface>("NavigatorTarget");
-  
+  tar_x = -1;
+  tar_y = -1;
 /*  m_Target = bb_if->open_for_writing<NavigatorInterface>("NavigatorTarget");
   m_Target->set_dest_x(0.0);
   m_Target->set_dest_y(0.0);
@@ -85,8 +87,8 @@ void ColliManualControl::test()
     exit(0);
   }
 
-  float tar_x = -1;
-  float tar_y = -1;
+  //float tar_x = -1;
+  //float tar_y = -1;
   const std::vector< const char * > &items = argp_->items();
   for (unsigned int i = 0; i < items.size(); i++)
   {
@@ -178,6 +180,11 @@ void ColliManualControl::run()
   test();
   while(true)
   {
+    m_Target->read();
+    if(( m_Target->dest_x() == tar_x ) && ( m_Target->dest_y() == tar_y ) )
+    {
+      break;
+    }
   }
 }
 //----------------------------------------------------------------------------
