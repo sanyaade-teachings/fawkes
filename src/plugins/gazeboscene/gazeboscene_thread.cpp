@@ -26,6 +26,7 @@
 
 // from MongoDB
 #include <mongo/client/dbclient.h>
+#include <mongo/client/gridfs.h>
 
 // from Gazebo
 #include <gazebo/transport/Node.hh>
@@ -86,13 +87,13 @@ GazeboSceneThread::init()
     }
   }
 
-  __dblookahead = 500.0;  // in ms
+  __dbbuffer = 500;
   try {
-    __database = (double) config->get_int("/plugins/gazeboscene/lookahead");
-    logger->log_info(name(), "GazeboScene uses a lookahead of %.0fms", __dblookahead);
+    __dbbuffer = (double) config->get_uint("/plugins/gazeboscene/buffer");
+    logger->log_info(name(), "GazeboScene uses a buffer of %dms", __dbbuffer);
   }
   catch (Exception &e) {
-    logger->log_info(name(), "No lookahead for GazeboScene configured, defaulting to %.0fms", __dblookahead);
+    logger->log_info(name(), "No buffer for GazeboScene configured, defaulting to %dms", __dbbuffer);
   }
 
   __mongodb    = mongodb_client;
@@ -109,19 +110,18 @@ GazeboSceneThread::init()
   __pausestart = new Time();
   __pausestart->stamp_systime();
 
+  std::list<std::string>::iterator iter;
   std::list<std::string> collections;
   collections = __mongodb->getCollectionNames(__database);
   double starttime = DBL_MAX;
   double endtime = 0.0;
 
-  std::list<std::string>::iterator iter;
   BSONObj obj;
-  BSONObj returnfields;
-  returnfields = fromjson("{timestamp:1}");
+  BSONObj returnfields = fromjson("{timestamp:1}");
   BSONElement timestamp;
   for(iter = collections.begin(); iter != collections.end(); iter++) {
     // index the database and determine the length of the scene
-    if(*iter != __database+".system.indexes") {
+    if(*iter != __database+".system.indexes" && iter->find("GridFS") == std::string::npos) {
       __mongodb->ensureIndex(*iter, fromjson("{timestamp:1}"), true);
       obj = __mongodb->findOne(*iter, Query().sort("timestamp",1), &returnfields);
       if(!obj.isEmpty()) {
@@ -136,17 +136,27 @@ GazeboSceneThread::init()
           endtime = timestamp.Number();
       }
     }
+    // create mongo::GridFS for the files collections
+    else if(iter->find("GridFS") != std::string::npos && iter->find("files") != std::string::npos) {
+      size_t dot1, dot2;
+      std::string collectionname = __mongodb->nsGetCollection(*iter);
+      dot1 = collectionname.find(".")+1;
+      dot2 = collectionname.find(".", dot1);
+      logger->log_debug(name(), "creating mongo::GridFS %s for %s", collectionname.substr(dot1, dot2 - dot1).c_str(), collectionname.substr(0, dot2).c_str());
+      __mongogrids[collectionname.substr(dot1, dot2 - dot1)] = new GridFS(*__mongodb, __database, collectionname.substr(0, dot2));
+    }
 
     // determine collections containing transforms
     if(iter->find("TransformInterface") != std::string::npos) {
       __tfcollections.push_back(*iter);
     }
+
   }
 
   __dbtimeoffset = starttime;
   __dbcurtimeoffset = starttime;
   __dbscenelength = endtime - starttime;
-  __dblookedahead = starttime;
+  __dbbuffered = starttime;
 
   objectinstantiatorResponsePub = __gazebo->Advertise<msgs::Response>("~/SceneReconstruction/ObjectInstantiator/Response");
   objectinstantiatorObjectPub = __gazebo->Advertise<msgs::SceneObject>("~/SceneReconstruction/ObjectInstantiator/Object");
@@ -231,14 +241,14 @@ GazeboSceneThread::init()
 
   setupPub->Publish(robcon);
 
-  // send commands and objects for the timeframe from 0 to __dblookahead
+  // send commands and objects for the timeframe from 0 to __dbbuffer
   double tmp = 0;
-  double maxtime = __dbtimeoffset + __dblookahead;
+  double maxtime = __dbtimeoffset + __dbbuffer;
   msgs::Message_V /* objmsgs, */ robmsgs /*, jntmsgs*/ ;
 /*
   // get and send object data
   // TODO: set collection name(s)
-  cursor = __mongodb->query(__database+".COLLECTION", QUERY("timestamp" << GTE << __dblookedahead << LT << maxtime).sort("timestamp");
+  cursor = __mongodb->query(__database+".COLLECTION", QUERY("timestamp" << GTE << __dbbuffered << LT << maxtime).sort("timestamp");
   msgs::SceneObjectData obj;
   objmsgs.set_msgtype(obj.GetTypeName());
   while(cursor->more()) {
@@ -273,7 +283,7 @@ GazeboSceneThread::init()
     tmp = bson.getField("timestamp").Number();
 */
   // get and send robot positions
-  cursor = __mongodb->query(__database+".TransformInterface.TF_RCSoftX_Localize", QUERY("timestamp" << GTE << __dblookedahead << LT << maxtime));
+  cursor = __mongodb->query(__database+".TransformInterface.TF_RCSoftX_Localize", QUERY("timestamp" << GTE << __dbbuffered << LT << maxtime));
   msgs::SceneRobot rob;
   robmsgs.set_msgtype(rob.GetTypeName());
   while(cursor->more()) {
@@ -303,7 +313,7 @@ GazeboSceneThread::init()
 /*
   // get and send joint positions
   // TODO: set collection name(s)
-  cursor = __mongodb->query(__database+".COLLECTION", QUERY("timestamp" << GTE << __dblookedahead << LT << maxtime));
+  cursor = __mongodb->query(__database+".COLLECTION", QUERY("timestamp" << GTE << __dbbuffered << LT << maxtime));
   msgs::SceneJoint jnt;
   jntmsgs.set_msgtype(jnt.GetTypeName());
   while(cursor->more()) {
@@ -326,8 +336,8 @@ GazeboSceneThread::init()
   if(bson.getField("timestamp").Number() > tmp)
     tmp = bson.getField("timestamp").Number();
 */
-  if(tmp > __dblookedahead)
-    __dblookedahead = tmp;
+  if(tmp > __dbbuffered)
+    __dbbuffered = tmp;
 
 
   response.set_id(-1);
@@ -437,14 +447,14 @@ GazeboSceneThread::OnWorldStatisticsMsg(ConstWorldStatisticsPtr &_msg)
     #pragma GCC diagnostic warning "-Wdeprecated-declarations"
     BSONObj bson;
     double tmp = 0;
-    double maxtime = _msg->sim_time().sec()*1000 + _msg->sim_time().nsec()/1000000 + __dbcurtimeoffset + __dblookahead;
-    if(maxtime < __dblookedahead)
+    double maxtime = _msg->sim_time().sec()*1000 + _msg->sim_time().nsec()/1000000 + __dbcurtimeoffset + __dbbuffer;
+    if(maxtime < __dbbuffered)
       return;
 
     msgs::Message_V /* objmsgs, */ robmsgs /*, jntmsgs */ ;
 /*
     // TODO: set collection name(s)
-    cursor = __mongodb->query(__database+".COLLECTION", QUERY("timestamp" << GTE << __dblookedahead << LT << maxtime).sort("timestamp");
+    cursor = __mongodb->query(__database+".COLLECTION", QUERY("timestamp" << GTE << __dbbuffered << LT << maxtime).sort("timestamp");
     msgs::SceneObjectData obj;
     objmsgs.set_msgtype(obj.GetTypeName());
     while(cursor->more()) {
@@ -480,7 +490,7 @@ GazeboSceneThread::OnWorldStatisticsMsg(ConstWorldStatisticsPtr &_msg)
       tmp = bson.getField("timestamp").Number();
 */    
     // get and send robot positions
-    cursor = __mongodb->query(__database+".TransformInterface.TF_RCSoftX_Localize", QUERY("timestamp" << GTE << __dblookedahead << LT << maxtime));
+    cursor = __mongodb->query(__database+".TransformInterface.TF_RCSoftX_Localize", QUERY("timestamp" << GTE << __dbbuffered << LT << maxtime));
     msgs::SceneRobot rob;
     robmsgs.set_msgtype(rob.GetTypeName());
     while(cursor->more()) {
@@ -510,7 +520,7 @@ GazeboSceneThread::OnWorldStatisticsMsg(ConstWorldStatisticsPtr &_msg)
 /*
     // get and send joint positions
     // TODO: set collection name(s)
-    cursor = __mongodb->query(__database+".COLLECTION", QUERY("timestamp" << GTE << __dblookedahead << LT << maxtime));
+    cursor = __mongodb->query(__database+".COLLECTION", QUERY("timestamp" << GTE << __dbbuffered << LT << maxtime));
     msgs::SceneJoint jnt;
     jntmsgs.set_msgtype(jnt.GetTypeName());
     while(cursor->more()) {
@@ -533,8 +543,8 @@ GazeboSceneThread::OnWorldStatisticsMsg(ConstWorldStatisticsPtr &_msg)
     if(bson.getField("timestamp").Number() > tmp)
       tmp = bson.getField("timestamp").Number();
 */
-    if(tmp > __dblookedahead)
-      __dblookedahead = tmp;
+    if(tmp > __dbbuffered)
+      __dbbuffered = tmp;
   }
 }
 
@@ -573,7 +583,7 @@ GazeboSceneThread::OnControlMsg(ConstSceneFrameworkControlPtr &_msg)
       BSONObj bson;
       double start = __dbcurtimeoffset - 10000;
       double end = __dbcurtimeoffset;
-      __dblookedahead = __dbcurtimeoffset;
+      __dbbuffered = __dbcurtimeoffset;
       for(iter = __tfcollections.begin(); iter != __tfcollections.end(); iter++) {
         cursor = __mongodb->query(*iter, QUERY("timestamp" << GT << start << LTE << end).sort("timestamp"));
         while(cursor->more()) {

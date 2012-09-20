@@ -40,6 +40,9 @@
 #include <gazebo/transport/TransportTypes.hh>
 #include <gazebo/msgs/MessageTypes.hh>
 
+namespace mongo {
+  class GridFS;
+}
 
 class GazeboSceneThread
 : public fawkes::Thread,
@@ -71,38 +74,39 @@ class GazeboSceneThread
   void OnControlMsg(ConstSceneFrameworkControlPtr&);
   gazebo::msgs::Pose Convert(fawkes::tf::Stamped<fawkes::tf::Pose>);
 
-  mongo::DBClientBase               *__mongodb;
-  gazebo::transport::NodePtr         __gazebo;
-  std::string                        __database,
-                                     __collection;
-  std::list<std::string>             __tfcollections;
-  fawkes::Time                      *__scenestart,
-                                    *__lasttf,
-                                    *__now,
-                                    *__pausestart;
-  double                             __dbtimeoffset,
-                                     __dbcurtimeoffset,
-                                     __dbscenelength,
-                                     __dblookahead,
-                                     __dblookedahead;
-  bool                               __pause;
+  mongo::DBClientBase                     *__mongodb;
+  std::map< std::string, mongo::GridFS* >  __mongogrids;
+  gazebo::transport::NodePtr               __gazebo;
+  std::string                              __database,
+                                           __collection;
+  std::list<std::string>                   __tfcollections;
+  fawkes::Time                            *__scenestart,
+                                          *__lasttf,
+                                          *__now,
+                                          *__pausestart;
+  double                                   __dbtimeoffset,
+                                           __dbcurtimeoffset,
+                                           __dbscenelength,
+                                           __dbbuffered;
+  unsigned int                             __dbbuffer;
+  bool                                     __pause;
   
   
 
-  gazebo::transport::PublisherPtr    objectinstantiatorResponsePub,
-                                     objectinstantiatorObjectPub,
-                                     robotcontrollerResponsePub,
-                                     robotcontrollerControlPub,
-                                     scenereconstructionGuiPub,
-                                     timePub,
-                                     setupPub,
-                                     transformPub,
-                                     statusPub;
-  gazebo::transport::SubscriberPtr   frameworkRequestSub,
-                                     transformRequestSub,
-                                     statusSub,
-                                     controlSub,
-                                     worldSub;
+  gazebo::transport::PublisherPtr          objectinstantiatorResponsePub,
+                                           objectinstantiatorObjectPub,
+                                           robotcontrollerResponsePub,
+                                           robotcontrollerControlPub,
+                                           scenereconstructionGuiPub,
+                                           timePub,
+                                           setupPub,
+                                           transformPub,
+                                           statusPub;
+  gazebo::transport::SubscriberPtr         frameworkRequestSub,
+                                           transformRequestSub,
+                                           statusSub,
+                                           controlSub,
+                                           worldSub;
 };
 
 #endif
