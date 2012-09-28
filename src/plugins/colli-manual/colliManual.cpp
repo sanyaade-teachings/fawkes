@@ -36,7 +36,10 @@ class ColliManualControl
   char* host;
   unsigned short int port;
   float tar_x,tar_y;
- // ArgumentParser *argp;
+  string drive_mode_str;
+  bool setdmode;
+  bool setdest;
+  int dmodeId;
 };
 //-----------------------------------------------------------------------------
 ColliManualControl::ColliManualControl(int argc, char **argv): argp(argc, argv, "hr:p:li")
@@ -45,12 +48,9 @@ ColliManualControl::ColliManualControl(int argc, char **argv): argp(argc, argv, 
   m_Target = bb_if->open_for_reading<NavigatorInterface>("NavigatorTarget");
   tar_x = -1;
   tar_y = -1;
-/*  m_Target = bb_if->open_for_writing<NavigatorInterface>("NavigatorTarget");
-  m_Target->set_dest_x(0.0);
-  m_Target->set_dest_y(0.0);
-  m_Target->set_dest_ori(0.0);
-//  m_Target->set_colliMode(NavigatorInterface::ModerateAllowBackward);
-  m_Target->write();*/
+  setdmode = false;
+  setdest = false;
+  dmodeId = -1;
 }
 //-----------------------------------------------------------------------------
 ColliManualControl::~ColliManualControl()
@@ -71,14 +71,13 @@ void ColliManualControl::print_usage()
     printf("Usage: [-h] <command>\n"
          " -h              This help message\n"
          " Command:\n"
-         "coordx [targetx] coordy [targety]\n");
+         "coordx [targetx] coordy [targety] drive_mode [DriveMode]\n");
 
 }
 //-----------------------------------------------------------------------------
 void ColliManualControl::test()
 {
   ArgumentParser *argp_;
-  //const char **argv = argp.argv();
   argp_ = new ArgumentParser(argp);
   if ( argp_->has_arg("h") ) 
   {
@@ -86,16 +85,13 @@ void ColliManualControl::test()
     print_usage();
     exit(0);
   }
-
-  //float tar_x = -1;
-  //float tar_y = -1;
+  NavigatorInterface::SetDriveModeMessage *drive_msg = new NavigatorInterface::SetDriveModeMessage();
   const std::vector< const char * > &items = argp_->items();
   for (unsigned int i = 0; i < items.size(); i++)
   {
     if( strcmp(items[i],"coordx") == 0 )
     {
       if(items.size() > i+1){
-      //m_Target->set_dest_x(argp_->parse_item_float(++i));
       i++;
       float p = argp_->parse_item_float(i);
       cout << "coordx " << p << endl;
@@ -107,7 +103,6 @@ void ColliManualControl::test()
     if( strcmp(items[i],"coordy") == 0 )
     {
       if(items.size() > i+1){
-     // m_Target->set_dest_y(argp_->parse_item_float(++i));
       i++;
       float p = argp_->parse_item_float(i);
       cout << "coordy " << p << endl;
@@ -116,59 +111,108 @@ void ColliManualControl::test()
       else
        cout << "no y coordinate provided" << endl;
     }
-   /* if(strcmp(items[i],"drive_mode") == 0 )
+
+    if(strcmp(items[i],"drive_mode") == 0 )
     {
       if(items.size() > i+1 )
       {
+        setdmode = true;
         const char * dmode = items[++i];
         cout << "drive mode: "<< dmode << endl;
 
-        if(strcmp(dmode,"CarefulForward") == 0)  
-          m_Target->set_colliMode(NavigatorInterface::CarefulForward);
+        if(strcmp(dmode,"CarefulForward") == 0)
+        {
+          drive_msg->set_drive_mode(NavigatorInterface::CarefulForward);
+          dmodeId = NavigatorInterface::CarefulForward;
+        }
         else if(strcmp(dmode,"MovingNotAllowed") == 0)
-          m_Target->set_colliMode(NavigatorInterface::MovingNotAllowed);
+        {
+          dmodeId = NavigatorInterface::MovingNotAllowed;
+          drive_msg->set_drive_mode(NavigatorInterface::MovingNotAllowed);
+        }
         else if(strcmp(dmode,"SlowForward") == 0)
-          m_Target->set_colliMode(NavigatorInterface::SlowForward);
+        {
+          drive_msg->set_drive_mode(NavigatorInterface::SlowForward);
+          dmodeId = NavigatorInterface::SlowForward;
+        }
         else if(strcmp(dmode,"ModerateForward") == 0)
-          m_Target->set_colliMode(NavigatorInterface::ModerateForward);
+        {
+          drive_msg->set_drive_mode(NavigatorInterface::ModerateForward);
+          dmodeId = NavigatorInterface::ModerateForward;
+        }
         else if(strcmp(dmode,"FastForward") == 0)
-          m_Target->set_colliMode(NavigatorInterface::FastForward);
+        {
+          drive_msg->set_drive_mode(NavigatorInterface::FastForward);
+          dmodeId = NavigatorInterface::FastForward;
+        }
         else if(strcmp(dmode,"CarefulAllowBackward") == 0)
-          m_Target->set_colliMode(NavigatorInterface::CarefulAllowBackward);
+        {
+          drive_msg->set_drive_mode(NavigatorInterface::CarefulAllowBackward);
+          dmodeId = NavigatorInterface::CarefulAllowBackward;
+        }
         else if(strcmp(dmode,"SlowAllowBackward") == 0)
-          m_Target->set_colliMode(NavigatorInterface::SlowAllowBackward);
+        {
+          drive_msg->set_drive_mode(NavigatorInterface::SlowAllowBackward);
+          dmodeId = NavigatorInterface::SlowAllowBackward;
+        }
         else if(strcmp(dmode,"ModerateAllowBackward") == 0)
-          m_Target->set_colliMode(NavigatorInterface::ModerateAllowBackward);
+        {
+          drive_msg->set_drive_mode(NavigatorInterface::ModerateAllowBackward);
+          dmodeId = NavigatorInterface::ModerateAllowBackward;
+        }
         else if(strcmp(dmode,"FastAllowBackward") == 0)
-          m_Target->set_colliMode(NavigatorInterface::FastAllowBackward);
+        {
+          drive_msg->set_drive_mode(NavigatorInterface::FastAllowBackward);
+          dmodeId = NavigatorInterface::FastAllowBackward;
+        }
         else if(strcmp(dmode,"CarefulBackward") == 0)
-          m_Target->set_colliMode(NavigatorInterface::CarefulBackward);
+        {
+          drive_msg->set_drive_mode(NavigatorInterface::CarefulBackward);
+          dmodeId = NavigatorInterface::CarefulBackward;
+        }
         else if(strcmp(dmode,"SlowBackward") == 0)
-          m_Target->set_colliMode(NavigatorInterface::SlowBackward);
+        {
+          drive_msg->set_drive_mode(NavigatorInterface::SlowBackward);
+          dmodeId = NavigatorInterface::SlowBackward;
+        }
         else if(strcmp(dmode,"ModerateBackward") == 0)
-          m_Target->set_colliMode(NavigatorInterface::ModerateBackward);
+        {
+          drive_msg->set_drive_mode(NavigatorInterface::ModerateBackward);
+          dmodeId = NavigatorInterface::ModerateBackward;
+        }
         else if(strcmp(dmode,"FastBackward") == 0)
-          m_Target->set_colliMode(NavigatorInterface::FastBackward);
+        {
+          drive_msg->set_drive_mode(NavigatorInterface::FastBackward);
+          dmodeId = NavigatorInterface::FastBackward;
+        }
         else if(strcmp(dmode,"ESCAPE") == 0)
-          m_Target->set_colliMode(NavigatorInterface::ESCAPE);
+        {
+          drive_msg->set_drive_mode(NavigatorInterface::ESCAPE);
+          dmodeId = NavigatorInterface::ESCAPE;
+        }
         else
         {
           cout << "drive mode is not supported" << endl;
-  //        m_Target->set_colliMode(NavigatorInterface::MovingNotAllowed);
+          setdmode = false;
         }
       }
-    }*/    
+    }
+
   }
- // m_Target->write();
-//  cout << "target drive mode: " << m_Target->GetColliMode() << endl;
+
+  if(setdmode)
+  {
+    m_Target->msgq_enqueue(drive_msg);
+  }
   if(( tar_x != -1 ) && ( tar_y != -1 ))
   {
+    setdest = true;
     NavigatorInterface::ObstacleMessage *msg = new NavigatorInterface::ObstacleMessage();
     msg->set_x(tar_x);
     msg->set_y(tar_y);
     m_Target->msgq_enqueue(msg);
   }
-  else 
+  else if(!setdmode)
   {
     print_usage();
     exit(0);
@@ -181,7 +225,17 @@ void ColliManualControl::run()
   while(true)
   {
     m_Target->read();
-    if(( m_Target->dest_x() == tar_x ) && ( m_Target->dest_y() == tar_y ) )
+    bool b_drive = true;
+    if( setdmode )
+    {
+      b_drive = ( m_Target->drive_mode() == dmodeId );
+    }
+    bool b_dest = true;
+    if( setdest )
+    {
+      b_dest = (( m_Target->dest_x() == tar_x ) && ( m_Target->dest_y() == tar_y ) );
+    }
+    if( ( b_drive ) && ( b_dest ) )
     {
       break;
     }
@@ -191,7 +245,6 @@ void ColliManualControl::run()
 int main(int argc, char **argv)
 {
   ColliManualControl *mcolli = new ColliManualControl(argc,argv);
-  //mcolli->test();
   mcolli->run();
   return 0;
 }
