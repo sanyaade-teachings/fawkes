@@ -211,10 +211,10 @@ void CSelectDriveMode::Update( bool escape )
 
   // choose the correct drive mode!
   //ColliModes desiredMode = MovingNotAllowed;
-  //ColliModes desiredMode = SlowForward;
   ColliModes desiredMode = ModerateAllowBackward;
+  desiredMode  = (ColliModes)(m_pColliTarget->drive_mode());
 //  ColliModes desiredMode  = (ColliModes)(m_pColliTarget->GetColliMode());
-  //loggerSelect->log_info("select drive","colli mode is: %s",desiredMode);
+//    loggerSelect->log_info("select drive","colli mode is: %s",desiredMode);
 /*  if ( escape == true )
     {
       if ( m_EscapeFlag == 0 && 

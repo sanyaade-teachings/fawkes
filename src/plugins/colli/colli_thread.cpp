@@ -639,16 +639,26 @@ void ColliThread::UpdateBB()
 
   m_pMopoObj->read();
 
-  if((! ninit->msgq_empty()))
+  while((! ninit->msgq_empty()))
   {
-    NavigatorInterface::ObstacleMessage *msgTmp = ninit->msgq_first_safe(msgTmp);
-    ninit->set_dest_x(msgTmp->x());
-    ninit->set_dest_y(msgTmp->y());
-    ninit->set_dest_ori(0.0);
-    ninit->write();
-    ninit->msgq_pop();
-  } 
-
+    if( ninit->msgq_first_is<NavigatorInterface::SetDriveModeMessage>() )
+    {
+      NavigatorInterface::SetDriveModeMessage *msgTmp = ninit->msgq_first_safe(msgTmp);
+      ninit->set_drive_mode(msgTmp->drive_mode());
+      ninit->write();
+      ninit->msgq_pop();
+    }
+    else if( ninit->msgq_first_is<NavigatorInterface::ObstacleMessage>() )
+    {
+      NavigatorInterface::ObstacleMessage *msgTmp = ninit->msgq_first_safe(msgTmp);
+      ninit->set_dest_x(msgTmp->x());
+      ninit->set_dest_y(msgTmp->y());
+      ninit->set_dest_ori(0.0);
+      ninit->write();
+      ninit->msgq_pop();      
+    }  
+  }
+ 
   //m_pColliTargetObj->Update();
   m_pColliTargetObj->read();
   //m_pColliDataObj->Update();

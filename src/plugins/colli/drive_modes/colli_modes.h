@@ -69,7 +69,7 @@
  *                                              Your dear colli author, Rudi
  *
  */
-enum ColliModes
+/*enum ColliModes
   {
     MovingNotAllowed = 0,                    // implemented
 
@@ -95,6 +95,34 @@ enum ColliModes
     FastDribbleBall         = 4350,          // not implemented
 
     OVERRIDE                = 666,           // to use mopo-obj while colli is running
+
+  };*/
+enum ColliModes
+  {
+    MovingNotAllowed ,                    // implemented
+
+    CarefulForward,
+    SlowForward,                         // implemented
+    ModerateForward,                    // implemented, robocup specific
+    FastForward,                        // implemented, robocup specific
+
+    CarefulAllowBackward,
+    SlowAllowBackward,                  // implemented
+    ModerateAllowBackward,             // implemented, robocup specific
+    FastAllowBackward,                 // implemented, robocup specific
+
+    CarefulBackward,
+    SlowBackward,                     // implemented
+    ModerateBackward,                // implemented, robocup specific
+    FastBackward,                   // implemented, robocup specific
+
+    ESCAPE,                        // implemented
+
+    SlowDribbleBall ,             // not implemented
+    ModerateDribbleBall,         // not implemented
+    FastDribbleBall,            // not implemented
+
+    OVERRIDE,                  // to use mopo-obj while colli is running
 
   };
 
