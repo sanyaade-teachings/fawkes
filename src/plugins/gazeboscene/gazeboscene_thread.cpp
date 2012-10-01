@@ -101,11 +101,7 @@ GazeboSceneThread::init()
 
   // define the zero time for the transforms
   __scenestart = new Time(clock);
-  __now = new Time(clock);
   __scenestart->stamp_systime();
-  __now->stamp_systime();
-  __lasttf = new Time();
-  __lasttf->set_time(__scenestart);
   __pause      = true;
   __pausestart = new Time();
   __pausestart->stamp_systime();
@@ -120,14 +116,19 @@ GazeboSceneThread::init()
   BSONObj returnfields = fromjson("{timestamp:1}");
   BSONElement timestamp;
   for(iter = collections.begin(); iter != collections.end(); iter++) {
-    // index the database and determine the length of the scene
+    // index the database
     if(*iter != __database+".system.indexes" && iter->find("GridFS") == std::string::npos) {
       __mongodb->ensureIndex(*iter, fromjson("{timestamp:1}"), true);
+    }
+
+    // determine the length of the scene
+    if(iter->find("Position3DInterface") != std::string::npos || iter->find("KatanaInterface") != std::string::npos || iter->find("PanTiltInterface") != std::string::npos || iter->find("Localize") != std::string::npos) {
       obj = __mongodb->findOne(*iter, Query().sort("timestamp",1), &returnfields);
       if(!obj.isEmpty()) {
         timestamp = obj.getField("timestamp");
-        if(starttime > timestamp.Number()) 
+        if(starttime > timestamp.Number()) {
           starttime = timestamp.Number();
+        }
       }
       obj = __mongodb->findOne(*iter, Query().sort("timestamp",-1), &returnfields);
       if(!obj.isEmpty()) {
@@ -151,21 +152,29 @@ GazeboSceneThread::init()
       __tfcollections.push_back(*iter);
     }
 
+    // determine collections containing positions
+    if(iter->find("Position3DInterface") != std::string::npos) {
+      __poscollections.push_back(*iter);
+      __querystarttimes[*iter] = 0.0;
+    }
   }
+
 
   __dbtimeoffset = starttime;
   __dbcurtimeoffset = starttime;
   __dbscenelength = endtime - starttime;
   __dbbuffered = starttime;
+  __lasttf = 0.0;
 
   objectinstantiatorResponsePub = __gazebo->Advertise<msgs::Response>("~/SceneReconstruction/ObjectInstantiator/Response");
-  objectinstantiatorObjectPub = __gazebo->Advertise<msgs::SceneObject>("~/SceneReconstruction/ObjectInstantiator/Object");
+  objectinstantiatorObjectPub = __gazebo->Advertise<msgs::SceneObject_V>("~/SceneReconstruction/ObjectInstantiator/Object");
   robotcontrollerResponsePub = __gazebo->Advertise<msgs::Response>("~/SceneReconstruction/RobotController/Response");
   robotcontrollerControlPub = __gazebo->Advertise<msgs::Message_V>("~/SceneReconstruction/RobotController/");
   scenereconstructionGuiPub = __gazebo->Advertise<msgs::Response>("~/SceneReconstruction/GUI/MongoDB");
   setupPub = __gazebo->Advertise<gazebo::msgs::SceneRobotController>("~/SceneReconstruction/RobotController/Init");
   statusPub = __gazebo->Advertise<msgs::Response>(std::string("~/SceneReconstruction/GUI/Availability/Response"));
   transformPub = __gazebo->Advertise<msgs::Response>(std::string("~/SceneReconstruction/GUI/Response"));
+  worldcontrolPub = __gazebo->Advertise<gazebo::msgs::WorldControl>("~/world_control");
   timePub = __gazebo->Advertise<msgs::Double>(std::string("~/SceneReconstruction/GUI/Time"));
 
   // send availability message in case the request was not received
@@ -181,48 +190,11 @@ GazeboSceneThread::init()
   this->timePub->Publish(time);
 
   // feed initial transforms
-  // workaround for deprecated auto_ptr
-  #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-  auto_ptr<DBClientCursor> cursor;
-  #pragma GCC diagnostic warning "-Wdeprecated-declarations"
+  double start = __lasttf;
+  double end = __dbcurtimeoffset + __dbbuffer;
+  send_transforms(start, end);
+
   BSONObj bson;
-  double start = __lasttf->in_msec() - __scenestart->in_msec() + __dbcurtimeoffset;
-  double end = __now->in_msec() - __scenestart->in_msec() + __dbcurtimeoffset;
-
-  // include transforms when __lasttf and __scenestart are equal while not publishing a transform twice
-  if(start == __dbcurtimeoffset)
-    start -= 0.1;
-
-  for(iter = __tfcollections.begin(); iter != __tfcollections.end(); iter++) {
-    cursor = __mongodb->query(*iter, QUERY("timestamp" << GT << start << LTE << end).sort("timestamp"));
-    while(cursor->more()) {
-      bson = cursor->next();
-      std::vector<BSONElement> trans = bson.getField("translation").Array();
-      std::vector<BSONElement> rota = bson.getField("rotation").Array();
-      double rx, ry, rz, rw, tx, ty, tz;
-      std::string frame, child_frame;
-      long msec = bson.getField("timestamp").Long();
-      msec -= (long) __dbcurtimeoffset;
-      msec += __scenestart->in_msec();
-      Time time(msec);
-      rx = rota[0].Double();
-      ry = rota[1].Double();
-      rz = rota[2].Double();
-      rw = rota[3].Double();
-      tx = trans[0].Double();
-      ty = trans[1].Double();
-      tz = trans[2].Double();
-      frame = bson.getField("frame").String();
-      child_frame = bson.getField("child_frame").String();
-
-      tf::Quaternion q(rx, ry, rz, rw);
-      tf::assert_quaternion_valid(q);
-      tf::Transform t(q, tf::Vector3(tx, ty, tz));
-      tf::StampedTransform transform(t, time, frame, child_frame);
-      tf_publisher->send_transform(transform);
-    }
-  }
-
   // get initial robot position & joint position
   bson = __mongodb->findOne(__database+".TransformInterface.TF_RCSoftX_Localize", Query().sort("timestamp",1));
   msgs::SceneRobotController robcon;
@@ -237,108 +209,31 @@ GazeboSceneThread::init()
   robcon.set_ori_z(rota[2].Double());
   robcon.set_ori_w(rota[3].Double());
 
-  // TODO: get and set inital joint positions
+  // get and send initial joint positions
+  std::vector<BSONElement> angles;
+  bson = __mongodb->findOne(__database+".KatanaInterface.Katana", Query().sort("timestamp",1));
+  angles = bson.getField("angles").Array();
+  std::stringstream jointname;
+  double jointangle;
+  for(unsigned int i = 0; i < angles.size();  i++) {
+    jointname.str("Katana_");
+    jointname << i;
+    jointangle = angles[i].Double();
+    robcon.add_robot_name(jointname.str());
+    robcon.add_robot_angle(jointangle);
+  }
+
+  // get and send initial joint positions
+  bson = __mongodb->findOne(__database+".PanTiltInterface.PanTilt_RX28", Query().sort("timestamp",1));
+
+  jointangle = bson.getField("pan").Double();
+  robcon.add_robot_name("PanTilt_RX28_pan");
+  robcon.add_robot_angle(jointangle);
+  jointangle = bson.getField("tilt").Double();
+  robcon.add_robot_name("PanTilt_RX28_tilt");
+  robcon.add_robot_angle(jointangle);
 
   setupPub->Publish(robcon);
-
-  // send commands and objects for the timeframe from 0 to __dbbuffer
-  double tmp = 0;
-  double maxtime = __dbtimeoffset + __dbbuffer;
-  msgs::Message_V /* objmsgs, */ robmsgs /*, jntmsgs*/ ;
-/*
-  // get and send object data
-  // TODO: set collection name(s)
-  cursor = __mongodb->query(__database+".COLLECTION", QUERY("timestamp" << GTE << __dbbuffered << LT << maxtime).sort("timestamp");
-  msgs::SceneObjectData obj;
-  objmsgs.set_msgtype(obj.GetTypeName());
-  while(cursor->more()) {
-    bson = cursor->next();
-    if(bson.getField("visible").Bool()) {
-      // TODO: fill SceneObjectData message
-
-//      obj.set_object_type();
-//      obj.set_pos_x();
-//      obj.set_pos_y();
-//      obj.set_pos_z();
-//      obj.set_ori_w();
-//      obj.set_ori_x();
-//      obj.set_ori_y();
-//      obj.set_ori_z();
-//      obj.set_frame();
-//      obj.set_child_frame();
-//      obj.set_objectids();
-//      obj.set_name();
-
-      double time = (bson.getField("timestamp").Number() - __dbcurtimeoffset) / 1000;
-      obj.set_spawntime(time);
-
-      std::string *serializedData = objmsgs.add_msgsdata();
-      obj.SerializeToString(serializedData);
-    }
-  }
-
-  objectinstantiatorObjectPub->Publish(objmsgs);
-
-  if(bson.getField("timestamp").Number() > tmp)
-    tmp = bson.getField("timestamp").Number();
-*/
-  // get and send robot positions
-  cursor = __mongodb->query(__database+".TransformInterface.TF_RCSoftX_Localize", QUERY("timestamp" << GTE << __dbbuffered << LT << maxtime));
-  msgs::SceneRobot rob;
-  robmsgs.set_msgtype(rob.GetTypeName());
-  while(cursor->more()) {
-    bson = cursor->next();
-    trans = bson.getField("translation").Array();
-    rota = bson.getField("rotation").Array();
-
-    rob.set_pos_x(trans[0].Double());
-    rob.set_pos_y(trans[1].Double());
-    rob.set_pos_z(trans[2].Double());
-    rob.set_ori_x(rota[0].Double());
-    rob.set_ori_y(rota[1].Double());
-    rob.set_ori_z(rota[2].Double());
-    rob.set_ori_w(rota[3].Double());
-
-    double time = (bson.getField("timestamp").Number() - __dbcurtimeoffset) / 1000;
-    rob.set_controltime(time);
-
-    std::string *serializedData = robmsgs.add_msgsdata();
-    rob.SerializeToString(serializedData);
-  }
-
-  robotcontrollerControlPub->Publish(robmsgs);
-
-  if(bson.getField("timestamp").Number() > tmp)
-    tmp = bson.getField("timestamp").Number();
-/*
-  // get and send joint positions
-  // TODO: set collection name(s)
-  cursor = __mongodb->query(__database+".COLLECTION", QUERY("timestamp" << GTE << __dbbuffered << LT << maxtime));
-  msgs::SceneJoint jnt;
-  jntmsgs.set_msgtype(jnt.GetTypeName());
-  while(cursor->more()) {
-    bson = cursor->next();
-    // TODO: fill SceneJoint message for all joints at the current time
-//    std::string jointname;
-//    jnt.add_joint(jointname);
-//    double jointangle;
-//    jnt.add_angle(jointangle);
-
-    double time = (bson.getField("timestamp").Number() - __dbcurtimeoffset) / 1000;
-    jnt.set_controltime(time);
-
-    std::string *serializedData = jntmsgs.add_msgsdata();
-    jnt.SerializeToString(serializedData);
-  }
-
-  robotcontrollerControlPub->Publish(jntmsgs);
-
-  if(bson.getField("timestamp").Number() > tmp)
-    tmp = bson.getField("timestamp").Number();
-*/
-  if(tmp > __dbbuffered)
-    __dbbuffered = tmp;
-
 
   response.set_id(-1);
   response.set_request("collection_names");
@@ -389,52 +284,6 @@ GazeboSceneThread::finalize()
 void
 GazeboSceneThread::loop()
 {
-  __now->stamp_systime();
-  if(!__pause) {
-    // workaround for deprecated auto_ptr
-    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    auto_ptr<DBClientCursor> cursor;
-    #pragma GCC diagnostic warning "-Wdeprecated-declarations"
-    std::list<std::string>::iterator iter;
-    BSONObj bson;
-    double start = __lasttf->in_msec() - __scenestart->in_msec() + __dbcurtimeoffset;
-    double end = __now->in_msec() - __scenestart->in_msec() + __dbcurtimeoffset;
-
-    // include transforms when __lasttf and __scenestart are equal while not publishing a transform twice
-    if(start == __dbcurtimeoffset)
-      start -= 0.1;
-
-    for(iter = __tfcollections.begin(); iter != __tfcollections.end(); iter++) {
-      cursor = __mongodb->query(*iter, QUERY("timestamp" << GT << start << LTE << end).sort("timestamp"));
-      while(cursor->more()) {
-        bson = cursor->next();
-        std::vector<BSONElement> trans = bson.getField("translation").Array();
-        std::vector<BSONElement> rota = bson.getField("rotation").Array();
-        double rx, ry, rz, rw, tx, ty, tz;
-        std::string frame, child_frame;
-        long msec = bson.getField("timestamp").Long();
-        msec -= (long) __dbcurtimeoffset;
-        msec += __scenestart->in_msec();
-        Time time(msec);
-        rx = rota[0].Double();
-        ry = rota[1].Double();
-        rz = rota[2].Double();
-        rw = rota[3].Double();
-        tx = trans[0].Double();
-        ty = trans[1].Double();
-        tz = trans[2].Double();
-        frame = bson.getField("frame").String();
-        child_frame = bson.getField("child_frame").String();
-
-        tf::Quaternion q(rx, ry, rz, rw);
-        tf::assert_quaternion_valid(q);
-        tf::Transform t(q, tf::Vector3(tx, ty, tz));
-        tf::StampedTransform transform(t, time, frame, child_frame);
-        tf_publisher->send_transform(transform);
-      }
-    }
-  }
-  __lasttf->set_time(__now);
 }
 
 void
@@ -442,109 +291,33 @@ GazeboSceneThread::OnWorldStatisticsMsg(ConstWorldStatisticsPtr &_msg)
 {
   if(!__pause) {
     // workaround for deprecated auto_ptr
-    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    auto_ptr<DBClientCursor> cursor;
-    #pragma GCC diagnostic warning "-Wdeprecated-declarations"
-    BSONObj bson;
-    double tmp = 0;
     double maxtime = _msg->sim_time().sec()*1000 + _msg->sim_time().nsec()/1000000 + __dbcurtimeoffset + __dbbuffer;
-    if(maxtime < __dbbuffered)
-      return;
 
-    msgs::Message_V /* objmsgs, */ robmsgs /*, jntmsgs */ ;
-/*
-    // TODO: set collection name(s)
-    cursor = __mongodb->query(__database+".COLLECTION", QUERY("timestamp" << GTE << __dbbuffered << LT << maxtime).sort("timestamp");
-    msgs::SceneObjectData obj;
-    objmsgs.set_msgtype(obj.GetTypeName());
-    while(cursor->more()) {
-      bson = cursor->next();
-      if(bson.getField("visible").Bool()) {
-        // TODO: fill SceneObjectData message
-
-//        obj.set_object_type();
-//        obj.set_pos_x();
-//        obj.set_pos_y();
-//        obj.set_pos_z();
-//        obj.set_ori_x();
-//        obj.set_ori_y();
-//        obj.set_ori_z();
-//        obj.set_ori_w();
-//        obj.set_frame();
-//        obj.set_child_frame();
-//        // TODO: collect objectids of images possibly related (timed around this object +- 0.5 secs?)
-//        obj.set_objectids();
-//        obj.set_name();
-
-        double time = (bson.getField("timestamp").Number() - __dbcurtimeoffset) / 1000;
-        obj.set_spawntime(time);
-
-        std::string *serializedData = objmsgs.add_msgsdata();
-        obj.SerializeToString(serializedData);
-      }
+    // feed transforms
+    if(maxtime >= __lasttf) {
+      double start = __lasttf;
+      __lasttf = send_transforms(start, maxtime);
     }
 
-    robotcontrollerControlPub->Publish(objmsgs);
+    // send objects, robotpositions and jointangles
+    if(maxtime >= __dbbuffered) {
+      // get and send object data
+      double start = __dbbuffered;
 
-    if(bson.getField("timestamp").Number() > tmp)
-      tmp = bson.getField("timestamp").Number();
-*/    
-    // get and send robot positions
-    cursor = __mongodb->query(__database+".TransformInterface.TF_RCSoftX_Localize", QUERY("timestamp" << GTE << __dbbuffered << LT << maxtime));
-    msgs::SceneRobot rob;
-    robmsgs.set_msgtype(rob.GetTypeName());
-    while(cursor->more()) {
-      bson = cursor->next();
-      std::vector<BSONElement> trans = bson.getField("translation").Array();
-      std::vector<BSONElement> rota = bson.getField("rotation").Array();
+      double tmpbuffered = buffer_objects(start, maxtime);
+      if(__dbbuffered < tmpbuffered)
+        __dbbuffered = tmpbuffered;
 
-      rob.set_pos_x(trans[0].Double());
-      rob.set_pos_y(trans[1].Double());
-      rob.set_pos_z(trans[2].Double());
-      rob.set_ori_x(rota[0].Double());
-      rob.set_ori_y(rota[1].Double());
-      rob.set_ori_z(rota[2].Double());
-      rob.set_ori_w(rota[3].Double());
+      // get and send robot positions
+      tmpbuffered = buffer_positions(start, maxtime);
+      if(__dbbuffered < tmpbuffered)
+        __dbbuffered = tmpbuffered;
 
-      double time = (bson.getField("timestamp").Number() - __dbcurtimeoffset) / 1000;
-      rob.set_controltime(time);
-
-      std::string *serializedData = robmsgs.add_msgsdata();
-      rob.SerializeToString(serializedData);
+      // get and send joint positions
+      tmpbuffered = buffer_joints(start,maxtime);
+      if(__dbbuffered < tmpbuffered)
+        __dbbuffered = tmpbuffered;
     }
-
-    robotcontrollerControlPub->Publish(robmsgs);
-
-    if(bson.getField("timestamp").Number() > tmp)
-      tmp = bson.getField("timestamp").Number();
-/*
-    // get and send joint positions
-    // TODO: set collection name(s)
-    cursor = __mongodb->query(__database+".COLLECTION", QUERY("timestamp" << GTE << __dbbuffered << LT << maxtime));
-    msgs::SceneJoint jnt;
-    jntmsgs.set_msgtype(jnt.GetTypeName());
-    while(cursor->more()) {
-      bson = cursor->next();
-      // TODO: fill SceneJoint message for all joints at the current time
-//      std::string jointname;
-//      jnt.add_joint(jointname);
-//      double jointangle;
-//      jnt.add_angle(jointangle);
-
-      double time = (bson.getField("timestamp").Number() - __dbcurtimeoffset) / 1000;
-      jnt.set_controltime(time);
-
-      std::string *serializedData = jntmsgs.add_msgsdata();
-      jnt.SerializeToString(serializedData);
-    }
-
-    robotcontrollerControlPub->Publish(jntmsgs);
-
-    if(bson.getField("timestamp").Number() > tmp)
-      tmp = bson.getField("timestamp").Number();
-*/
-    if(tmp > __dbbuffered)
-      __dbbuffered = tmp;
   }
 }
 
@@ -559,7 +332,6 @@ GazeboSceneThread::OnControlMsg(ConstSceneFrameworkControlPtr &_msg)
       offset.stamp_systime();
       offset -= *__pausestart;
       *__scenestart += offset;
-      *__lasttf += offset;
     }
     else {
       __pausestart->stamp_systime();
@@ -572,47 +344,32 @@ GazeboSceneThread::OnControlMsg(ConstSceneFrameworkControlPtr &_msg)
 
       // adjust __scenestart for the new offset
       __scenestart->stamp_systime();
-      __lasttf->set_time(__scenestart);
 
       // feed transforms of the previous 10 seconds
-      // workaround for deprecated auto_ptr
-      #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-      auto_ptr<DBClientCursor> cursor;
-      #pragma GCC diagnostic warning "-Wdeprecated-declarations"
-      std::list<std::string>::iterator iter;
-      BSONObj bson;
-      double start = __dbcurtimeoffset - 10000;
-      double end = __dbcurtimeoffset;
-      __dbbuffered = __dbcurtimeoffset;
-      for(iter = __tfcollections.begin(); iter != __tfcollections.end(); iter++) {
-        cursor = __mongodb->query(*iter, QUERY("timestamp" << GT << start << LTE << end).sort("timestamp"));
-        while(cursor->more()) {
-          bson = cursor->next();
-          std::vector<BSONElement> trans = bson.getField("translation").Array();
-          std::vector<BSONElement> rota = bson.getField("rotation").Array();
-          double rx, ry, rz, rw, tx, ty, tz;
-          std::string frame, child_frame;
-          long msec = bson.getField("timestamp").Long();
-          msec -= (long) __dbcurtimeoffset;
-          msec += __scenestart->in_msec();
-          Time time(msec);
-          rx = rota[0].Double();
-          ry = rota[1].Double();
-          rz = rota[2].Double();
-          rw = rota[3].Double();
-          tx = trans[0].Double();
-          ty = trans[1].Double();
-          tz = trans[2].Double();
-          frame = bson.getField("frame").String();
-          child_frame = bson.getField("child_frame").String();
+      __lasttf = send_transforms(__dbcurtimeoffset - 10000, __dbcurtimeoffset + __dbbuffer);
 
-          tf::Quaternion q(rx, ry, rz, rw);
-          tf::assert_quaternion_valid(q);
-          tf::Transform t(q, tf::Vector3(tx, ty, tz));
-          tf::StampedTransform transform(t, time, frame, child_frame);
-          tf_publisher->send_transform(transform);
-        }
-      }
+      __dbbuffered = __dbcurtimeoffset;
+      double start = __dbbuffered;
+      double end = start + __dbbuffer;
+
+      // get and send object data
+      double tmpbuffered = buffer_objects(start, end);
+      if(__dbbuffered < tmpbuffered)
+        __dbbuffered = tmpbuffered;
+
+      // get and send robot positions
+      tmpbuffered = buffer_positions(start, end);
+      if(__dbbuffered < tmpbuffered)
+        __dbbuffered = tmpbuffered;
+
+      // get and send joint positions
+      tmpbuffered = buffer_joints(start,end);
+      if(__dbbuffered < tmpbuffered)
+        __dbbuffered = tmpbuffered;
+
+      msgs::WorldControl wc;
+      wc.set_step(true);
+      worldcontrolPub->Publish(wc);
     }
   }
 }
@@ -705,35 +462,39 @@ GazeboSceneThread::OnRequestMsg(ConstRequestPtr &_msg)
   }
   else if(_msg->request() == "object_data") {
     if(_msg->has_data()) {
-      std::list<std::string> _objectids;
-      std::list<std::string>::iterator _objectid;
-      std::string objectids = _msg->data();
-      std::size_t token_start = 0;
-      std::size_t token_end   = objectids.find(";", token_start+1);
-      while(token_end != std::string::npos) {
-        _objectids.push_back(objectids.substr(token_start, token_end));
-        token_start = token_end+1;
-        token_end   = objectids.find(";", token_start+1);
-      }
-
       msgs::SceneObjectData src;
-      response.set_type(src.GetTypeName());
-      src.set_objectids(objectids);
-/*
-      // TODO: fill SceneObjectData message
-      for(_objectid = _objectids.begin(); _objectid != _objectids.end(); _objectid++) {
-        msgs::SceneImages *sceneimg = src.add_images();
-        sceneimg->set_objectid(*_objectid);
-//        sceneimg->set_name();
-        msgs::Image *img = sceneimg->mutable_image();
-//        img->set_width();
-//        img->set_height();
-//        img->set_pixel_format();
-//        img->set_step();
-//        // TODO: convert raw image data to png format
-//        img->set_data();
+      #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+      auto_ptr<DBClientCursor> cursor;
+      #pragma GCC diagnostic warning "-Wdeprecated-declarations"
+      BSONObj bson;
+      std::list<std::string> collections;
+      std::list<std::string>::iterator iter;
+      collections = __mongodb->getCollectionNames(__database);
+      for(iter = collections.begin(); iter != collections.end(); iter++) {
+        if(*iter != __database+".system.indexes" && iter->find("GridFS") == std::string::npos) {
+          cursor = __mongodb->query(*iter, fromjson(_msg->data()));
+          while(cursor->more()) {
+            bson = cursor->next();
+            // TODO: fill SceneObjectData message
+            //json = bson.toString();
+            // get image if available
+            //std::string gridname = __mongodb->nsGetCollection(*iter);
+            //dot1 = gridname.find(".")+1;
+            //dot2 = gridname.find(".", dot1);
+            //gridname = gridname.substr(dot1, dot2 - dot1);
+            //if(iter->find("PointCloud") != std::string::npos) {
+            //  std::string filename = bson.getFieldDotted("pointcloud.data.filename").String();
+            //  GridFile file = __mongogrids[gridname]->findFile(filename);
+            // TODO: convert raw data to something useful
+            //}
+            //else if(iter->find("Image") != std::string::npos) {
+            //  std::string filename = bson.getFieldDotted("image.data.filename").String();
+            //  GridFile file = __mongogrids[gridname]->findFile(filename);
+            // TODO: convert raw data to something useful
+            //}
+          }
+        }
       }
-*/
       std::string *serializedData = response.mutable_serialized_data();
       src.SerializeToString(serializedData);
     }
@@ -771,14 +532,17 @@ GazeboSceneThread::OnTransformRequestMsg(ConstTransformRequestPtr &_msg)
     msgs::Pose src;
     response.set_type(src.GetTypeName());
 
+    // transform pose
     tf::Vector3 pos(_msg->pos_x(), _msg->pos_y(), _msg->pos_z());
     tf::Quaternion ori(_msg->ori_x(), _msg->ori_y(), _msg->ori_z(), _msg->ori_w());
     tf::Pose pose(ori, pos);
-    tf::Stamped<tf::Pose> stamped_pose(pose, *__now, _msg->source_frame());
+    Time now(clock);
+    now.stamp_systime();
+    tf::Stamped<tf::Pose> stamped_pose(pose, now, _msg->source_frame());
     tf::Stamped<tf::Pose> result_pose;
-    tf_listener->transform_pose(_msg->target_frame(), stamped_pose, result_pose);
+//    tf_listener->transform_pose(_msg->target_frame(), stamped_pose, result_pose);
 
-    src = Convert(result_pose);
+    src = Convert(stamped_pose);
     std::string *serializedData = response.mutable_serialized_data();
     src.SerializeToString(serializedData);
     transformPub->Publish(response);
@@ -817,4 +581,232 @@ GazeboSceneThread::Convert(tf::Stamped<tf::Pose> pose) {
   ori->set_z(qua.getZ());
   ori->set_w(qua.getW());
   return result;
+}
+
+double
+GazeboSceneThread::send_transforms(double start, double end) {
+  // workaround for deprecated auto_ptr
+  #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+  auto_ptr<DBClientCursor> cursor;
+  #pragma GCC diagnostic warning "-Wdeprecated-declarations"
+  BSONObj bson;
+  double buffered = start;
+  std::list<std::string>::iterator iter;
+  for(iter = __tfcollections.begin(); iter != __tfcollections.end(); iter++) {
+    cursor = __mongodb->query(*iter, QUERY("timestamp" << GTE << start << LT << end).sort("timestamp"));
+    while(cursor->more()) {
+      bson = cursor->next();
+      std::vector<BSONElement> trans = bson.getField("translation").Array();
+      std::vector<BSONElement> rota = bson.getField("rotation").Array();
+      double rx, ry, rz, rw, tx, ty, tz;
+      std::string frame, child_frame;
+      long msec = bson.getField("timestamp").Long();
+      msec -= (long) __dbcurtimeoffset;
+      msec += __scenestart->in_msec();
+      Time time(msec);
+      rx = rota[0].Double();
+      ry = rota[1].Double();
+      rz = rota[2].Double();
+      rw = rota[3].Double();
+      tx = trans[0].Double();
+      ty = trans[1].Double();
+      tz = trans[2].Double();
+      frame = bson.getField("frame").String();
+      child_frame = bson.getField("child_frame").String();
+
+      tf::Quaternion q(rx, ry, rz, rw);
+      tf::assert_quaternion_valid(q);
+      tf::Transform t(q, tf::Vector3(tx, ty, tz));
+      tf::StampedTransform transform(t, time, frame, child_frame);
+      tf_publisher->send_transform(transform);
+
+      if(bson.getField("timestamp").Number() > buffered)
+        buffered = bson.getField("timestamp").Number();
+    }
+  }
+
+  return buffered;
+}
+
+double
+GazeboSceneThread::buffer_objects(double start, double end) {
+  // workaround for deprecated auto_ptr
+  #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+  auto_ptr<DBClientCursor> cursor;
+  #pragma GCC diagnostic warning "-Wdeprecated-declarations"
+  BSONObj bson;
+  double buffered = start;
+  std::list<std::string>::iterator iter;
+  msgs::SceneObject_V objmsgs;
+  for(iter = __poscollections.begin(); iter != __poscollections.end(); iter++) {
+    cursor = __mongodb->query(*iter, QUERY("timestamp" << GTE << start << LT << end).sort("timestamp"));
+    while(cursor->more()) {
+      bson = cursor->next();
+      std::string objectname = __mongodb->nsGetCollection(*iter);
+      objectname = objectname.substr(objectname.find(".")+1);
+      objmsgs.add_object(objectname);
+      objmsgs.add_visible(bson.getField("visibility_history").Int()>0);
+
+      msgs::Pose *p = objmsgs.add_pose();
+      std::vector<BSONElement> trans = bson.getField("translation").Array();
+      std::vector<BSONElement> rota = bson.getField("rotation").Array();
+      
+
+      tf::Vector3 pos(trans[0].Double(), trans[1].Double(), trans[2].Double());
+      tf::Quaternion ori(rota[0].Double(), rota[1].Double(), rota[2].Double(), rota[3].Double());
+      tf::Pose pose(ori, pos);
+      long msec = bson.getField("timestamp").Long();
+      msec -= (long) __dbcurtimeoffset;
+      msec += __scenestart->in_msec();
+      std::string frame = bson.getField("frame").String();
+      objmsgs.add_frame(frame);
+      Time tftime(msec);
+      tf::Stamped<tf::Pose> stamped_pose(pose, tftime, frame);
+      tf::Stamped<tf::Pose> result_pose;
+
+      if(tf_listener->can_transform("/map", frame, tftime)) {
+        tf::StampedTransform transform;
+        tf_listener->lookup_transform("/map", frame, tftime, transform);
+        result_pose.set_data(transform * stamped_pose);
+        *p = Convert(result_pose);
+      }
+      else if(tf_listener->can_transform(frame, "/map", tftime)) {
+        tf::StampedTransform transform;
+        tf_listener->lookup_transform(frame, "/map", tftime, transform);
+        result_pose.set_data(transform.inverseTimes(stamped_pose));
+        *p = Convert(result_pose);
+      }
+      else {
+        math::Pose invispose(0.0, 0.0, -10.0, 0.0, 0.0, 0.0);
+        *p = msgs::Convert(invispose);
+      }
+
+      double time = (bson.getField("timestamp").Number() - __dbcurtimeoffset) / 1000;
+      objmsgs.add_time(time);
+
+      std::string query = QUERY("timestamp" << GT << __querystarttimes[*iter] << LTE << bson.getField("timestamp").Number()).sort("timestamp").toString();
+      objmsgs.add_query(query);
+
+      __querystarttimes[*iter] = bson.getField("timestamp").Number();
+      if(bson.getField("timestamp").Number() > buffered)
+        buffered = bson.getField("timestamp").Number();
+    }
+  }
+
+  objectinstantiatorObjectPub->Publish(objmsgs);
+
+  return buffered;
+}
+
+double
+GazeboSceneThread::buffer_positions(double start, double end) {
+  // workaround for deprecated auto_ptr
+  #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+  auto_ptr<DBClientCursor> cursor;
+  #pragma GCC diagnostic warning "-Wdeprecated-declarations"
+  BSONObj bson;
+  double buffered = start;
+  msgs::Message_V robmsgs;
+  std::vector<BSONElement> trans;
+  std::vector<BSONElement> rota;
+
+  cursor = __mongodb->query(__database+".TransformInterface.TF_RCSoftX_Localize", QUERY("timestamp" << GTE << start << LT << end));
+  msgs::SceneRobot rob;
+  robmsgs.set_msgtype(rob.GetTypeName());
+  while(cursor->more()) {
+    bson = cursor->next();
+    trans = bson.getField("translation").Array();
+    rota = bson.getField("rotation").Array();
+
+    rob.set_pos_x(trans[0].Double());
+    rob.set_pos_y(trans[1].Double());
+    rob.set_pos_z(trans[2].Double());
+    rob.set_ori_x(rota[0].Double());
+    rob.set_ori_y(rota[1].Double());
+    rob.set_ori_z(rota[2].Double());
+    rob.set_ori_w(rota[3].Double());
+
+    double time = (bson.getField("timestamp").Number() - __dbcurtimeoffset) / 1000;
+    rob.set_controltime(time);
+
+    std::string *serializedData = robmsgs.add_msgsdata();
+    rob.SerializeToString(serializedData);
+
+    if(bson.getField("timestamp").Number() > buffered)
+      buffered = bson.getField("timestamp").Number();
+  }
+
+  robotcontrollerControlPub->Publish(robmsgs);
+
+  return buffered;
+}
+
+double
+GazeboSceneThread::buffer_joints(double start, double end) {
+  // workaround for deprecated auto_ptr
+  #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+  auto_ptr<DBClientCursor> cursor;
+  #pragma GCC diagnostic warning "-Wdeprecated-declarations"
+  BSONObj bson;
+  double buffered = start;
+  msgs::Message_V jntmsgs;
+  std::vector<BSONElement> angles;
+  double jointangle;
+
+  cursor = __mongodb->query(__database+".KatanaInterface.Katana", QUERY("timestamp" << GTE << start << LT << end));
+  while(cursor->more()) {
+    msgs::SceneJoint jnt;
+
+    bson = cursor->next();
+    angles = bson.getField("angles").Array();
+    std::stringstream jointname;
+
+    for(unsigned int i = 0; i < angles.size();  i++) {
+      jointname.str("");
+      jointname << "Katana_" << (int)i;
+      jointangle = angles[i].Double();
+      jnt.add_joint(jointname.str());
+      jnt.add_angle(jointangle);
+    }
+
+    double time = (bson.getField("timestamp").Number() - __dbcurtimeoffset) / 1000;
+    jnt.set_controltime(time);
+
+
+    std::string *serializedData = jntmsgs.add_msgsdata();
+    jnt.SerializeToString(serializedData);
+
+    if(bson.getField("timestamp").Number() > buffered)
+      buffered = bson.getField("timestamp").Number();
+  }
+
+  cursor = __mongodb->query(__database+".PanTiltInterface.PanTilt_RX28", QUERY("timestamp" << GTE << start << LT << end));
+  while(cursor->more()) {
+    msgs::SceneJoint jnt;
+
+    bson = cursor->next();
+
+    jointangle = bson.getField("pan").Double();
+    jnt.add_joint("PanTilt_RX28_pan");
+    jnt.add_angle(jointangle);
+    jointangle = bson.getField("tilt").Double();
+    jnt.add_joint("PanTilt_RX28_tilt");
+    jnt.add_angle(jointangle);
+
+    double time = (bson.getField("timestamp").Number() - __dbcurtimeoffset) / 1000;
+    jnt.set_controltime(time);
+
+    std::string *serializedData = jntmsgs.add_msgsdata();
+    jnt.SerializeToString(serializedData);
+
+    if(bson.getField("timestamp").Number() > buffered)
+      buffered = bson.getField("timestamp").Number();
+  }
+
+  msgs::SceneJoint tmp;
+  jntmsgs.set_msgtype(tmp.GetTypeName());
+
+  robotcontrollerControlPub->Publish(jntmsgs);
+
+  return buffered;
 }

@@ -73,21 +73,26 @@ class GazeboSceneThread
   void OnWorldStatisticsMsg(ConstWorldStatisticsPtr&);
   void OnControlMsg(ConstSceneFrameworkControlPtr&);
   gazebo::msgs::Pose Convert(fawkes::tf::Stamped<fawkes::tf::Pose>);
+  double send_transforms(double,double);
+  double buffer_objects(double,double);
+  double buffer_positions(double,double);
+  double buffer_joints(double,double);
 
   mongo::DBClientBase                     *__mongodb;
   std::map< std::string, mongo::GridFS* >  __mongogrids;
+  std::map< std::string, double >          __querystarttimes;
   gazebo::transport::NodePtr               __gazebo;
   std::string                              __database,
                                            __collection;
-  std::list<std::string>                   __tfcollections;
+  std::list<std::string>                   __tfcollections,
+                                           __poscollections;
   fawkes::Time                            *__scenestart,
-                                          *__lasttf,
-                                          *__now,
                                           *__pausestart;
   double                                   __dbtimeoffset,
                                            __dbcurtimeoffset,
                                            __dbscenelength,
-                                           __dbbuffered;
+                                           __dbbuffered,
+                                           __lasttf;
   unsigned int                             __dbbuffer;
   bool                                     __pause;
   
@@ -101,6 +106,7 @@ class GazeboSceneThread
                                            timePub,
                                            setupPub,
                                            transformPub,
+                                           worldcontrolPub,
                                            statusPub;
   gazebo::transport::SubscriberPtr         frameworkRequestSub,
                                            transformRequestSub,
