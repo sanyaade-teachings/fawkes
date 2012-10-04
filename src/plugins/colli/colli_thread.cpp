@@ -639,7 +639,8 @@ void ColliThread::UpdateBB()
 
   m_pMopoObj->read();
 
-  while((! ninit->msgq_empty()))
+  //while((! ninit->msgq_empty()))
+  if((! ninit->msgq_empty()))
   {
     if( ninit->msgq_first_is<NavigatorInterface::SetDriveModeMessage>() )
     {
