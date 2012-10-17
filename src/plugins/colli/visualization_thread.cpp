@@ -5,15 +5,32 @@
 #include<nav_msgs/OccupancyGrid.h>
 #include<nav_msgs/Path.h>
 #include <geometry_msgs/PointStamped.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <ros/this_node.h>
+#include <std_msgs/String.h>
 
 ColliVisualizationThread::ColliVisualizationThread()
   : fawkes::Thread("ColliVisualizationThread", Thread::OPMODE_WAITFORWAKEUP)
 {
   set_coalesce_wakeups(true);
 }
+
+/*void callback( const geometry_msgs::PoseStamped::ConstPtr &msg)
+{
+  cout << "message recieved" << endl;
+}*/
+
 //-------------------------------------------------------------------------------------------------------------
 void ColliVisualizationThread::init()
 {
+  m_navi = blackboard->open_for_reading<NavigatorInterface>("NavigatorTarget");
+  navsub_ = new ros::Subscriber();
+//  *navsub_ = rosnode->subscribe<geometry_msgs::PoseStamped>("/move_base_simple/goal", 10,&ColliVisualizationThread::callback,this);
+  *navsub_ = rosnode->subscribe("move_base_simple/goal", 10,&ColliVisualizationThread::callback,this);
+
+  navpub_ = new ros::Publisher();
+  *navpub_ = rosnode->advertise<nav_msgs::GridCells>("target_rviz", 1);
+
   vispub_ = new ros::Publisher();
   *vispub_ = rosnode->advertise<nav_msgs::GridCells>("grid_cells", 1);
   gridpub_ = new ros::Publisher();
@@ -43,7 +60,6 @@ void ColliVisualizationThread::init()
   *rec3pub_ = rosnode->advertise<nav_msgs::Path>("rec_path3",1);
   rec4pub_ = new ros::Publisher();
   *rec4pub_ = rosnode->advertise<nav_msgs::Path>("rec_path4",1);
-
 }
 //-----------------------------------------------------------------------------------------------------------
 void ColliVisualizationThread::finalize()
@@ -73,8 +89,7 @@ void ColliVisualizationThread::finalize()
   target_real_pub_->shutdown();
   delete target_real_pub_;
 }
-
-//------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------------------
 void ColliVisualizationThread::visualize(const std::string &frame_id,vector<HomPoint > &cells,HomPoint &m_RoboGridPos,HomPoint &m_LaserGridPos,
                                          vector<HomPoint> &laser_points,vector< HomPoint > &plan, HomPoint &motor_des, 
                                          int cell_width, int cell_height, HomPoint &target, int grid_width, int grid_height, HomPoint &motor_real) throw()
@@ -97,6 +112,28 @@ void ColliVisualizationThread::visualize(const std::string &frame_id,vector<HomP
   motor_des_ = motor_des;
   motor_real_ = motor_real;
   wakeup();
+}
+//---------------------------------------------------------------------------------------------------
+void ColliVisualizationThread::callback( const geometry_msgs::PoseStamped::ConstPtr &msg)
+{
+  logger->log_info(name(),"message recieved");
+  geometry_msgs::PoseStamped poseMsg = *msg;
+  nav_msgs::GridCells targ;
+  targ.header.frame_id = frame_id_;
+  targ.header.stamp = ros::Time::now();
+  targ.cell_width = 5*cell_width_/100.;
+  targ.cell_height = 5*cell_height_/100.;
+  geometry_msgs::Point ptarfix;
+  ptarfix.x = poseMsg.pose.position.x;
+  ptarfix.y = poseMsg.pose.position.y;
+  ptarfix.z = poseMsg.pose.position.z;
+  targ.cells.push_back(ptarfix);
+  navpub_->publish(targ);
+  HomPoint rvizTarget(poseMsg.pose.position.x,poseMsg.pose.position.y,poseMsg.pose.position.z);
+  NavigatorInterface::ObstacleMessage *nav_msg = new NavigatorInterface::ObstacleMessage();
+  nav_msg->set_x(rvizTarget.x());
+  nav_msg->set_y(rvizTarget.y());
+  m_navi->msgq_enqueue(nav_msg);
 }
 //---------------------------------------------------------------------------------------------------
 void ColliVisualizationThread::loop()
@@ -190,7 +227,6 @@ void ColliVisualizationThread::visualize_real_motor()
   pos.pose.orientation = pathOri;
   targc.poses.push_back(pos);
   target_real_pub_->publish(targc);
-
 }
 //-----------------------------------------------------------------------------------
 void ColliVisualizationThread::visualize_des_motor()

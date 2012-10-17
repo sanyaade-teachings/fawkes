@@ -62,6 +62,7 @@ using namespace std;
 const string default_hostname = "";
 #ifdef HAVE_VISUAL_DEBUGGING
 class ColliVisualizationThreadBase;
+//class ColliNavigationThreadBase;
 #endif
 
 class ColliThread
@@ -78,6 +79,9 @@ class ColliThread
   void visualize_cells();
   void set_visualization_thread(ColliVisualizationThreadBase *visthread);
   void visualize_grid();
+
+  //ColliNavigationThreadBase *navthread_;
+  //void set_navigation_thread(ColliNavigationThreadBase *navthread);
  #endif
 
   ColliThread();

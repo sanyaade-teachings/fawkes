@@ -40,13 +40,19 @@ endif
 	
 ifeq ($(ENABLE_VISUAL_DEBUGGING),1)	
  ifeq ($(HAVE_ROS),1)	
-  ifeq ($(call ros-have-pkg,nav_msgs),1)	
+  ifeq ($(call ros-have-pkg,nav_msgs,geometry_msgs),1)	
+   CFLAGS  += $(CFLAGS_ROS)
+   LDFLAGS += $(LDFLAGS_ROS)
+   CFLAGS += $(shell rospack export --lang=cpp --attrib=cflags geometry_msgs)
+
    CFLAGS_visualization_thread  = -DHAVE_VISUAL_DEBUGGING $(CFLAGS_ROS) $(CFLAGS_TF) \
-					$(CFLAGS_EIGEN3) $(call ros-pkg-cflags,nav_msgs)	
+					$(CFLAGS_EIGEN3) $(call ros-pkg-cflags,nav_msgs,geometry_msgs) $(shell rospack export --lang=cpp --attrib=cflags geometry_msgs)
    CFLAGS += -DHAVE_VISUAL_DEBUGGING	
-   LDFLAGS += $(LDFLAGS_ROS) $(call ros-pkg-lflags,nav_msgs)	
+   #CFLAGS += CFLAGS_visualization_thread	
+   LDFLAGS += $(LDFLAGS_ROS) $(call ros-pkg-lflags,nav_msgs,geometry_msgs) $(shell rospack export --lang=cpp --attrib=cflags geometry_msgs)	
    LIBS_colli += fawkesrosaspect	
    OBJS_colli += visualization_thread_base.o visualization_thread.o 
+   #OBJS_colli += navigation_thread_base.o navigation_thread.o
    else
     ENABLE_VISUAL_DEBUGGING = 0	
     WARN_TARGETS += warning_nav_msgs

@@ -1,12 +1,14 @@
 #include "colli_thread.h"
 #ifdef HAVE_VISUAL_DEBUGGING
 #  include "visualization_thread_base.h"
+//#  include "navigation_thread_base.h"
 #endif
 ColliThread::ColliThread()
   : Thread("ColliThread", Thread::OPMODE_CONTINUOUS)
 {
  #ifdef HAVE_VISUAL_DEBUGGING
   visthread_ = NULL;
+//  navthread_ = NULL;
  #endif
 
 }
@@ -936,4 +938,12 @@ void ColliThread::set_visualization_thread(ColliVisualizationThreadBase *visthre
   if(visthread_ ) cout << "visualization thread set"<< endl;
 }
 #endif
+//---------------------------------------------------------------------------------------------------------------------
+/*#ifdef HAVE_VISUAL_DEBUGGING
+void ColliThread::set_navigation_thread(ColliNavigationThreadBase *navthread)
+{
+  navthread_ = navthread;
+  if(navthread_ ) cout << "navigation thread set"<< endl;
+}
+#endif*/
 
