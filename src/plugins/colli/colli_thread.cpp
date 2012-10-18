@@ -651,7 +651,7 @@ void ColliThread::UpdateBB()
       ninit->write();
       ninit->msgq_pop();
     }
-    else if( ninit->msgq_first_is<NavigatorInterface::ObstacleMessage>() )
+  /*  else if( ninit->msgq_first_is<NavigatorInterface::ObstacleMessage>() )
     {
       NavigatorInterface::ObstacleMessage *msgTmp = ninit->msgq_first_safe(msgTmp);
       ninit->set_dest_x(msgTmp->x());
@@ -659,7 +659,28 @@ void ColliThread::UpdateBB()
       ninit->set_dest_ori(0.0);
       ninit->write();
       ninit->msgq_pop();      
-    }  
+    } */ 
+    else if( ninit->msgq_first_is<NavigatorInterface::CartesianGotoMessage>() )
+    {
+      NavigatorInterface::CartesianGotoMessage *msgTmp = ninit->msgq_first_safe(msgTmp);
+      ninit->set_dest_x(msgTmp->x());
+      ninit->set_dest_y(msgTmp->y());
+      ninit->set_dest_ori(msgTmp->orientation());
+      ninit->write();
+      ninit->msgq_pop();
+    }
+    else if( ninit->msgq_first_is<NavigatorInterface::PolarGotoMessage>() )
+    {
+      NavigatorInterface::PolarGotoMessage *msgTmp = ninit->msgq_first_safe(msgTmp);
+      float new_x = msgTmp->dist() * cos(msgTmp->phi());
+      float new_y = msgTmp->dist() * sin(msgTmp->phi());
+      ninit->set_dest_x(new_x);
+      ninit->set_dest_y(new_y);
+      ninit->set_dest_ori(msgTmp->orientation());
+      ninit->write();
+      ninit->msgq_pop();
+    }
+
   }
  
   //m_pColliTargetObj->Update();

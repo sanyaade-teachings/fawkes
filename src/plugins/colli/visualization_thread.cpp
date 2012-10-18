@@ -130,10 +130,18 @@ void ColliVisualizationThread::callback( const geometry_msgs::PoseStamped::Const
   targ.cells.push_back(ptarfix);
   navpub_->publish(targ);
   HomPoint rvizTarget(poseMsg.pose.position.x,poseMsg.pose.position.y,poseMsg.pose.position.z);
-  NavigatorInterface::ObstacleMessage *nav_msg = new NavigatorInterface::ObstacleMessage();
+  /*NavigatorInterface::ObstacleMessage *nav_msg = new NavigatorInterface::ObstacleMessage();
+  nav_msg->set_x(rvizTarget.x());
+  nav_msg->set_y(rvizTarget.y());
+  m_navi->msgq_enqueue(nav_msg);*/
+  NavigatorInterface::CartesianGotoMessage *nav_msg = new NavigatorInterface::CartesianGotoMessage();
   nav_msg->set_x(rvizTarget.x());
   nav_msg->set_y(rvizTarget.y());
   m_navi->msgq_enqueue(nav_msg);
+  NavigatorInterface::SetDriveModeMessage *drive_msg = new NavigatorInterface::SetDriveModeMessage();
+  drive_msg->set_drive_mode(NavigatorInterface::ModerateAllowBackward);
+  m_navi->msgq_enqueue(drive_msg);
+
 }
 //---------------------------------------------------------------------------------------------------
 void ColliVisualizationThread::loop()

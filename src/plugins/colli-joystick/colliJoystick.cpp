@@ -72,15 +72,15 @@ void ColliJoystick::run()
   m_motor->read();
   float cur_x = m_joy->axis(0);
   float cur_y = m_joy->axis(1);
-  if( ( cur_x == 0 ) || (cur_y == 0 ) )
-    return;
+ // if( ( cur_x == 0 ) || (cur_y == 0 ) )
+ //   return;
   float diff_x = cur_x - last_x;
   float diff_y = cur_y - last_y;
   float thresh_x = 0.2;
   float thresh_y = 0.2;
   if(( fabsf(diff_x) <= thresh_x ) && ( fabsf(diff_y) <= thresh_y ))
     return;
-  const float target_dist = 2;
+  const float target_dist = 1;
   float x = m_motor->odometry_position_x();
   float y = m_motor->odometry_position_y();
   float ori = m_motor->odometry_orientation();
@@ -90,7 +90,11 @@ void ColliJoystick::run()
   float rel_y = sin(ori)*joy_ud+cos(ori)*joy_rl;
   float target_x = x+rel_x*target_dist;
   float target_y = y+rel_y*target_dist;
-  NavigatorInterface::ObstacleMessage *msg = new NavigatorInterface::ObstacleMessage();
+  /*NavigatorInterface::ObstacleMessage *msg = new NavigatorInterface::ObstacleMessage();
+  msg->set_x(target_x);
+  msg->set_y(target_y);
+  m_navi->msgq_enqueue(msg);*/  
+  NavigatorInterface::CartesianGotoMessage *msg = new NavigatorInterface::CartesianGotoMessage();
   msg->set_x(target_x);
   msg->set_y(target_y);
   m_navi->msgq_enqueue(msg);  

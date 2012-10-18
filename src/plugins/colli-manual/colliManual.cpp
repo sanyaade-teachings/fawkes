@@ -207,7 +207,8 @@ void ColliManualControl::test()
   if(( tar_x != -1 ) && ( tar_y != -1 ))
   {
     setdest = true;
-    NavigatorInterface::ObstacleMessage *msg = new NavigatorInterface::ObstacleMessage();
+    //NavigatorInterface::ObstacleMessage *msg = new NavigatorInterface::ObstacleMessage();
+    NavigatorInterface::CartesianGotoMessage *msg = new NavigatorInterface::CartesianGotoMessage();
     msg->set_x(tar_x);
     msg->set_y(tar_y);
     m_Target->msgq_enqueue(msg);
