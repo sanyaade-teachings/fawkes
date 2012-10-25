@@ -15,10 +15,6 @@ ColliVisualizationThread::ColliVisualizationThread()
   set_coalesce_wakeups(true);
 }
 
-/*void callback( const geometry_msgs::PoseStamped::ConstPtr &msg)
-{
-  cout << "message recieved" << endl;
-}*/
 
 //-------------------------------------------------------------------------------------------------------------
 void ColliVisualizationThread::init()
@@ -116,7 +112,7 @@ void ColliVisualizationThread::visualize(const std::string &frame_id,vector<HomP
 //---------------------------------------------------------------------------------------------------
 void ColliVisualizationThread::callback( const geometry_msgs::PoseStamped::ConstPtr &msg)
 {
-  logger->log_info(name(),"message recieved");
+//  logger->log_info(name(),"message recieved");
   geometry_msgs::PoseStamped poseMsg = *msg;
   nav_msgs::GridCells targ;
   targ.header.frame_id = frame_id_;
@@ -134,20 +130,22 @@ void ColliVisualizationThread::callback( const geometry_msgs::PoseStamped::Const
   nav_msg->set_x(rvizTarget.x());
   nav_msg->set_y(rvizTarget.y());
   m_navi->msgq_enqueue(nav_msg);*/
+
+
   NavigatorInterface::CartesianGotoMessage *nav_msg = new NavigatorInterface::CartesianGotoMessage();
   nav_msg->set_x(rvizTarget.x());
   nav_msg->set_y(rvizTarget.y());
   m_navi->msgq_enqueue(nav_msg);
   NavigatorInterface::SetDriveModeMessage *drive_msg = new NavigatorInterface::SetDriveModeMessage();
-  drive_msg->set_drive_mode(NavigatorInterface::ModerateAllowBackward);
+  drive_msg->set_drive_mode(NavigatorInterface::SlowAllowBackward);
   m_navi->msgq_enqueue(drive_msg);
 
 }
 //---------------------------------------------------------------------------------------------------
 void ColliVisualizationThread::loop()
 {
-  if( cells_.size() == 0 )
-    return;
+ // if( cells_.size() == 0 )
+   // return;
   MutexLocker lock(&mutex_);
 
   nav_msgs::GridCells robs;
@@ -181,6 +179,10 @@ void ColliVisualizationThread::loop()
   targf.header.stamp = ros::Time::now();
   targf.cell_width = 5*cell_width_/100.;
   targf.cell_height = 5*cell_height_/100.;
+  fix_target_ = transform(fix_target_);
+  fix_target_ = transform_odom(fix_target_);
+  HomPoint temp(fix_target_.x()+(19.4/100./cell_width_),fix_target_.y());
+  fix_target_ = temp;
   geometry_msgs::Point ptarfix;
   ptarfix.x = fix_target_.x();
   ptarfix.y = fix_target_.y();
@@ -204,6 +206,33 @@ HomPoint ColliVisualizationThread::transform( HomPoint point )
   float outy = point.y() / cell_transh - (laser_pos_.y() / cell_transh);
   HomPoint out(outx,outy);
   return out;
+}
+//---------------------------------------------------------------------------------
+HomPoint ColliVisualizationThread::transform_robo( HomPoint point )
+{
+  float cell_transw = 100. /cell_width_;
+  float cell_transh = 100. /cell_height_;
+  float outx = point.x() / cell_transw - ((robo_pos_.x() )/ cell_transw);
+  float outy = point.y() / cell_transh - ((robo_pos_.y() )/ cell_transh);
+  HomPoint out(outx,outy);
+  return out;
+}
+//-----------------------------------------------------------------------------------
+HomPoint ColliVisualizationThread::transform_odom(HomPoint point)
+{
+  HomPoint res;
+  try {
+    tf::Stamped<tf::Point> target_odom(tf::Point(point.x(),point.y(),0.),
+                   fawkes::Time(0, 0), "/odom");
+    tf::Stamped<tf::Point> baserel_target;
+    tf_listener->transform_point("/base_link", target_odom, baserel_target);
+    HomPoint target_trans(baserel_target.x(),baserel_target.y());
+    res = target_trans;
+  } catch (tf::TransformException &e) {
+    logger->log_warn(name(),"can't transform from odom");
+    e.print_trace();
+  }
+  return res;
 }
 //----------------------------------------------------------------------------------
 void ColliVisualizationThread::visualize_real_motor()
@@ -319,6 +348,9 @@ void ColliVisualizationThread::visualize_path()
     p.header.frame_id = frame_id_;
     geometry_msgs::Point pathPoint;
     HomPoint transPoint = transform(plan_[j]);
+    transPoint = transform_odom(transPoint);
+    HomPoint temp(transPoint.x()+(19.4/100./cell_width_),transPoint.y());
+    transPoint = temp;
     pathPoint.x = transPoint.x();
     pathPoint.y = transPoint.y();
     pathPoint.z = 0.0;

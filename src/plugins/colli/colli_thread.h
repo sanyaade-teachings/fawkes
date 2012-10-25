@@ -17,6 +17,7 @@
 #include <interfaces/NavigatorInterface.h>
 #include <geometry/hom_point.h>
 #include <blackboard/remote.h>
+#include <tf/transform_publisher.h>
 
 #include "drive_realization/quadratic_motor_instruct.h"
 #include "drive_modes/select_drive_mode.h"
@@ -104,6 +105,8 @@ class ColliThread
   fawkes::Laser360Interface *laserDeadSpots;
   fawkes::BlackBoard * bb_;
 
+  fawkes::tf::TransformPublisher *m_tf_pub_odom;
+
   Laser*                          m_pLaser;            // laser interface for easy use
   CSearch*                        m_pSearch;           // our plan module which calculates the info
 
@@ -170,6 +173,10 @@ class ColliThread
 
   /// Check, if we have to do escape mode, or if we have to drive the ordinary way ;-)
   bool CheckEscape();
+  
+  void transform_odom();
+  
+  void transform_navi();
 
  protected: virtual void run() { Thread::run(); }
  

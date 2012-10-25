@@ -57,6 +57,8 @@ class ColliVisualizationThread
   void visualize_real_motor();
   void visualize_des_motor();
   HomPoint transform( HomPoint point );
+  HomPoint transform_robo( HomPoint point );
+  HomPoint transform_odom(HomPoint point);
   void callback( const geometry_msgs::PoseStamped::ConstPtr &msg);
  private:
   fawkes::Mutex mutex_;

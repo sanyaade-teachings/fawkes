@@ -149,7 +149,6 @@ void ColliThread::init()
 
   logger->log_info(name(),"COLLI (Constructor): Initialization done.\n");
 
-
 }
 //-------------------------------------------------------------
 void ColliThread::finalize()
@@ -241,9 +240,10 @@ void ColliThread::visualize_cells()
   }
  //cout << "number of readings "<<m_pLaser->GetNumberOfReadings() << endl;
  //logger->log_info(name(),"cell size is: %d,%d", m_pLaserOccGrid->getCellWidth(),m_pLaserOccGrid->getCellHeight());
- std::vector< HomPoint > plan = m_pSearch->GetPlan();
- HomPoint target(m_pColliTargetObj->dest_x(),m_pColliTargetObj->dest_y());
- 
+  std::vector< HomPoint > plan = m_pSearch->GetPlan();
+  //HomPoint target(m_pColliTargetObj->dest_x(),m_pColliTargetObj->dest_y());
+ HomPoint target = m_TargetGridPos; 
+
  //logger->log_info(name(),"current velocity is: %f,%f",m_pMopoObj->vx(),m_pMopoObj->omega());
 // float m_des_x = m_pMopoObj->vx() * cos(m_pMopoObj->omega());
 // float m_des_y = m_pMopoObj->vx() * sin(m_pMopoObj->omega());
@@ -267,6 +267,7 @@ void ColliThread::visualize_cells()
 //--------------------------------------------------------------------------------------------
 void ColliThread::loop()
 {
+  transform_odom();
   #ifdef HAVE_VISUAL_DEBUGGING
   visualize_cells();
   #endif
@@ -533,6 +534,7 @@ void ColliThread::loop()
 //-----------------------------------------------------------
 void ColliThread::RegisterAtBlackboard()
 {
+  m_tf_pub_odom = new tf::TransformPublisher(blackboard, "colli odometry");
  /* string brutusStr = "172.16.35.32";
   char* brutus = new char[brutusStr.length()+1];
   strcpy(brutus,brutusStr.c_str());
@@ -578,7 +580,6 @@ void ColliThread::RegisterAtBlackboard()
 
 void ColliThread::InitializeModules()
 {
- 
   // FIRST(!): the laserinterface (uses the laserscanner)
   m_pLaser = new Laser( m_pLaserScannerObj, "" );
   m_pLaser->UpdateLaser(); 
@@ -640,8 +641,7 @@ void ColliThread::UpdateBB()
   
 
   m_pMopoObj->read();
-
-  //while((! ninit->msgq_empty()))
+  
   if((! ninit->msgq_empty()))
   {
     if( ninit->msgq_first_is<NavigatorInterface::SetDriveModeMessage>() )
@@ -668,6 +668,7 @@ void ColliThread::UpdateBB()
       ninit->set_dest_ori(msgTmp->orientation());
       ninit->write();
       ninit->msgq_pop();
+      //transform_navi();
     }
     else if( ninit->msgq_first_is<NavigatorInterface::PolarGotoMessage>() )
     {
@@ -679,9 +680,22 @@ void ColliThread::UpdateBB()
       ninit->set_dest_ori(msgTmp->orientation());
       ninit->write();
       ninit->msgq_pop();
+      //transform_navi();
     }
 
   }
+  
+ /* if(! ninit->msgq_empty() )
+  {
+    if( ninit->msgq_first_is<NavigatorInterface::SetDriveModeMessage>() )
+    {
+      NavigatorInterface::SetDriveModeMessage *msgTmp = ninit->msgq_first_safe(msgTmp);
+      ninit->set_drive_mode(msgTmp->drive_mode());
+      ninit->write();
+      ninit->msgq_pop();
+    }
+    
+  }*/
  
   //m_pColliTargetObj->Update();
   m_pColliTargetObj->read();
@@ -727,6 +741,13 @@ void ColliThread::UpdateColliStateMachine()
       else
         mult = 0.0;
 */
+    /*  if( m_pMopoObj->vx() > 0 )
+        mult = 0.8;
+      else if(m_pMopoObj->vx() < 0)
+       mult = -0.8;
+      else
+        mult = 0.0;*/
+
       float orientPointX = targetX - ( mult * cos(ori) );
       float orientPointY = targetY - ( mult * sin(ori) );
 
@@ -735,7 +756,7 @@ void ColliThread::UpdateColliStateMachine()
       m_ColliStatus = DriveToOrientPoint;
       return;
     }
-  else if ( pow( (curPosX - targetX ),2) + pow(( curPosY - targetY ),2) > pow((0.15),2) )  // soll im navigator wegen intercept parametrisierbar sein
+    else if ( pow( (curPosX - targetX ),2) + pow(( curPosY - targetY ),2) > pow((0.15),2) )  // soll im navigator wegen intercept parametrisierbar sein
     {
       m_TargetPointX = targetX;
       m_TargetPointY = targetY;
@@ -959,6 +980,37 @@ void ColliThread::set_visualization_thread(ColliVisualizationThreadBase *visthre
   if(visthread_ ) cout << "visualization thread set"<< endl;
 }
 #endif
+//--------------------------------------------------------------------------------------------------------------------
+void ColliThread::transform_odom()
+{
+  tf::Quaternion o_r(- m_pMopoObj->odometry_orientation(), 0, 0);
+  tf::Vector3 o_t(m_pMopoObj->odometry_position_x(), -m_pMopoObj->odometry_position_y(), 0);
+  tf::Transform o_tr(o_r, o_t);
+ /* const Timestamp o_ts = m_pMonaco->if_mopo_client()->GetTimestamp();
+  fawkes::Time o_time(o_ts.GetSec(), o_ts.GetuSec());*/
+  Time *o_ts = new Time();
+  o_ts = &(o_ts->stamp()); 
+  fawkes::Time o_time(o_ts->get_sec(), o_ts->get_usec());
+//  fawkes::Time o_time(0, 0);
+  m_tf_pub_odom->send_transform(o_tr, o_time, "/odom", "/base_link");
+}
+//---------------------------------------------------------------------------------------------------------------------
+void ColliThread::transform_navi()
+{
+  try {
+    tf::Stamped<tf::Point> centroid(tf::Point(ninit->dest_x(),ninit->dest_y(),0.),
+                   fawkes::Time(0, 0), "/odom");
+    tf::Stamped<tf::Point> baserel_centroid;
+    tf_listener->transform_point("/base_link", centroid, baserel_centroid);
+    ninit->set_dest_x(baserel_centroid.x());
+    ninit->set_dest_y(baserel_centroid.y());
+    ninit->write();
+  } catch (tf::TransformException &e) {
+    logger->log_warn(name(),"can't transform from odom");
+    e.print_trace();
+  }
+
+}
 //---------------------------------------------------------------------------------------------------------------------
 /*#ifdef HAVE_VISUAL_DEBUGGING
 void ColliThread::set_navigation_thread(ColliNavigationThreadBase *navthread)
