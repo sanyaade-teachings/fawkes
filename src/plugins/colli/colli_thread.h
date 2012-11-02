@@ -94,6 +94,7 @@ class ColliThread
  private:
   fawkes::MotorInterface  *mopo_obj;
   fawkes::MotorInterface  *m_pMopoObj;
+  fawkes::MotorInterface  *motor_des;
   fawkes::Laser360Interface *m_pLaserScannerObj;
   //fawkes::Laser720Interface *m_pLaserScannerObj;
   fawkes::NavigatorInterface *m_pColliTargetObj; 
@@ -151,6 +152,7 @@ class ColliThread
   // Do we  use a RWI Style Robot
   bool isRwiRobot;
 
+  HomPoint passive_target;
 
 
   /* ************************************************************************ */
@@ -174,9 +176,16 @@ class ColliThread
   /// Check, if we have to do escape mode, or if we have to drive the ordinary way ;-)
   bool CheckEscape();
   
+  float GetMotorTranslation(float vtrans, float vori);
+  float GetMotorOri(float odom_ori);
+
   void transform_odom();
-  
+  HomPoint transform_odom(HomPoint point);
+ 
   void transform_navi();
+  
+  HomPoint passive_control();
+  void passive_control(float xdiff,float ydiff,float oridiff);
 
  protected: virtual void run() { Thread::run(); }
  

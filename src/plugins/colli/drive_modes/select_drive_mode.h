@@ -114,6 +114,8 @@ public:
    */
   float GetProposedRotation();
 
+  float GetMotorTranslation(float vtrans, float vori);
+  float GetMotorOri(float odom_ori);
 private:
 
 /*

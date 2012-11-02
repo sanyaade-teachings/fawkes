@@ -114,6 +114,7 @@ private:
   float m_currentTranslation, m_currentRotation;
   float m_Frequency;
 
+  float vx,vy,omega;
   Logger *loggerTmp;
   MotorInterface *motor_if;
   MotorInterface  *motor_if_read;
@@ -143,6 +144,7 @@ private:
   // calculate maximum allowed translation change between proposed and desired values
   virtual float CalculateTranslation( float currentTranslation, float desiredTranslation, 
 				      float time_factor ) = 0;
+  float GetMotorTranslation(float vtrans, float vori);
 };
 
 
@@ -217,7 +219,7 @@ inline void CBaseMotorInstruct::SetCommand(  )
   // SJ TODO!!!
 */
   // Translation borders
-  float vx,vy,omega;
+ // float vx,vy,omega;
   vy = 0.0;
   if ( fabs(m_execTranslation) < 0.05 )
   {
@@ -280,24 +282,25 @@ inline void CBaseMotorInstruct::SetCommand(  )
       omega = m_execRotation;
     }
   }
-  /*motor_if->write();
-  motor_if_read->read();
-  motor_if->set_odometry_position_x(motor_if_read->odometry_position_x());
-  motor_if->set_odometry_position_y(motor_if_read->odometry_position_y());  
-  motor_if->set_odometry_orientation(motor_if_read->odometry_orientation());*/
+  //motor_if->write();
   // Send the commands to the motor. No controlling afterwards done!!!!
   //SendCommand();
   //motor_if->read();
   //MotorInterface::TransRotMessage *msg = new MotorInterface::TransRotMessage(motor_if->vx(),motor_if->vy(),motor_if->omega());
    //loggerTmp->log_info("drive realization","vx %f, vy %f, omega %f",vx,vy,omega );
-   MotorInterface::TransRotMessage *msg = new MotorInterface::TransRotMessage(vx,vy,omega);
-   motor_if->msgq_enqueue(msg);
-   //loggerTmp->log_info("drive realization","motor message sent");
-  // motor_if_read->msgq_enqueue(msg);
+   if ( motor_if->motor_state() == motor_if->MOTOR_ENABLED )
+   {
+   /*  MotorInterface::TransRotMessage *msg = new MotorInterface::TransRotMessage(vx,vy,omega);
+     motor_if->msgq_enqueue(msg);*/
+     motor_if->set_vx(vx);
+     motor_if->set_omega(omega);
+     motor_if->write();
+   }
+   else
+   {
+     loggerTmp->log_info("drive realization","motor message can't be sent because motor is disabled\n");
+   }
   
-  //motor_if->set_motor_state(motor_if->DRIVE_MODE_TRANS_ROT);
-   //cout << "motor velocity: " << motor_if->vx() << endl;
-  //cout << "motor rotation: "<< motor_if->omega() << endl;
 }
 
 
@@ -360,8 +363,9 @@ inline void CBaseMotorInstruct::Drive( float proposedTrans, float proposedRot )
   //m_currentRotation    = GetMotorDesiredRotation();
   //m_currentTranslation = GetMotorDesiredTranslation();
   m_currentRotation    = motor_if->omega();
-  m_currentTranslation = motor_if->vx();
-
+ // m_currentRotation = omega;
+  m_currentTranslation = GetMotorTranslation(motor_if->vx(),motor_if->omega());
+  //m_currentTranslation = vx;
   // calculate maximum allowed rotation change between proposed and desired values
   m_desiredRotation = proposedRot;
   // ** TODO for test time_factor ** //
@@ -383,14 +387,24 @@ inline void CBaseMotorInstruct::ExecuteStop()
 {
   //m_currentTranslation = GetMotorDesiredTranslation();
   //m_currentRotation    = GetMotorDesiredRotation();
-  m_currentTranslation = motor_if->vx();
+  m_currentTranslation = GetMotorTranslation(motor_if->vx(),motor_if->omega());;
+  //m_currentTranslation = vx;
   m_currentRotation = motor_if->omega();
+  //m_currentRotation = omega;
 
   // with respect to the physical borders do a stop to 0.0, 0.0.
   Drive( 0.0, 0.0 );
   SetCommand( );
 }
 
+inline float CBaseMotorInstruct::GetMotorTranslation(float vtrans, float vori)
+{
+  float m_vx = vtrans * cos(vori);
+  if (  m_vx > 0 )
+    return vtrans;
+  else
+    return -vtrans;
+}
 
 
 #endif

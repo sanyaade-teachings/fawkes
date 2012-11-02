@@ -26,7 +26,7 @@ class ColliVisualizationThreadBase
 
   virtual void visualize(const std::string &frame_id,vector<HomPoint> &cells,HomPoint &m_RoboGridPos,HomPoint &m_LaserGridPos, vector<HomPoint> &laser_cells,
                          vector< HomPoint > &plan,HomPoint &motor_des,int cell_width, int cell_height,HomPoint &target,
-                         int grid_width, int grid_height, HomPoint &motor_real) throw()=0;
+                         int grid_width, int grid_height, HomPoint &motor_real,HomPoint localTarget) throw()=0;
 };
 
 #endif

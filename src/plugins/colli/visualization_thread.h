@@ -17,6 +17,7 @@
 #include <plugins/ros/aspect/ros_inifin.h>
 #include <core/threading/mutex_locker.h>
 #include <interfaces/NavigatorInterface.h>
+#include <interfaces/MotorInterface.h>
 #include <vector>
 
 #include <ros/ros.h>
@@ -49,13 +50,14 @@ class ColliVisualizationThread
 
   virtual void visualize(const std::string &frame_id,vector<HomPoint> &cells,HomPoint &m_RoboGridPos,HomPoint &m_LaserGridPos,vector<HomPoint> &laser_points,
                          vector< HomPoint > &plan,HomPoint &motor_des,int cell_width,int cell_height,HomPoint &target,
-                         int grid_width, int grid_height, HomPoint &motor_real) throw();
+                         int grid_width, int grid_height, HomPoint &motor_real,HomPoint localTarget) throw();
   void visualize_grid_boundary();
   void visualize_path();
   void visualize_occ_cells();
   void visualize_laser_points();
   void visualize_real_motor();
   void visualize_des_motor();
+  void visualize_local_target();
   HomPoint transform( HomPoint point );
   HomPoint transform_robo( HomPoint point );
   HomPoint transform_odom(HomPoint point);
@@ -72,6 +74,7 @@ class ColliVisualizationThread
   ros::Publisher *targetpub_;
   ros::Publisher *tarfixpub_;
   ros::Publisher *target_real_pub_;
+  ros::Publisher *target_local_pub_;
 
   ros::Publisher *rec1pub_;
   ros::Publisher *rec2pub_;
@@ -91,12 +94,15 @@ class ColliVisualizationThread
   HomPoint fix_target_;
   HomPoint motor_des_;
   HomPoint motor_real_;
+  HomPoint local_target_;
+  HomPoint rviz_target_;
   float cell_width_;
   float cell_height_;
   float grid_width_;
   float grid_height_;
 
   NavigatorInterface *m_navi;
+  MotorInterface  *m_motor;
 }; 
 
 #endif

@@ -293,12 +293,12 @@ void CSelectDriveMode::Update( bool escape )
 // **      m_pDriveMode->SetCurrentRoboPos( m_pMotor->GetCurrentX(), m_pMotor->GetCurrentY(),
 // **				       m_pMotor->GetCurrentOri() );
       m_pDriveMode->SetCurrentRoboPos( m_pMotor->odometry_position_x(), m_pMotor->odometry_position_y(),
-                                       m_pMotor->odometry_orientation() );
+                                       GetMotorOri(m_pMotor->odometry_orientation()) );
 
 
 // **      m_pDriveMode->SetCurrentRoboSpeed( m_pMotor->GetMotorDesiredTranslation(),
 // **					 m_pMotor->GetMotorDesiredRotation() );
-      m_pDriveMode->SetCurrentRoboSpeed( m_pMotor->vx(),
+      m_pDriveMode->SetCurrentRoboSpeed( GetMotorTranslation(m_pMotor->vx(), m_pMotor->omega()),
                                          m_pMotor->omega() );
 
 
@@ -369,5 +369,18 @@ void CSelectDriveMode::Update( bool escape )
 }
 
 
+float CSelectDriveMode::GetMotorTranslation(float vtrans, float vori)
+{
+  float m_vx = vtrans * cos(vori);
+  if (  m_vx > 0 )
+    return vtrans;
+  else
+    return -vtrans;
+}
+
+float CSelectDriveMode::GetMotorOri(float odom_ori)
+{
+  return normalize_mirror_rad(odom_ori);
+}
 
 #endif
