@@ -80,20 +80,28 @@ void ColliJoystick::run()
   float thresh_y = 0.2;
   if(( fabsf(diff_x) <= thresh_x ) && ( fabsf(diff_y) <= thresh_y ))
     return;
-  const float target_dist = 1;
+/*  const float target_dist = 1;
   float x = m_motor->odometry_position_x();
   float y = m_motor->odometry_position_y();
   float ori = m_motor->odometry_orientation();
   float joy_rl = m_joy->axis(0);
-  float joy_ud = m_joy->axis(1);
+  float joy_ud = -m_joy->axis(1);
   float rel_x = cos(ori)*joy_ud-sin(ori)*joy_rl;
   float rel_y = sin(ori)*joy_ud+cos(ori)*joy_rl;
   float target_x = x+rel_x*target_dist;
   float target_y = y+rel_y*target_dist;
-  /*NavigatorInterface::ObstacleMessage *msg = new NavigatorInterface::ObstacleMessage();
-  msg->set_x(target_x);
-  msg->set_y(target_y);
-  m_navi->msgq_enqueue(msg);*/  
+*/
+  const float target_dist = 1;
+  float x = m_motor->odometry_position_x();
+  float y = m_motor->odometry_position_y();
+  float ori = m_motor->odometry_orientation();
+  float joy_rl = m_joy->axis(0); // right-left axis
+  float joy_ud = m_joy->axis(1);  // up-down axis
+  float rel_x = cos(ori)*joy_rl + sin(ori)*joy_ud;
+  float rel_y = cos(ori)*joy_ud - sin(ori)*joy_rl;
+  float target_x = x + (-rel_x) * target_dist;
+  float target_y = y + rel_y * target_dist;
+
   NavigatorInterface::CartesianGotoMessage *msg = new NavigatorInterface::CartesianGotoMessage();
   msg->set_x(target_x);
   msg->set_y(target_y);
@@ -103,9 +111,6 @@ void ColliJoystick::run()
   cout << "last values are: " << last_x << " : " << last_y << endl;
   last_x = cur_x; 
   last_y = cur_y;
-  /*NavigatorInterface::SetDriveModeMessage *drive_msg = new NavigatorInterface::SetDriveModeMessage();
-  drive_msg->set_drive_mode(NavigatorInterface::ModerateAllowBackward);
-  m_navi->msgq_enqueue(drive_msg);*/   
 
   /*int size = m_joy->num_axes(); 
   float *axis_value = m_joy->axis();

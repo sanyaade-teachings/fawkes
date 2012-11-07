@@ -150,7 +150,7 @@ void ColliVisualizationThread::callback( const geometry_msgs::PoseStamped::Const
   float transy = rvizTarget.y();
   float tx = ( transx*cos( m_motor->odometry_orientation ()  ) + transy*sin( m_motor->odometry_orientation () ) );
   float ty = ( transy*cos( m_motor->odometry_orientation ()  ) - transx*sin( m_motor->odometry_orientation () ) );
-  HomPoint base_target = HomPoint(tx+m_motor->odometry_position_x(),-(ty+m_motor->odometry_position_y()));
+  HomPoint base_target = HomPoint(tx+m_motor->odometry_position_x(),-ty+m_motor->odometry_position_y());
   //HomPoint base_target = transform_odom(HomPoint(tx,ty));
   rvizTarget = base_target;
   rviz_target_ = rvizTarget;
