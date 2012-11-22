@@ -135,6 +135,7 @@ inline float number2rad( int nr, int numberOfReadings = 360) {
 // -1 is no new data, so nothing is to do; 0 is ok; 1 is error 
 int Laser::UpdateLaser( )
 {
+  m_pLaserScannerObj->read();
   //oldtime->SetSec ( newtime->GetSec () );
   //oldtime->SetuSec( newtime->GetuSec() );
   oldtime->set_time( newtime->get_sec(), newtime->get_usec());

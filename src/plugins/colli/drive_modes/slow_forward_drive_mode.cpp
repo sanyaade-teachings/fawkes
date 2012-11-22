@@ -255,9 +255,11 @@ void CSlowForwardDriveModule::Update()
   m_ProposedRotation    = 0.0;
 
   //loggerSlowFor->log_info("slow forward","local target is: %f,%f\n",m_LocalTargetX,m_LocalTargetY);
-  float dist_to_target = sqrt( pow((m_LocalTargetX),2) + pow((m_LocalTargetY),2) );
+  //float dist_to_target = sqrt( pow((m_LocalTargetX),2) + pow((m_LocalTargetY),2) );
+  float dist_to_target = sqrt( sqr(m_LocalTargetX) + sqr(m_LocalTargetY) );
   float alpha          = atan2( m_LocalTargetY, m_LocalTargetX );
-  float dist_to_trajec = sqrt( pow((m_LocalTrajecX),2) + pow((m_LocalTrajecY),2) );
+//  float dist_to_trajec = sqrt( pow((m_LocalTrajecX),2) + pow((m_LocalTrajecY),2) );
+  float dist_to_trajec = sqrt( sqr(m_LocalTrajecX) + sqr(m_LocalTrajecY) );
 
   m_ProposedRotation = SlowForward_Curvature( dist_to_target, dist_to_trajec, 
 					      alpha, m_RoboTrans, m_RoboRot );

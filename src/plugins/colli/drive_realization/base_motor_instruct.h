@@ -308,6 +308,7 @@ inline void CBaseMotorInstruct::SetCommand(  )
 // Set a drive command with respect to the physical constraints of the robot.
 inline void CBaseMotorInstruct::Drive( float proposedTrans, float proposedRot )
 {
+  motor_if->read();
   // initializing driving values (to be on the sure side of life)
   m_execTranslation = 0.0;
   m_execRotation = 0.0;
@@ -399,7 +400,7 @@ inline void CBaseMotorInstruct::ExecuteStop()
 
 inline float CBaseMotorInstruct::GetMotorTranslation(float vtrans, float vori)
 {
-  float m_vx = vtrans * cos(vori);
+  float m_vx = vtrans * sin(vori);
   if (  m_vx > 0 )
     return vtrans;
   else

@@ -183,6 +183,7 @@ CLaserOccupancyGrid::~CLaserOccupancyGrid()
   delete m_pRoboShape;
 }
 
+
 // ** just as help function ** //
 inline float CLaserOccupancyGrid::normalize_degree(float angle_deg)
 {
@@ -242,6 +243,15 @@ void CLaserOccupancyGrid::UpdateOccGrid( int midX, int midY, float inc, float ve
 
   IntegrateOldReadings( midX, midY, inc, vel, xdiff, ydiff, oridiff );
   IntegrateNewReadings( midX, midY, inc, vel );
+  /*for ( int y = 0; y < m_Height; ++y )
+  {
+    for ( int x = 0; x < m_Width; ++x )
+    {
+      if(( m_OccupancyProb[x][y] != _COLLI_CELL_FREE_) && ( m_OccupancyProb[x][y] != _COLLI_CELL_MIDDLE_) && ( m_OccupancyProb[x][y] != _COLLI_CELL_FAR_)
+         && ( m_OccupancyProb[x][y] != _COLLI_CELL_NEAR_) && ( m_OccupancyProb[x][y] != _COLLI_CELL_OCCUPIED_))
+        m_OccupancyProb[x][y] = _COLLI_CELL_FREE_;
+    }
+  }*/
 }
 
 
@@ -255,29 +265,31 @@ void CLaserOccupancyGrid::IntegrateOldReadings( int midX, int midY, float inc, f
   float newpos_x, newpos_y;
 
   float history = max( m_MinHistoryLength, 
-		       m_MaxHistoryLength - (int)max( 0.0, fabs(vel)-0.5 ) * 20 );
+		       m_MaxHistoryLength - (int)(max( 0.0, fabs(vel)-0.5 ) )* 20 );
 
   // update all old readings
   for ( unsigned int i = 0; i < m_vOldReadings.size(); i+=3 )
+  {
     if ( m_vOldReadings[i+2] < history )
       {
 	oldpos_x = m_vOldReadings[i];
 	oldpos_y = m_vOldReadings[i+1];
-
 	newpos_x =  -xdiff + (  oldpos_x * m_pTrigTable->GetCos( oridiff ) +
 				        oldpos_y * m_pTrigTable->GetSin( oridiff ) );
 	newpos_y =  -ydiff + ( -oldpos_x * m_pTrigTable->GetSin( oridiff ) +
 			        oldpos_y * m_pTrigTable->GetCos( oridiff ) );
 
 	float angle_to_old_reading = atan2( newpos_y, newpos_x );
-	float sqr_distance_to_old_reading = pow(( newpos_x ),2) + pow(( newpos_y ),2);
+	//float sqr_distance_to_old_reading = pow(( newpos_x ),2) + pow(( newpos_y ),2);
+        float sqr_distance_to_old_reading = sqr( newpos_x ) + sqr( newpos_y );
 
  	int number_of_old_reading = (int)
  	  (normalize_degree( ( 360.0/(m_pLaser->GetNumberOfReadings()) ) *
  			     rad2deg(angle_to_old_reading) ) );
 	bool SollEintragen = true;
 
- 	if ( pow(( m_pLaser->GetReadingLength( number_of_old_reading ) - 0.3 ),2) > sqr_distance_to_old_reading )
+ 	//if ( pow(( m_pLaser->GetReadingLength( number_of_old_reading ) - 0.3 ),2) > sqr_distance_to_old_reading )
+ 	  if ( sqr( m_pLaser->GetReadingLength( number_of_old_reading ) - 0.3 ) > sqr_distance_to_old_reading )
  	  {
  	    SollEintragen = false;
  	  }
@@ -285,11 +297,11 @@ void CLaserOccupancyGrid::IntegrateOldReadings( int midX, int midY, float inc, f
 
 	if ( SollEintragen == true )
  	  {
-	    float posX = midX + (int)((newpos_x*100.0) / ((float)m_CellWidth ));
-	    float posY = midY + (int)((newpos_y*100.0) / ((float)m_CellHeight ));
+	    float posX = (float) (midX + (int)((newpos_x*100.0) / ((float)m_CellWidth )));
+	    float posY = (float) (midY + (int)((newpos_y*100.0) / ((float)m_CellHeight )));
 
-	    if ( posX > 4.0 && posX < m_Width-5 &&
-		 posY > 4.0 && posY < m_Height-5 )
+	    if ( (posX > 4.0) && (posX < (float)(m_Width-5)) &&
+		 (posY > 4.0) && (posY < (float)(m_Height-5)) )
 	      {
 		old_readings.push_back( newpos_x );
 		old_readings.push_back( newpos_y );
@@ -301,7 +313,7 @@ void CLaserOccupancyGrid::IntegrateOldReadings( int midX, int midY, float inc, f
 	      }
 	  }
       }
-
+  }
   m_vOldReadings.clear();
   m_vOldReadings.reserve( m_InitialHistorySize );
 
@@ -334,22 +346,23 @@ void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
 	p_x = point.x();
 	p_y = point.y();
 	if ( !((p_x == 0.0) && (p_y == 0.0)) && 
-	     pow((p_x-oldp_x),2)+pow((p_y-oldp_y),2) > pow(( m_EllipseDistance ),2) )
+            sqr(p_x-oldp_x)+sqr(p_y-oldp_y) > sqr( m_EllipseDistance ) )
+	     //pow((p_x-oldp_x),2)+pow((p_y-oldp_y),2) > pow(( m_EllipseDistance ),2) )
 	  {
 	    oldp_x = p_x;
 	    oldp_y = p_y;
 	    posX = midX + (int)((p_x*100.0) / ((float)m_CellWidth ));
 	    posY = midY + (int)((p_y*100.0) / ((float)m_CellHeight ));
             
-	    if ( !( posX <= 5 || posX >= m_Width-6 ||
-		    posY <= 5 || posY >= m_Height-6 ) )
+	    if ( !( (posX <= 5) || (posX >= m_Width-6) ||
+		    (posY <= 5) || (posY >= m_Height-6) ) )
 	      {
 		// float dec = max( (sqrt(sqr(p_x)+sqr(p_y))/3.0-1.0), 0.0 );
 		// float dec = max((m_pLaser->GetReadingLength(i)/2.0)-1.0, 0.0 );
 		float dec = 0.0;
 		    
 		float height = 0.0;
-		height = m_pRoboShape->GetRobotLengthforRad( deg2rad( 90 ) ); 
+		height = m_pRoboShape->GetRobotLengthforRad( deg2rad( 90. ) ); 
 		height = max( 4.0, ((height + inc - dec)*100.0)/m_CellHeight );
 		    
 		float rad = normalize_rad( m_pLaser->GetRadiansForReading( i ) );
@@ -357,11 +370,11 @@ void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
 		//length = m_pRoboShape->GetRobotLengthforRad( rad );
 
 		if (fabs(normalize_mirror_rad(rad)) < M_PI_2)
-		  length = m_pRoboShape->GetRobotLengthforRad( deg2rad( 90 ) );
+		  length = m_pRoboShape->GetRobotLengthforRad( deg2rad( 90. ) );
 		else
 		  length = m_pRoboShape->GetRobotLengthforRad( rad );
 
-		  length = max( 4.0, ((length + inc - dec)*100.0)/m_CellWidth );
+		  length = max( 4.0, ((length + inc - dec)*100.0)/(float)m_CellWidth );
 		    
 		   if ( !m_pLaser->IsPipe( rad ) )
 		   {
@@ -376,14 +389,15 @@ void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
 	      }
 	  }
       }
-     }
+   }
 }
 
 
 bool CLaserOccupancyGrid::Contained( float p_x, float p_y )
 {
   for ( unsigned int i = 0; i < m_vOldReadings.size(); i+=3 )
-    if ( pow((p_x - m_vOldReadings[i]),2) + pow((p_y - m_vOldReadings[i+1]),2) < pow(( m_EllipseDistance ),2) )
+    //if ( pow((p_x - m_vOldReadings[i]),2) + pow((p_y - m_vOldReadings[i+1]),2) < pow(( m_EllipseDistance ),2) )
+    if ( sqr(p_x - m_vOldReadings[i]) + sqr(p_y - m_vOldReadings[i+1]) < sqr( m_EllipseDistance ) )  
       {
 	return true;
       }
@@ -411,8 +425,8 @@ void CLaserOccupancyGrid::integrateObstacle( Ellipse ellipse )
       posY = centery + fast_ellipse[i+1];
       posX = centerx + fast_ellipse[i];
             
-      if ( (posX > 0) && (posX < m_Width) && 
-	   (posY > 0) && (posY < m_Height) &&
+      if ( (posX >= 0) && (posX < m_Width) && 
+	   (posY >= 0) && (posY < m_Height) &&
 	   (m_OccupancyProb[posX][posY] < fast_ellipse[i+2]) )
 	m_OccupancyProb[posX][posY] = fast_ellipse[i+2];
     }

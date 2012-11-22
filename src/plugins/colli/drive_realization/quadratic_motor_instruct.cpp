@@ -172,13 +172,15 @@ float CQuadraticMotorInstruct::CalculateTranslation( float currentTranslation,
 	{
 	  execTranslation = 
 	    currentTranslation - basic_trans_dec - 
-	    ((pow( (fabs(currentTranslation) + 1.0 ),2) * basic_trans_dec) / 8.0);
+            ((sqr( fabs(currentTranslation) + 1.0 ) * basic_trans_dec) / 8.0);
+	    //((pow( (fabs(currentTranslation) + 1.0 ),2) * basic_trans_dec) / 8.0);
 	  execTranslation = max( execTranslation, desiredTranslation );
 	}
       else if (currentTranslation < 0.0) // increase backward speed
 	{
 	  execTranslation = currentTranslation - basic_trans_acc -
-	    ((pow(( fabs(currentTranslation) + 1.0 ),2) * basic_trans_acc) / 8.0);
+            ((sqr( fabs(currentTranslation) + 1.0 ) * basic_trans_acc) / 8.0);
+	    //((pow(( fabs(currentTranslation) + 1.0 ),2) * basic_trans_acc) / 8.0);
 	  execTranslation = max( execTranslation, desiredTranslation );
 	}
       else // currentTranslation == 0;
@@ -191,13 +193,15 @@ float CQuadraticMotorInstruct::CalculateTranslation( float currentTranslation,
       if (currentTranslation > 0.0) // increase forward speed
 	{
 	  execTranslation = currentTranslation + basic_trans_acc +
-	    ((pow(( fabs(currentTranslation) + 1.0 ),2) * basic_trans_acc) / 8.0);
+            ((sqr( fabs(currentTranslation) + 1.0 ) * basic_trans_acc) / 8.0);
+	   // ((pow(( fabs(currentTranslation) + 1.0 ),2) * basic_trans_acc) / 8.0);
 	  execTranslation = min( execTranslation, desiredTranslation );
 	}
       else if (currentTranslation < 0.0) // decrease backward speed
 	{
 	  execTranslation = currentTranslation + basic_trans_dec +
-	    ((pow(( fabs(currentTranslation) + 1.0 ),2) * basic_trans_dec) / 8.0);
+              ((sqr( fabs(currentTranslation) + 1.0 ) * basic_trans_dec) / 8.0);
+	    //((pow(( fabs(currentTranslation) + 1.0 ),2) * basic_trans_dec) / 8.0);
 	  execTranslation = min( execTranslation, desiredTranslation );
 	}
       else // currentTranslation == 0
@@ -232,13 +236,15 @@ float CQuadraticMotorInstruct::CalculateRotation( float currentRotation,
       if (currentRotation > 0.0) // decrease right rot
 	{
 	  execRotation = currentRotation - basic_rot_dec -
-	    ((pow(( fabs(currentRotation) + 1.0 ),2) * basic_rot_dec) / 8.0);
+           ((sqr( fabs(currentRotation) + 1.0 ) * basic_rot_dec) / 8.0);
+	   // ((pow(( fabs(currentRotation) + 1.0 ),2) * basic_rot_dec) / 8.0);
 	  execRotation = max( execRotation, desiredRotation );
 	}
       else if (currentRotation < 0.0) // increase left rot
 	{
 	  execRotation = currentRotation - basic_rot_acc -
-	    ((pow(( fabs(currentRotation) + 1.0 ),2) * basic_rot_acc) / 8.0);
+            ((sqr( fabs(currentRotation) + 1.0 ) * basic_rot_acc) / 8.0);
+	    //((pow(( fabs(currentRotation) + 1.0 ),2) * basic_rot_acc) / 8.0);
 	  execRotation = max( execRotation, desiredRotation );
 	}
       else // currentRotation == 0;
@@ -251,13 +257,15 @@ float CQuadraticMotorInstruct::CalculateRotation( float currentRotation,
       if (currentRotation > 0.0) // increase right rot
 	{
 	  execRotation = currentRotation + basic_rot_acc +
-	    ((pow(( fabs(currentRotation) + 1.0 ),2) * basic_rot_acc) / 8.0);
+            ((sqr( fabs(currentRotation) + 1.0 ) * basic_rot_acc) / 8.0);
+	   // ((pow(( fabs(currentRotation) + 1.0 ),2) * basic_rot_acc) / 8.0);
 	  execRotation = min( execRotation, desiredRotation );
 	}
       else if (currentRotation < 0.0) // decrease left rot
 	{
 	  execRotation = currentRotation + basic_rot_dec +
-	    ((pow(( fabs(currentRotation) + 1.0 ),2) * basic_rot_dec) / 8.0);
+             ((sqr( fabs(currentRotation) + 1.0 ) * basic_rot_dec) / 8.0);
+	    //((pow(( fabs(currentRotation) + 1.0 ),2) * basic_rot_dec) / 8.0);
 	  execRotation = min( execRotation, desiredRotation );
 	}
       else // currentRotation == 0

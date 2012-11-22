@@ -57,7 +57,7 @@
 
 #include <vector>
 //#include <utils/utils.h>
-
+//#include "../robo-utils/math_util.h"
 
 
 // also defined in og_laser.h
@@ -113,7 +113,13 @@ private:
   // a unique identifier for each ellipse
   int m_Key;
   
+  inline float sqr( float x )
+  {
+    return (x*x);
+  }
+ 
 };
+
 
 
 
@@ -130,17 +136,20 @@ inline CFastEllipse::CFastEllipse( int radius_width, int radius_height,
   for ( int y = -(maxRad+6); y <= (maxRad+6); y++ )
     for ( int x = -(maxRad+6); x <= (maxRad+6); x++ )
       {
-	dist        = pow(((float)x/(float)radius_width),2)     + pow(((float)y/(float)radius_height),2);
-	dist_near   = pow(((float)x/(float)(radius_width+2)),2) + pow(((float)y/(float)(radius_height+2)),2);
-	dist_middle = pow(((float)x/(float)(radius_width+4)),2) + pow(((float)y/(float)(radius_height+4)),2);
-
+	//dist = pow(((float)x/(float)radius_width),2) + pow(((float)y/(float)radius_height),2);
+        dist = sqr(((float)x/(float)radius_width)) + sqr(((float)y/(float)radius_height));
+	//dist_near = pow(((float)x/(float)(radius_width+2)),2) + pow(((float)y/(float)(radius_height+2)),2);
+        dist_near = sqr(((float)x/(float)(radius_width+2))) + sqr(((float)y/(float)(radius_height+2)));
+	//dist_middle = pow(((float)x/(float)(radius_width+4)),2) + pow(((float)y/(float)(radius_height+4)),2);
+        dist_middle = sqr(((float)x/(float)(radius_width+4))) + sqr(((float)y/(float)(radius_height+4)));
 /* 	if ( robocup_mode == 1 ) */
 /* 	  { */
 /* 	    ; // ignore far distance obstacles */
 /* 	  } */
 /* 	else */
 /* 	  { */
-	    dist_far = pow(((float)x/(float)(radius_width+6)),2) +  pow(((float)y/(float)(radius_height+6)),2);
+	    //dist_far = pow(((float)x/(float)(radius_width+6)),2) +  pow(((float)y/(float)(radius_height+6)),2);
+            dist_far = sqr((float)x/(float)(radius_width+6))+sqr((float)y/(float)(radius_height+6));
 //	  }
 
 	if ( (dist > 1.0) && (dist_near > 1.0) &&

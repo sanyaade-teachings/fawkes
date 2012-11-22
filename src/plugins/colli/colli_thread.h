@@ -135,7 +135,8 @@ class ColliThread
   float m_TargetPointX, m_TargetPointY;               // for Update
 
   float m_OldX, m_OldY, m_OldOri;  // for updating occgrid and performing pipe compensation
-
+  float m_Updx, m_Updy, m_UpdOri; 
+  float m_OldTargetPointX,m_OldTargetPointY;
   int escape_count;                // count escaping behaviour
 
   // Config file constants that are read at the beginning
@@ -152,7 +153,7 @@ class ColliThread
   // Do we  use a RWI Style Robot
   bool isRwiRobot;
 
-  HomPoint passive_target;
+  vector<HomPoint > m_vSolution;
 
 
   /* ************************************************************************ */
@@ -184,9 +185,29 @@ class ColliThread
  
   void transform_navi();
   
-  HomPoint passive_control();
-  void passive_control(float xdiff,float ydiff,float oridiff);
+  void SmoothSolution();
+  void ValidateSolution();
 
+  inline float sqr( float x )
+  {
+    return (x*x);
+  }
+
+  /*inline int sqr( int x )
+  {
+    return (x*x);
+  }
+
+  inline double sqr( double x )
+  {
+    return (x*x);
+  }
+
+  inline unsigned long sqr( unsigned long x )
+  {
+    return (x*x);
+  }
+*/
  protected: virtual void run() { Thread::run(); }
  
 };

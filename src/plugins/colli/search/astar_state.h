@@ -88,6 +88,7 @@ public:
 
   // Costs
   int m_PastCost, m_TotalCost;
+  //float m_PastCost, m_TotalCost;
 };
 
 

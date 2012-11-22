@@ -48,19 +48,32 @@ class ColliVisualizationThread
   virtual void loop();
   virtual void finalize();
 
-  virtual void visualize(const std::string &frame_id,vector<HomPoint> &cells,HomPoint &m_RoboGridPos,HomPoint &m_LaserGridPos,vector<HomPoint> &laser_points,
-                         vector< HomPoint > &plan,HomPoint &motor_des,int cell_width,int cell_height,HomPoint &target,
-                         int grid_width, int grid_height, HomPoint &motor_real,HomPoint localTarget) throw();
+  virtual void visualize(const std::string frame_id,vector<HomPoint> cells,vector<HomPoint > near_cells,vector<HomPoint > far_cells,vector<HomPoint > middle_cells,
+                         HomPoint m_RoboGridPos,HomPoint m_LaserGridPos,vector<HomPoint> laser_points,
+                         vector< HomPoint > plan,HomPoint motor_des,int cell_width,int cell_height,HomPoint target,
+                         int grid_width, int grid_height, HomPoint motor_real,HomPoint localTarget,HomPoint target_odom,
+                         vector<HomPoint > orig_laser_points,vector<HomPoint > search_occ,
+                         vector<HomPoint > astar_found_occ,vector<HomPoint > free_cells,vector<HomPoint > seen_states) throw();
   void visualize_grid_boundary();
   void visualize_path();
   void visualize_occ_cells();
+  void visualize_near_cells();
+  void visualize_far_cells();
+  void visualize_middle_cells();
   void visualize_laser_points();
   void visualize_real_motor();
   void visualize_des_motor();
   void visualize_local_target();
+  void visualize_orig_laser_points();
+  void visualize_search_occ();
+  void visualize_found_astar_occ();
+  void visualize_free_cells();
+  void visualize_seen_states();
   HomPoint transform( HomPoint point );
   HomPoint transform_robo( HomPoint point );
   HomPoint transform_odom(HomPoint point);
+  HomPoint transform_base(HomPoint point);
+  void visualize_target_odom();
   void callback( const geometry_msgs::PoseStamped::ConstPtr &msg);
  private:
   fawkes::Mutex mutex_;
@@ -69,12 +82,21 @@ class ColliVisualizationThread
   ros::Publisher *robpub_;
   ros::Publisher *laserpub_;
   ros::Publisher *gridpub_;
+  ros::Publisher *neargridpub_;
+  ros::Publisher *fargridpub_;
+  ros::Publisher *middlegridpub_;
   ros::Publisher *laser_points_pub;
   ros::Publisher *pathpub_;
   ros::Publisher *targetpub_;
   ros::Publisher *tarfixpub_;
   ros::Publisher *target_real_pub_;
   ros::Publisher *target_local_pub_;
+  ros::Publisher *target_odom_pub_;
+  ros::Publisher *orig_laserpub_;
+  ros::Publisher *soccpub_;
+  ros::Publisher *found_occ_pub_;
+  ros::Publisher *free_grid_pub_;
+  ros::Publisher *states_pub_;
 
   ros::Publisher *rec1pub_;
   ros::Publisher *rec2pub_;
@@ -85,13 +107,23 @@ class ColliVisualizationThread
   ros::Publisher  *navpub_;
 
   vector<HomPoint > cells_;
+  vector<HomPoint > near_cells_;
+  vector<HomPoint > far_cells_;
+  vector<HomPoint > middle_cells_;
   vector<HomPoint> laser_points_;
+  vector<HomPoint > orig_laser_points_;
+  vector<HomPoint > socc_;
   vector<float > data_;
   vector< HomPoint > plan_;
+  vector<HomPoint > astar_found_occ_;
+  vector<HomPoint > free_cells_;
+  vector<HomPoint > seen_states_;
+
   HomPoint robo_pos_;
   HomPoint laser_pos_;
   HomPoint target_pos_;
   HomPoint fix_target_;
+  HomPoint target_odom_;
   HomPoint motor_des_;
   HomPoint motor_real_;
   HomPoint local_target_;

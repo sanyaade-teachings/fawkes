@@ -102,6 +102,26 @@ private:
   float basic_rot_acc;
   float basic_rot_dec;
   Logger *loggerQuad;  
+
+  inline float sqr( float x )
+  {
+    return (x*x);
+  }
+  inline int sqr( int x )
+  {
+    return (x*x);
+  }
+ 
+  inline double sqr( double x )
+  {
+    return (x*x);
+  }
+
+  inline unsigned long sqr( unsigned long x )
+  {
+    return (x*x);
+  }
+
 };
 
 

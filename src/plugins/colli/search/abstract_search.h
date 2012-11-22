@@ -84,7 +84,7 @@ public:
   /** update complete plan things
    *  precondition: the occupancy grid has to be updated previously!
    */
-  virtual void Update( int roboX, int roboY, int targetX, int targetY ) = 0;
+  virtual void Update( int roboX, int roboY, int targetX, int targetY,CLaserOccupancyGrid * occGrid ) = 0;
 
 
   /** Returns after an update, if the update was successful.
@@ -103,6 +103,8 @@ public:
    */
   //const Point& GetLocalTrajec();
   const HomPoint& GetLocalTrajec();
+
+  inline void update_occ(CLaserOccupancyGrid * occGrid);
 
 protected:
 
@@ -131,6 +133,11 @@ inline CAbstractSearch::~CAbstractSearch()
 {
 }
 
+
+inline void CAbstractSearch::update_occ(CLaserOccupancyGrid * occGrid)
+{
+  m_pOccGrid = occGrid;
+}
 
 inline const HomPoint& CAbstractSearch::GetLocalTarget()
 {

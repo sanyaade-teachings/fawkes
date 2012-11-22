@@ -46,7 +46,10 @@ void ColliVisualizationThread::init()
   
   target_local_pub_ = new ros::Publisher();
   *target_local_pub_ = rosnode->advertise<nav_msgs::GridCells>("target_local", 1);
-   
+  
+  target_odom_pub_ = new ros::Publisher();
+  *target_odom_pub_ = rosnode->advertise<nav_msgs::GridCells>("target_transformed_odom", 1);
+
   tarfixpub_ = new ros::Publisher();
   *tarfixpub_ = rosnode->advertise<nav_msgs::GridCells>("target_fix_cell", 1);  
   pathpub_ = new ros::Publisher();
@@ -60,6 +63,30 @@ void ColliVisualizationThread::init()
   *rec3pub_ = rosnode->advertise<nav_msgs::Path>("rec_path3",1);
   rec4pub_ = new ros::Publisher();
   *rec4pub_ = rosnode->advertise<nav_msgs::Path>("rec_path4",1);
+
+  orig_laserpub_ = new ros::Publisher();
+  *orig_laserpub_ = rosnode->advertise<nav_msgs::GridCells>("origin_laser_points", 1);
+  
+  neargridpub_ = new ros::Publisher(); 
+  *neargridpub_ = rosnode->advertise<nav_msgs::GridCells>("near_occupancy_grid", 1);
+
+  fargridpub_ = new ros::Publisher();
+  *fargridpub_ = rosnode->advertise<nav_msgs::GridCells>("far_occupancy_grid", 1);
+
+  middlegridpub_ = new ros::Publisher();
+  *middlegridpub_ = rosnode->advertise<nav_msgs::GridCells>("middle_occupancy_grid", 1);
+
+  soccpub_ = new ros::Publisher();
+  *soccpub_ = rosnode->advertise<nav_msgs::GridCells>("search_occ_grid", 1);
+  
+  found_occ_pub_ = new ros::Publisher();
+  *found_occ_pub_ = rosnode->advertise<nav_msgs::GridCells>("astar_found_occ_grid", 1);
+
+  free_grid_pub_ = new ros::Publisher();
+  *free_grid_pub_ = rosnode->advertise<nav_msgs::GridCells>("free_grid_cells", 1);
+
+  states_pub_ = new ros::Publisher();
+  *states_pub_ = rosnode->advertise<nav_msgs::GridCells>("seen_states_cells", 1);
 }
 //-----------------------------------------------------------------------------------------------------------
 void ColliVisualizationThread::finalize()
@@ -93,9 +120,13 @@ void ColliVisualizationThread::finalize()
 
 }
 //-------------------------------------------------------------------------------------------------------------------
-void ColliVisualizationThread::visualize(const std::string &frame_id,vector<HomPoint > &cells,HomPoint &m_RoboGridPos,HomPoint &m_LaserGridPos,
-                                         vector<HomPoint> &laser_points,vector< HomPoint > &plan, HomPoint &motor_des, 
-                                         int cell_width, int cell_height, HomPoint &target, int grid_width, int grid_height, HomPoint &motor_real, HomPoint localTarget) throw()
+void ColliVisualizationThread::visualize(const std::string frame_id,vector<HomPoint > cells,vector<HomPoint > near_cells,vector<HomPoint > far_cells,vector<HomPoint > middle_cells,
+                                         HomPoint m_RoboGridPos,HomPoint m_LaserGridPos,
+                                         vector<HomPoint> laser_points,vector< HomPoint > plan, HomPoint motor_des, 
+                                         int cell_width, int cell_height, HomPoint target, int grid_width, int grid_height, 
+                                         HomPoint motor_real, HomPoint localTarget, HomPoint target_odom,
+                                         vector<HomPoint > orig_laser_points,vector<HomPoint > search_occ,
+                                         vector<HomPoint > astar_found_occ,vector<HomPoint > free_cells,vector<HomPoint > seen_states) throw()
 {
   MutexLocker lock(&mutex_);
   frame_id_ = frame_id;
@@ -105,6 +136,7 @@ void ColliVisualizationThread::visualize(const std::string &frame_id,vector<HomP
   laser_pos_ = m_LaserGridPos;
   laser_points_.clear();
   laser_points_ = laser_points;
+  target_odom_ = target_odom;
   plan_.clear();
   plan_ = plan;
   cell_width_ = (float)cell_width;
@@ -115,6 +147,26 @@ void ColliVisualizationThread::visualize(const std::string &frame_id,vector<HomP
   motor_des_ = motor_des;
   motor_real_ = motor_real;
   local_target_ = localTarget;
+  orig_laser_points_.clear();
+  orig_laser_points_ = orig_laser_points;
+  near_cells_.clear();
+  near_cells_ = near_cells;
+  far_cells_.clear();
+  far_cells_ = far_cells;
+  middle_cells_.clear();
+  middle_cells_ = middle_cells;
+  socc_.clear();
+  socc_ = search_occ;
+  astar_found_occ_.clear();
+  astar_found_occ_ = astar_found_occ;
+  free_cells_.clear();
+  free_cells_ = free_cells;
+  seen_states_.clear();
+  seen_states_ = seen_states;
+  //logger->log_info(name(),"occupied cell based on search size is: %d\n",socc_.size());
+  //logger->log_info(name(),"far cells size is: %d\n",far_cells_.size());
+  //logger->log_info(name(),"near cells size is: %d\n",near_cells_.size());
+  //logger->log_info(name(),"middle cells size is: %d\n",middle_cells_.size());
   wakeup();
 }
 //---------------------------------------------------------------------------------------------------
@@ -136,42 +188,27 @@ void ColliVisualizationThread::callback( const geometry_msgs::PoseStamped::Const
   targ.cells.push_back(ptarfix);
   navpub_->publish(targ);
   HomPoint rvizTarget(poseMsg.pose.position.x,poseMsg.pose.position.y,0);
- // rviz_target_ = rvizTarget;
 
 
- // float dist = sqrt(pow(rvizTarget.x(),2)+pow(rvizTarget.y(),2)); 
-//  float phi = atan2(rvizTarget.y(),rvizTarget.x());
 
-
-  m_motor->read();
-  //float transx = m_motor->odometry_position_x() + rvizTarget.x();
-  float transx = rvizTarget.x();
-  //float transy = m_motor->odometry_position_y() - rvizTarget.y();
-  float transy = rvizTarget.y();
-  float tx = ( transx*cos( m_motor->odometry_orientation ()  ) + transy*sin( m_motor->odometry_orientation () ) );
-  float ty = ( transy*cos( m_motor->odometry_orientation ()  ) - transx*sin( m_motor->odometry_orientation () ) );
-  HomPoint base_target = HomPoint(tx+m_motor->odometry_position_x(),-ty+m_motor->odometry_position_y());
-  //HomPoint base_target = transform_odom(HomPoint(tx,ty));
+  HomPoint base_target = transform_base(rvizTarget);
   rvizTarget = base_target;
   rviz_target_ = rvizTarget;
-  //logger->log_info(name(),"odometry in visualization is: %f,%f",m_motor->odometry_position_x(),m_motor->odometry_position_y());
 
-/*
+  /*m_motor->read();
   float x = m_motor->odometry_position_x();
   float y = m_motor->odometry_position_y();
   float ori = m_motor->odometry_orientation();
   float tx = rvizTarget.x(); 
-  float ty = -rvizTarget.y();
- // float rel_x = cos(ori)*ty-sin(ori)*tx;   
- // float rel_y = sin(ori)*ty+cos(ori)*tx;
+  float ty = rvizTarget.y()*(-1);
 
   float rel_x = cos(ori)*tx-sin(ori)*ty;   
   float rel_y = sin(ori)*tx+cos(ori)*ty;
-  float target_x = x+rel_x*dist;
-  float target_y = y+rel_y*dist;
+  float target_x = x+rel_x;
+  float target_y = y+rel_y;
   rvizTarget = HomPoint(target_x,target_y);
-  rviz_target_ = rvizTarget;
- */
+  rviz_target_ = rvizTarget;*/
+ 
   NavigatorInterface::CartesianGotoMessage *nav_msg = new NavigatorInterface::CartesianGotoMessage();
   nav_msg->set_x(rvizTarget.x());
   nav_msg->set_y(rvizTarget.y());
@@ -201,7 +238,8 @@ void ColliVisualizationThread::loop()
   robs.cell_width = cell_width_/100.;
   robs.cell_height = cell_height_/100.;
   geometry_msgs::Point p;
-  HomPoint transPoint = transform(robo_pos_);
+  //HomPoint transPoint = transform(robo_pos_);
+  HomPoint transPoint = transform_robo(robo_pos_);
   p.x = transPoint.x();
   p.y = transPoint.y();
   p.z = 0.0;
@@ -228,18 +266,23 @@ void ColliVisualizationThread::loop()
   targf.header.stamp = ros::Time::now();
   targf.cell_width = 2*cell_width_/100.;
   targf.cell_height = 2*cell_height_/100.;
-  fix_target_ = transform(fix_target_);
-  fix_target_ = transform_odom(fix_target_);
+ // fix_target_ = transform(fix_target_);
+  fix_target_ = transform_robo(fix_target_);
+  //fix_target_ = transform_odom(fix_target_);
 //  HomPoint temp(fix_target_.x()+(19.4/100./cell_width_),fix_target_.y());
 //  fix_target_ = temp;
   geometry_msgs::Point ptarfix;
   ptarfix.x = fix_target_.x();
-  ptarfix.y = fix_target_.y();
+ // ptarfix.y = fix_target_.y();
+  ptarfix.y = -fix_target_.y();
   ptarfix.z = 0.0;
   targf.cells.push_back(ptarfix);
   tarfixpub_->publish(targf);
 
-
+  visualize_search_occ();
+  visualize_near_cells();
+  visualize_far_cells();
+  visualize_middle_cells(); 
   visualize_grid_boundary();
   visualize_path();
   visualize_occ_cells();
@@ -247,6 +290,11 @@ void ColliVisualizationThread::loop()
   visualize_des_motor();
   visualize_real_motor();
   visualize_local_target();
+  visualize_target_odom();
+  visualize_orig_laser_points();
+  visualize_found_astar_occ();
+  visualize_free_cells();
+  visualize_seen_states();
 }
 //------------------------------------------------------------------------------
 HomPoint ColliVisualizationThread::transform( HomPoint point )
@@ -285,6 +333,42 @@ HomPoint ColliVisualizationThread::transform_odom(HomPoint point)
   }
   return res;
 }
+//---------------------------------------------------------------------------------
+HomPoint ColliVisualizationThread::transform_base(HomPoint point)
+{
+  HomPoint res;
+  try {
+    tf::Stamped<tf::Point> target_base(tf::Point(point.x(),point.y(),0.),fawkes::Time(0, 0), "/base_link");
+    //tf::Stamped<tf::Point> target_base(tf::Point(point.x(),-point.y(),0.),fawkes::Time(0, 0), "/base_link");
+    tf::Stamped<tf::Point> odomrel_target;
+    tf_listener->transform_point("/odom", target_base, odomrel_target);
+    HomPoint target_trans(odomrel_target.x(),-odomrel_target.y());
+  //  HomPoint target_trans(odomrel_target.x(),odomrel_target.y());
+    res = target_trans;
+  } catch (tf::TransformException &e) {
+    logger->log_warn(name(),"can't transform from baselink to odometry");
+    e.print_trace();
+  }
+  return res;  
+}
+//---------------------------------------------------------------------------------
+void ColliVisualizationThread::visualize_target_odom()
+{
+  HomPoint target_trans = transform_odom(target_odom_);
+  nav_msgs::GridCells targl;
+  targl.header.frame_id = frame_id_;
+  targl.header.stamp = ros::Time::now();
+  targl.cell_width = 2*cell_width_/100.;
+  targl.cell_height = 2*cell_height_/100.;
+  geometry_msgs::Point ptarloc;
+  ptarloc.x = target_trans.x();
+  ptarloc.y = target_trans.y();
+  //ptarloc.y = -target_trans.y();
+  ptarloc.z = 0.0;
+  targl.cells.push_back(ptarloc);
+  target_odom_pub_->publish(targl);
+    
+}
 //-----------------------------------------------------------------------------------
 void ColliVisualizationThread::visualize_local_target()
 {
@@ -293,10 +377,10 @@ void ColliVisualizationThread::visualize_local_target()
   targl.header.stamp = ros::Time::now();
   targl.cell_width = 2*cell_width_/100.;
   targl.cell_height = 2*cell_height_/100.;
-  local_target_ = transform_odom(local_target_);
+  //local_target_ = transform_odom(local_target_);
   geometry_msgs::Point ptarloc;
   ptarloc.x = local_target_.x();
-  ptarloc.y = local_target_.y();
+  ptarloc.y = -local_target_.y();
   ptarloc.z = 0.0;
   targl.cells.push_back(ptarloc);
   target_local_pub_->publish(targl);
@@ -381,6 +465,26 @@ void ColliVisualizationThread::visualize_laser_points()
   laser_points_pub->publish(lgs);
 
 }
+
+void ColliVisualizationThread::visualize_orig_laser_points()
+{
+  nav_msgs::GridCells lgs;
+  lgs.header.frame_id = frame_id_;
+  lgs.header.stamp = ros::Time::now();
+  lgs.cell_width = cell_width_/100.;
+  lgs.cell_height = cell_height_/100.;
+  //logger->log_info(name(),"origin laser points size is: %d\n",orig_laser_points_.size());
+  for( size_t l = 0; l < orig_laser_points_.size(); l++ )
+  {
+    geometry_msgs::Point p;
+    p.x = laser_points_[l].x();
+    p.y = laser_points_[l].y();
+    p.z = 0.0;
+    lgs.cells.push_back(p);
+  }
+  orig_laserpub_->publish(lgs);
+}
+
 //------------------------------------------------------------------------------------
 void ColliVisualizationThread::visualize_occ_cells()
 {
@@ -401,6 +505,143 @@ void ColliVisualizationThread::visualize_occ_cells()
   }
   vispub_->publish(gcs);
 }
+//----------------------------------------------------------------------------------------
+void ColliVisualizationThread::visualize_near_cells()
+{
+
+  nav_msgs::GridCells gcs;
+  gcs.header.frame_id = frame_id_;
+  gcs.header.stamp = ros::Time::now();
+  gcs.cell_width = cell_width_/100.;
+  gcs.cell_height = cell_height_/100.;
+  for( size_t i = 0; i < near_cells_.size(); i++ )
+  {
+    geometry_msgs::Point p;
+    HomPoint transPoint = transform(near_cells_[i]);
+    p.x = transPoint.x();
+    p.y = transPoint.y();
+    p.z = 0.0;
+    gcs.cells.push_back(p);
+  }
+  neargridpub_->publish(gcs);
+}
+//-------------------------------------------------------------------------------------
+void ColliVisualizationThread::visualize_far_cells()
+{
+
+  nav_msgs::GridCells gcs;
+  gcs.header.frame_id = frame_id_;
+  gcs.header.stamp = ros::Time::now();
+  gcs.cell_width = cell_width_/100.;
+  gcs.cell_height = cell_height_/100.;
+  for( size_t i = 0; i < far_cells_.size(); i++ )
+  {
+    geometry_msgs::Point p;
+    HomPoint transPoint = transform(far_cells_[i]);
+    p.x = transPoint.x();
+    p.y = transPoint.y();
+    p.z = 0.0;
+    gcs.cells.push_back(p);
+  }
+  fargridpub_->publish(gcs);
+}
+//--------------------------------------------------------------------------------
+void ColliVisualizationThread::visualize_middle_cells()
+{
+  nav_msgs::GridCells gcs;
+  gcs.header.frame_id = frame_id_;
+  gcs.header.stamp = ros::Time::now();
+  gcs.cell_width = cell_width_/100.;
+  gcs.cell_height = cell_height_/100.;
+  for( size_t i = 0; i < middle_cells_.size(); i++ )
+  {
+    geometry_msgs::Point p;
+    HomPoint transPoint = transform(middle_cells_[i]);
+    p.x = transPoint.x();
+    p.y = transPoint.y();
+    p.z = 0.0;
+    gcs.cells.push_back(p);
+  }
+  middlegridpub_->publish(gcs);
+}
+//--------------------------------------------------------------------------------------
+void ColliVisualizationThread::visualize_search_occ()
+{
+  nav_msgs::GridCells gcs;
+  gcs.header.frame_id = frame_id_;
+  gcs.header.stamp = ros::Time::now();
+  gcs.cell_width = cell_width_/100.;
+  gcs.cell_height = cell_height_/100.;
+  for( size_t i = 0; i < socc_.size(); i++ )
+  {
+    geometry_msgs::Point p;
+    HomPoint transPoint = transform(socc_[i]);
+    p.x = transPoint.x();
+    p.y = transPoint.y();
+    p.z = 0.0;
+    gcs.cells.push_back(p);
+  }
+  soccpub_->publish(gcs);
+}
+
+//-------------------------------------------------------------------------------------
+void ColliVisualizationThread::visualize_found_astar_occ()
+{
+  nav_msgs::GridCells gcs;
+  gcs.header.frame_id = frame_id_;
+  gcs.header.stamp = ros::Time::now();
+  gcs.cell_width = cell_width_/100.;
+  gcs.cell_height = cell_height_/100.;
+  for( size_t i = 0; i < astar_found_occ_.size(); i++ )
+  {
+    geometry_msgs::Point p;
+    HomPoint transPoint = transform(astar_found_occ_[i]);
+    p.x = transPoint.x();
+    p.y = transPoint.y();
+    p.z = 0.0;
+    gcs.cells.push_back(p);
+  }
+  found_occ_pub_->publish(gcs);
+}
+
+//------------------------------------------------------------------------------------
+void ColliVisualizationThread::visualize_free_cells()
+{
+  nav_msgs::GridCells gcs;
+  gcs.header.frame_id = frame_id_;
+  gcs.header.stamp = ros::Time::now();
+  gcs.cell_width = cell_width_/100.;
+  gcs.cell_height = cell_height_/100.;
+  for( size_t i = 0; i < free_cells_.size(); i++ )
+  {
+    geometry_msgs::Point p;
+    HomPoint transPoint = transform(free_cells_[i]);
+    p.x = transPoint.x();
+    p.y = transPoint.y();
+    p.z = 0.0;
+    gcs.cells.push_back(p);
+  }
+  free_grid_pub_->publish(gcs);
+}
+//--------------------------------------------------------------------------------------
+void ColliVisualizationThread::visualize_seen_states()
+{
+  nav_msgs::GridCells gcs;
+  gcs.header.frame_id = frame_id_;
+  gcs.header.stamp = ros::Time::now();
+  gcs.cell_width = cell_width_/100.;
+  gcs.cell_height = cell_height_/100.;
+  for( size_t i = 0; i < seen_states_.size(); i++ )
+  {
+    geometry_msgs::Point p;
+    HomPoint transPoint = transform(seen_states_[i]);
+    p.x = transPoint.x();
+    p.y = transPoint.y();
+    p.z = 0.0;
+    gcs.cells.push_back(p);
+  }
+  states_pub_->publish(gcs);
+}
 //-------------------------------------------------------------------------------------
 void ColliVisualizationThread::visualize_path()
 {
@@ -413,12 +654,14 @@ void ColliVisualizationThread::visualize_path()
     p.header.stamp = ros::Time::now();
     p.header.frame_id = frame_id_;
     geometry_msgs::Point pathPoint;
-    HomPoint transPoint = transform(plan_[j]);
-    transPoint = transform_odom(transPoint);
+    //HomPoint transPoint = transform(plan_[j]);
+    HomPoint transPoint = transform_robo(plan_[j]);
+   // transPoint = transform_odom(transPoint);
  //   HomPoint temp(transPoint.x()+(19.4/100./cell_width_),transPoint.y());
    // transPoint = temp;
     pathPoint.x = transPoint.x();
-    pathPoint.y = transPoint.y();
+    pathPoint.y = -transPoint.y();
+    //pathPoint.y = transPoint.y();
     pathPoint.z = 0.0;
     p.pose.position = pathPoint;
     geometry_msgs::Quaternion pathOri;

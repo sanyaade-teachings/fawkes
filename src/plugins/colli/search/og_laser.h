@@ -189,6 +189,11 @@ public:
 
 //  int m_CellWidth,m_CellHeight;
 //  int m_Width,m_Height;
+
+  inline float sqr( float x )
+  {
+    return (x*x);
+  }
 };
 
 #endif

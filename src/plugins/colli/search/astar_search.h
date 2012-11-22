@@ -88,7 +88,7 @@ public:
 
   // update complete plan things
   // precondition: the occupancy grid has to be updated previously!
-  void Update( int roboX, int roboY, int targetX, int targetY );
+  void Update( int roboX, int roboY, int targetX, int targetY ,CLaserOccupancyGrid * occGrid );
 
   // returns, if the update was successful or not.
   // precondition: update had to be called.
@@ -96,7 +96,27 @@ public:
 
   // ** getter for visualization ** //
   std::vector< HomPoint > GetPlan();
+  
+  
+  CLaserOccupancyGrid* get_grid()
+  {
+    return m_pOccGrid;
+  }
 
+  OccupancyGrid * get_astar_grid()
+  { 
+    return m_pAStar->get_occ_grid();
+  }
+  
+  vector<HomPoint > get_occ_astar_search()
+  {
+    return m_pAStar->get_occ_astar();
+  }
+
+  vector<HomPoint > get_astar_states()
+  {
+    return m_pAStar->get_seen_states();
+  }
 private:
 
   /** Returns the current, modified waypoint to drive to.
@@ -138,6 +158,8 @@ private:
   int m_RobocupMode;
 
   Logger* loggerAstar;
+
+
 };
 
 

@@ -205,6 +205,8 @@ float CSelectDriveMode::GetProposedRotation()
 
 void CSelectDriveMode::Update( bool escape )
 {
+  m_pMotor->read();
+  m_pColliTarget->read();
   CAbstractDriveMode * m_pDriveMode = 0;
   m_ProposedTranslation = 0.0;
   m_ProposedRotation = 0.0;
@@ -371,7 +373,7 @@ void CSelectDriveMode::Update( bool escape )
 
 float CSelectDriveMode::GetMotorTranslation(float vtrans, float vori)
 {
-  float m_vx = vtrans * cos(vori);
+  float m_vx = vtrans * sin(vori);
   if (  m_vx > 0 )
     return vtrans;
   else

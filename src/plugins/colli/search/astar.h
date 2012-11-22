@@ -108,17 +108,32 @@ public:
    *  Performing astar search over the occupancy grid and returning the solution.
    */
   void Solve( const HomPoint &RoboPos, const HomPoint &TargetPos, 
-	      std::vector< HomPoint > &solution );
+	      std::vector< HomPoint > &solution ,OccupancyGrid * m_pOccGrid);
 
 
   /** Method, returning the nearest point outside of an obstacle.
    *  @return a new modified point.
    */
-  HomPoint RemoveTargetFromObstacle( int targetX, int targetY, int stepX, int stepY );
+  HomPoint RemoveTargetFromObstacle( int targetX, int targetY, int stepX, int stepY,OccupancyGrid * m_pOccGrid );
 
+  OccupancyGrid * get_occ_grid()
+  {
+    return m_pOccGrid;
+  }
 
+  vector<HomPoint > get_occ_astar()
+  {
+    return occ_cells;
+  }
+  vector<HomPoint > get_seen_states()
+  {
+    return seen_states;
+  }
+  void get_grid();
 private:
 
+  vector<HomPoint > occ_cells;
+  vector<HomPoint > seen_states;
   /* =========================================== */
   /* ************ PRIVATE VARIABLES ************ */
   /* =========================================== */
@@ -177,6 +192,7 @@ private:
   void GetSolutionSequence( CAStarState * node, std::vector< HomPoint > &solution );
 
   Logger* loggerASS;
+
 };
 
 #endif

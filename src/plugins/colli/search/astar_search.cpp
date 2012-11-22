@@ -127,21 +127,21 @@ std::vector< HomPoint >  CSearch::GetPlan()
   return m_vPlan;
 }
 
+
 // Perform an Update by searching in the occgrid for a plan
 //   from robopos to targetpos
-void CSearch::Update( int roboX, int roboY, int targetX, int targetY )
+void CSearch::Update( int roboX, int roboY, int targetX, int targetY,CLaserOccupancyGrid * occGrid )
 {
+  m_pOccGrid = occGrid;
+  update_occ(occGrid);
   m_UpdatedSuccessful = false;
 
   // check, if a position is in an obstacle
-  //m_RoboPosition    = Point( roboX, roboY );
-  //m_LocalTarget     = Point( roboX, roboY );
-  //m_LocalTrajectory = Point( roboX, roboY );
   m_RoboPosition = HomPoint(roboX, roboY);
   m_LocalTarget     = HomPoint( roboX, roboY );
   m_LocalTrajectory = HomPoint( roboX, roboY );
-
-  if ( m_pOccGrid->getProb( targetX, targetY ) == _COLLI_CELL_OCCUPIED_ )
+  
+  if( m_pOccGrid->getProb( targetX, targetY ) == _COLLI_CELL_OCCUPIED_ )
     {
       int stepX = 1;  // initializing to 1
       int stepY = 1;
@@ -150,25 +150,23 @@ void CSearch::Update( int roboX, int roboY, int targetX, int targetY )
       if ( roboY < targetY ) 
 	stepY = -1;
       m_TargetPosition = m_pAStar->RemoveTargetFromObstacle( targetX, targetY, 
-							     stepX, stepY );
+							     stepX, stepY, occGrid );
     }
   else
     {
-      //m_TargetPosition = Point( targetX, targetY );
       m_TargetPosition = HomPoint( targetX, targetY );
     }
   
-  m_pAStar->Solve( m_RoboPosition, m_TargetPosition, m_vPlan );
+  m_pAStar->Solve( m_RoboPosition, m_TargetPosition, m_vPlan,m_pOccGrid );
       
 
-
+  
   if (m_vPlan.size() > 0)
     {
       m_UpdatedSuccessful = true;
       m_LocalTarget     = CalculateLocalTarget();
       m_LocalTarget     = AdjustWaypoint( m_LocalTarget );
       m_LocalTrajectory = CalculateLocalTrajectoryPoint();
-
     }
   
 #ifdef _COLLI_VISUALIZE_
