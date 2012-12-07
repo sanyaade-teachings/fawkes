@@ -75,7 +75,7 @@ class CQuadraticMotorInstruct: public CBaseMotorInstruct
 public:
   
   ///
-  CQuadraticMotorInstruct( MotorInterface* motor, float frequency, Logger *logger, Configuration *config );
+  CQuadraticMotorInstruct( MotorInterface* motor, MotorInterface* motor_cmd,float frequency, Logger *logger, Configuration *config );
   
   ///
  // virtual ~CQuadraticMotorInstruct();

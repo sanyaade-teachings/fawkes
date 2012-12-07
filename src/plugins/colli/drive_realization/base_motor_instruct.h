@@ -86,7 +86,7 @@ public:
     
   ///
   //CBaseMotorInstruct( bbClients::Mopo_Client* motor, float frequency );
-  CBaseMotorInstruct( MotorInterface *motor, float frequency ,Logger *logger);
+  CBaseMotorInstruct( MotorInterface *motor, MotorInterface * motor_cmd, float frequency ,Logger *logger);
   ///
   //virtual ~CBaseMotorInstruct();
   ~CBaseMotorInstruct();
@@ -117,7 +117,7 @@ private:
   float vx,vy,omega;
   Logger *loggerTmp;
   MotorInterface *motor_if;
-  MotorInterface  *motor_if_read;
+  MotorInterface * motor_if_cmd;
   BlackBoard *bb_if;
 
   Time *m_OldTimestamp;
@@ -174,11 +174,12 @@ inline  float TimeDiff(Time *currentTime,Time *m_OldTimestamp)
 
 
 // Constructor. Initializes all constants and the local pointers.
-inline CBaseMotorInstruct::CBaseMotorInstruct( MotorInterface * motor, float frequency, Logger *logger )
+inline CBaseMotorInstruct::CBaseMotorInstruct( MotorInterface * motor, MotorInterface * motor_cmd,float frequency, Logger *logger )
 {
   m_OldTimestamp = new Time();
   m_OldTimestamp = &(m_OldTimestamp->stamp());
   motor_if = motor;
+  motor_if_cmd = motor_cmd;
   loggerTmp = logger;
   loggerTmp->log_info("BaseMotorInstruct","CBaseMotorInstruct(Constructor): Entering\n");
   // init all members, zero, just to be on the save side
@@ -187,12 +188,6 @@ inline CBaseMotorInstruct::CBaseMotorInstruct( MotorInterface * motor, float fre
   m_execTranslation    = m_execRotation    = 0.0;
   // ** m_OldTimestamp.Stamp();
   m_Frequency = frequency;
-// ** in order to send messages to motor plugin
-/*  char *host = (char *)"localhost";
-  unsigned short int port = 1910;
-  bb_if = new RemoteBlackBoard(host, port);
-  motor_if_read = bb_if->open_for_reading<MotorInterface>("Motor"); */
-// **
   loggerTmp->log_info("BaseMotorInstruct","CBaseMotorInstruct(Constructor): Exiting\n");
 }
 
@@ -218,13 +213,11 @@ inline void CBaseMotorInstruct::SetCommand(  )
     SetRecoverEmergencyStop();
   // SJ TODO!!!
 */
-  // Translation borders
- // float vx,vy,omega;
   vy = 0.0;
+  // Translation borders
   if ( fabs(m_execTranslation) < 0.05 )
   {
     //SetDesiredTranslation( 0.0 );
-  //  motor_if->set_vx(0.0);
     vx = 0.0;
   }
   else
@@ -234,20 +227,17 @@ inline void CBaseMotorInstruct::SetCommand(  )
       if ( m_execTranslation > 0.0 )
       {
 	//SetDesiredTranslation( 3.0 );
-       // motor_if->set_vx(3.0);
         vx = 3.0;
       }
       else
       {
 	//SetDesiredTranslation( -3.0 );
-       // motor_if->set_vx(-3.0);
         vx = -3.0;
       }
     }
     else
     {
       //SetDesiredTranslation( m_execTranslation );
-     // motor_if->set_vx( m_execTranslation );
       vx = m_execTranslation;
     }
   }
@@ -255,7 +245,6 @@ inline void CBaseMotorInstruct::SetCommand(  )
   if ( fabs(m_execRotation) < 0.01 )
   {
     //SetDesiredRotation( 0.0 );
-   // motor_if->set_omega(0.0);
     omega = 0.0;
   }
   else
@@ -265,41 +254,35 @@ inline void CBaseMotorInstruct::SetCommand(  )
       if ( m_execRotation > 0.0 )
       {
 	//SetDesiredRotation( 2*M_PI );
-       // motor_if->set_omega(2*M_PI);
         omega = 2*M_PI;
       }
       else
       {
 	//SetDesiredRotation( -2*M_PI );
-       // motor_if->set_omega(-2*M_PI);
         omega = -2*M_PI;
       }
     }
     else
     {
       //SetDesiredRotation( m_execRotation );
-      //motor_if->set_omega( m_execRotation );
       omega = m_execRotation;
     }
   }
-  //motor_if->write();
   // Send the commands to the motor. No controlling afterwards done!!!!
   //SendCommand();
-  //motor_if->read();
-  //MotorInterface::TransRotMessage *msg = new MotorInterface::TransRotMessage(motor_if->vx(),motor_if->vy(),motor_if->omega());
    //loggerTmp->log_info("drive realization","vx %f, vy %f, omega %f",vx,vy,omega );
-   if ( motor_if->motor_state() == motor_if->MOTOR_ENABLED )
-   {
-   /*  MotorInterface::TransRotMessage *msg = new MotorInterface::TransRotMessage(vx,vy,omega);
-     motor_if->msgq_enqueue(msg);*/
+//   if ( motor_if->motor_state() == motor_if->MOTOR_ENABLED )
+  // {
+     MotorInterface::TransRotMessage *msg = new MotorInterface::TransRotMessage(vx,vy,omega);
+     motor_if_cmd->msgq_enqueue(msg);
      motor_if->set_vx(vx);
      motor_if->set_omega(omega);
      motor_if->write();
-   }
-   else
-   {
-     loggerTmp->log_info("drive realization","motor message can't be sent because motor is disabled\n");
-   }
+  // }
+  // else
+  // {
+  //   loggerTmp->log_info("drive realization","motor message can't be sent because motor is disabled\n");
+  // }
   
 }
 
@@ -364,19 +347,15 @@ inline void CBaseMotorInstruct::Drive( float proposedTrans, float proposedRot )
   //m_currentRotation    = GetMotorDesiredRotation();
   //m_currentTranslation = GetMotorDesiredTranslation();
   m_currentRotation    = motor_if->omega();
- // m_currentRotation = omega;
   m_currentTranslation = GetMotorTranslation(motor_if->vx(),motor_if->omega());
-  //m_currentTranslation = vx;
   // calculate maximum allowed rotation change between proposed and desired values
   m_desiredRotation = proposedRot;
   // ** TODO for test time_factor ** //
   time_factor = 1.0;
   m_execRotation    = CalculateRotation( m_currentRotation, m_desiredRotation, time_factor );
-//  cout << "rotation calculated: " << m_execRotation << endl;
   // calculate maximum allowed translation change between proposed and desired values
   m_desiredTranslation = proposedTrans;
   m_execTranslation    = CalculateTranslation( m_currentTranslation, m_desiredTranslation, time_factor );
-//  cout << "translation calculated: " << m_execTranslation << endl;
  //  send the command to the motor
   SetCommand( );
 }
@@ -389,9 +368,7 @@ inline void CBaseMotorInstruct::ExecuteStop()
   //m_currentTranslation = GetMotorDesiredTranslation();
   //m_currentRotation    = GetMotorDesiredRotation();
   m_currentTranslation = GetMotorTranslation(motor_if->vx(),motor_if->omega());;
-  //m_currentTranslation = vx;
   m_currentRotation = motor_if->omega();
-  //m_currentRotation = omega;
 
   // with respect to the physical borders do a stop to 0.0, 0.0.
   Drive( 0.0, 0.0 );
@@ -401,7 +378,7 @@ inline void CBaseMotorInstruct::ExecuteStop()
 inline float CBaseMotorInstruct::GetMotorTranslation(float vtrans, float vori)
 {
   float m_vx = vtrans * sin(vori);
-  if (  m_vx > 0 )
+  if (  m_vx >= 0 )
     return vtrans;
   else
     return -vtrans;

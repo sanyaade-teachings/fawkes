@@ -95,16 +95,22 @@ class ColliThread
   fawkes::MotorInterface  *mopo_obj;
   fawkes::MotorInterface  *m_pMopoObj;
   fawkes::MotorInterface  *motor_des;
-  fawkes::Laser360Interface *m_pLaserScannerObj;
-  //fawkes::Laser720Interface *m_pLaserScannerObj;
+  fawkes::Laser360Interface *m_pLaserScannerObj;  
   fawkes::NavigatorInterface *m_pColliTargetObj; 
   fawkes::NavigatorInterface *m_pColliDataObj;
 
-  fawkes::Laser360Interface *m_pLaserScannerObjTest;
   fawkes::Laser720Interface *laser720;  
   fawkes::NavigatorInterface *ninit;
   fawkes::Laser360Interface *laserDeadSpots;
   fawkes::BlackBoard * bb_;
+
+  fawkes::Laser360Interface *m_pLaserScannerObjTest;
+  Laser*                          m_pLaserTest;
+  CLaserOccupancyGrid*            m_pLaserOccGridTest;
+  CSearch*                        m_pSearchTest;
+
+  void init_laser();
+  void visualize_test(vector<HomPoint > &test_occ_cells,vector<HomPoint > &test_free_cells,vector< HomPoint > &test_plan,vector<HomPoint > &test_orig_laser_points);
 
   fawkes::tf::TransformPublisher *m_tf_pub_odom;
 
@@ -185,29 +191,11 @@ class ColliThread
  
   void transform_navi();
   
-  void SmoothSolution();
-  void ValidateSolution();
 
   inline float sqr( float x )
   {
     return (x*x);
   }
-
-  /*inline int sqr( int x )
-  {
-    return (x*x);
-  }
-
-  inline double sqr( double x )
-  {
-    return (x*x);
-  }
-
-  inline unsigned long sqr( unsigned long x )
-  {
-    return (x*x);
-  }
-*/
  protected: virtual void run() { Thread::run(); }
  
 };

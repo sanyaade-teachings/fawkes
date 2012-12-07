@@ -29,6 +29,8 @@ namespace ros {
   class Subscriber;
 }
 #include <geometry_msgs/PoseStamped.h>
+#include <visualization_msgs/InteractiveMarker.h>
+#include <interactive_markers/interactive_marker_server.h>
 
 using namespace ros;
 using namespace fawkes;
@@ -54,8 +56,10 @@ class ColliVisualizationThread
                          int grid_width, int grid_height, HomPoint motor_real,HomPoint localTarget,HomPoint target_odom,
                          vector<HomPoint > orig_laser_points,vector<HomPoint > search_occ,
                          vector<HomPoint > astar_found_occ,vector<HomPoint > free_cells,vector<HomPoint > seen_states) throw();
+
   void visualize_grid_boundary();
   void visualize_path();
+  void visualize_path_cells();
   void visualize_occ_cells();
   void visualize_near_cells();
   void visualize_far_cells();
@@ -69,12 +73,15 @@ class ColliVisualizationThread
   void visualize_found_astar_occ();
   void visualize_free_cells();
   void visualize_seen_states();
+  void visualize_drive_modes();
   HomPoint transform( HomPoint point );
   HomPoint transform_robo( HomPoint point );
   HomPoint transform_odom(HomPoint point);
   HomPoint transform_base(HomPoint point);
   void visualize_target_odom();
   void callback( const geometry_msgs::PoseStamped::ConstPtr &msg);
+  void processFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback );
+  
  private:
   fawkes::Mutex mutex_;
   std::string frame_id_;
@@ -87,6 +94,7 @@ class ColliVisualizationThread
   ros::Publisher *middlegridpub_;
   ros::Publisher *laser_points_pub;
   ros::Publisher *pathpub_;
+  ros::Publisher *pathpubcells_;
   ros::Publisher *targetpub_;
   ros::Publisher *tarfixpub_;
   ros::Publisher *target_real_pub_;
@@ -105,6 +113,10 @@ class ColliVisualizationThread
 
   ros::Subscriber *navsub_;
   ros::Publisher  *navpub_;
+ 
+  ros::Publisher *drive_mode_pub_;
+  interactive_markers::InteractiveMarkerServer *server;
+  ros::Subscriber *drive_mode_sub_;
 
   vector<HomPoint > cells_;
   vector<HomPoint > near_cells_;
@@ -128,11 +140,18 @@ class ColliVisualizationThread
   HomPoint motor_real_;
   HomPoint local_target_;
   HomPoint rviz_target_;
+  HomPoint rvizTarget;
+  float odomx_;;
+  float odomy_;
+  float odomori_;
   float cell_width_;
   float cell_height_;
   float grid_width_;
   float grid_height_;
 
+  int has_feedback;
+  int feedback_id;
+  string pose_frame_id;
   NavigatorInterface *m_navi;
   MotorInterface  *m_motor;
 }; 

@@ -237,21 +237,13 @@ void CLaserOccupancyGrid::ResetOld( int max_age )
 void CLaserOccupancyGrid::UpdateOccGrid( int midX, int midY, float inc, float vel, 
 					 float xdiff, float ydiff, float oridiff )
 {
+  m_pLaser->UpdateLaser();
   for ( int y = 0; y < m_Height; ++y )
     for ( int x = 0; x < m_Width; ++x )
       m_OccupancyProb[x][y] = _COLLI_CELL_FREE_;
 
   IntegrateOldReadings( midX, midY, inc, vel, xdiff, ydiff, oridiff );
   IntegrateNewReadings( midX, midY, inc, vel );
-  /*for ( int y = 0; y < m_Height; ++y )
-  {
-    for ( int x = 0; x < m_Width; ++x )
-    {
-      if(( m_OccupancyProb[x][y] != _COLLI_CELL_FREE_) && ( m_OccupancyProb[x][y] != _COLLI_CELL_MIDDLE_) && ( m_OccupancyProb[x][y] != _COLLI_CELL_FAR_)
-         && ( m_OccupancyProb[x][y] != _COLLI_CELL_NEAR_) && ( m_OccupancyProb[x][y] != _COLLI_CELL_OCCUPIED_))
-        m_OccupancyProb[x][y] = _COLLI_CELL_FREE_;
-    }
-  }*/
 }
 
 

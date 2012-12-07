@@ -40,16 +40,21 @@ endif
 	
 ifeq ($(ENABLE_VISUAL_DEBUGGING),1)	
  ifeq ($(HAVE_ROS),1)	
-  ifeq ($(call ros-have-pkg,nav_msgs,geometry_msgs),1)	
+  ifeq ($(call ros-have-pkg,nav_msgs,geometry_msgs,visualization_msgs,interactive_markers),1)	
    CFLAGS  += $(CFLAGS_ROS)
    LDFLAGS += $(LDFLAGS_ROS)
    CFLAGS += $(shell rospack export --lang=cpp --attrib=cflags geometry_msgs)
-
+   CFLAGS += $(shell rospack export --lang=cpp --attrib=cflags visualization_msgs)
+   CFLAGS += $(shell rospack export --lang=cpp --attrib=cflags interactive_markers)
    CFLAGS_visualization_thread  = -DHAVE_VISUAL_DEBUGGING $(CFLAGS_ROS) $(CFLAGS_TF) \
-					$(CFLAGS_EIGEN3) $(call ros-pkg-cflags,nav_msgs,geometry_msgs) $(shell rospack export --lang=cpp --attrib=cflags geometry_msgs)
+					$(CFLAGS_EIGEN3) $(call ros-pkg-cflags,nav_msgs,geometry_msgs,visualization_msgs) $(shell rospack export --lang=cpp --attrib=cflags geometry_msgs) \
+                                   $(shell rospack export --lang=cpp --attrib=cflags visualization_msgs) \
+			           $(shell rospack export --lang=cpp --attrib=cflags interactive_markers)
    CFLAGS += -DHAVE_VISUAL_DEBUGGING	
    #CFLAGS += CFLAGS_visualization_thread	
    LDFLAGS += $(LDFLAGS_ROS) $(call ros-pkg-lflags,nav_msgs,geometry_msgs) $(shell rospack export --lang=cpp --attrib=cflags geometry_msgs)	
+   LDFLAGS += $(LDFLAGS_ROS) $(call ros-pkg-lflags,visualization_msgs) $(shell rospack export --lang=cpp --attrib=cflags visualization_msgs)
+   LDFLAGS += $(LDFLAGS_ROS) $(call ros-pkg-lflags,interactive_markers) $(shell rospack export --lang=cpp --attrib=cflags interactive_markers)
    LIBS_colli += fawkesrosaspect	
    OBJS_colli += visualization_thread_base.o visualization_thread.o 
    #OBJS_colli += navigation_thread_base.o navigation_thread.o

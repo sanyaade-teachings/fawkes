@@ -149,6 +149,8 @@ CAStar::~CAStar()
 void CAStar::Solve( const HomPoint &RoboPos, const HomPoint &TargetPos,
 		    vector< HomPoint > &solution,OccupancyGrid * occGrid )
 {
+  loggerASS->log_info("ASTAR","Target grid pos is: %f:%f\n",TargetPos.x(),TargetPos.y());
+  loggerASS->log_info("ASTAR","Robo grid pos is: %f:%f\n",RoboPos.x(),RoboPos.y());
   seen_states.clear();
   occ_cells.clear();
   m_pOccGrid = occGrid;
@@ -558,8 +560,8 @@ HomPoint CAStar::RemoveTargetFromObstacle( int targetX, int targetY, int stepX, 
               {
 	       return HomPoint( child->m_X, child->m_Y );
               }
-	      //else if( m_pOccGrid->getProb( child->m_X, child->m_Y ) != _COLLI_CELL_OCCUPIED_)
-	      else
+	     // else if( m_pOccGrid->getProb( child->m_X, child->m_Y ) != _COLLI_CELL_OCCUPIED_)
+	       else
          	if ( m_hClosedList.find( key ) == m_hClosedList.end() )
 		  m_pOpenList.push( child );
 	    }

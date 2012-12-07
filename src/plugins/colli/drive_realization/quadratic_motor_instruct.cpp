@@ -70,8 +70,8 @@ using namespace std;
 
 
 
-CQuadraticMotorInstruct::CQuadraticMotorInstruct( MotorInterface* motor, float frequency, Logger *logger, Configuration *config ):
- CBaseMotorInstruct( motor, frequency, logger)
+CQuadraticMotorInstruct::CQuadraticMotorInstruct( MotorInterface* motor, MotorInterface* motor_cmd,float frequency, Logger *logger, Configuration *config ):
+ CBaseMotorInstruct( motor, motor_cmd,frequency, logger)
 {
   loggerQuad = logger;
   loggerQuad->log_info("CQuadraticMotorInstruct","CQuadraticMotorInstruct(Constructor): Entering\n");
@@ -173,14 +173,12 @@ float CQuadraticMotorInstruct::CalculateTranslation( float currentTranslation,
 	  execTranslation = 
 	    currentTranslation - basic_trans_dec - 
             ((sqr( fabs(currentTranslation) + 1.0 ) * basic_trans_dec) / 8.0);
-	    //((pow( (fabs(currentTranslation) + 1.0 ),2) * basic_trans_dec) / 8.0);
 	  execTranslation = max( execTranslation, desiredTranslation );
 	}
       else if (currentTranslation < 0.0) // increase backward speed
 	{
 	  execTranslation = currentTranslation - basic_trans_acc -
             ((sqr( fabs(currentTranslation) + 1.0 ) * basic_trans_acc) / 8.0);
-	    //((pow(( fabs(currentTranslation) + 1.0 ),2) * basic_trans_acc) / 8.0);
 	  execTranslation = max( execTranslation, desiredTranslation );
 	}
       else // currentTranslation == 0;
@@ -194,14 +192,12 @@ float CQuadraticMotorInstruct::CalculateTranslation( float currentTranslation,
 	{
 	  execTranslation = currentTranslation + basic_trans_acc +
             ((sqr( fabs(currentTranslation) + 1.0 ) * basic_trans_acc) / 8.0);
-	   // ((pow(( fabs(currentTranslation) + 1.0 ),2) * basic_trans_acc) / 8.0);
 	  execTranslation = min( execTranslation, desiredTranslation );
 	}
       else if (currentTranslation < 0.0) // decrease backward speed
 	{
 	  execTranslation = currentTranslation + basic_trans_dec +
               ((sqr( fabs(currentTranslation) + 1.0 ) * basic_trans_dec) / 8.0);
-	    //((pow(( fabs(currentTranslation) + 1.0 ),2) * basic_trans_dec) / 8.0);
 	  execTranslation = min( execTranslation, desiredTranslation );
 	}
       else // currentTranslation == 0

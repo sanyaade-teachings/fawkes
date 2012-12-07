@@ -132,10 +132,12 @@ std::vector< HomPoint >  CSearch::GetPlan()
 //   from robopos to targetpos
 void CSearch::Update( int roboX, int roboY, int targetX, int targetY,CLaserOccupancyGrid * occGrid )
 {
+  loggerAstar->log_info("ASTAR SEARCH","target grid pos is: %d:%d\n",targetX,targetY);
+  loggerAstar->log_info("ASTAR SEARCH","robo grid pos is: %d:%d\n",roboX,roboY);
+
   m_pOccGrid = occGrid;
   update_occ(occGrid);
   m_UpdatedSuccessful = false;
-
   // check, if a position is in an obstacle
   m_RoboPosition = HomPoint(roboX, roboY);
   m_LocalTarget     = HomPoint( roboX, roboY );

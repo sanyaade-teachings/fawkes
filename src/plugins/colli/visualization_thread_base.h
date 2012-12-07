@@ -30,6 +30,7 @@ class ColliVisualizationThreadBase
                          int grid_width, int grid_height, HomPoint motor_real,HomPoint localTarget,HomPoint target_odom,
                          vector<HomPoint > orig_laser_points,vector<HomPoint > search_occ,vector<HomPoint > astar_found_occ,
                          vector<HomPoint > free_cells,vector<HomPoint > seen_states) throw()=0;
+
 };
 
 #endif
