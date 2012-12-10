@@ -781,17 +781,22 @@ void ColliThread::UpdateBB()
   motor_des->write();
 
   motor_des->read();  
-  
+  update_navi();
+ /* m_Updx = m_pMopoObj->odometry_position_x();
+  m_Updy = m_pMopoObj->odometry_position_y();
+  m_UpdOri = GetMotorOri(m_pMopoObj->odometry_orientation());*/
+   //m_pMopoObj->read();
+  //m_pColliTargetObj->Update();
+  m_pColliTargetObj->read();
+  //m_pColliDataObj->Update();
+  m_pColliDataObj->read();
+}
+//---------------------------------------------------------------------------------------------
+void ColliThread::update_navi()
+{
   if((! ninit->msgq_empty()))
   {
-    if( ninit->msgq_first_is<NavigatorInterface::SetDriveModeMessage>() )
-    {
-      NavigatorInterface::SetDriveModeMessage *msgTmp = ninit->msgq_first_safe(msgTmp);
-      ninit->set_drive_mode(msgTmp->drive_mode());
-      ninit->write();
-      ninit->msgq_pop();
-    }
-    else if( ninit->msgq_first_is<NavigatorInterface::CartesianGotoMessage>() )
+    if( ninit->msgq_first_is<NavigatorInterface::CartesianGotoMessage>() )
     {
       NavigatorInterface::CartesianGotoMessage *msgTmp = ninit->msgq_first_safe(msgTmp);
       ninit->set_dest_x(msgTmp->x());
@@ -799,7 +804,6 @@ void ColliThread::UpdateBB()
       ninit->set_dest_ori(msgTmp->orientation());
       ninit->write();
       ninit->msgq_pop();
-      //transform_navi();
     }
     else if( ninit->msgq_first_is<NavigatorInterface::PolarGotoMessage>() )
     {
@@ -810,25 +814,55 @@ void ColliThread::UpdateBB()
       new_y += m_pMopoObj->odometry_position_y();
       float tx = ( new_x*cos( m_pMopoObj->odometry_orientation ()  ) + new_y*sin( m_pMopoObj->odometry_orientation () ) );
       float ty = ( new_y*cos( m_pMopoObj->odometry_orientation ()  ) - new_x*sin( m_pMopoObj->odometry_orientation () ) );
-      //HomPoint base_target = transform_odom(HomPoint(tx,ty));
       ninit->set_dest_x(tx);
       ninit->set_dest_y(ty);
       ninit->set_dest_ori(msgTmp->orientation());
       ninit->write();
       ninit->msgq_pop();
-      //transform_navi();
     }
-    m_Updx = m_pMopoObj->odometry_position_x();
-    m_Updy = m_pMopoObj->odometry_position_y();
-    m_UpdOri = GetMotorOri(m_pMopoObj->odometry_orientation());
   }
-   //m_pMopoObj->read();
-  //m_pColliTargetObj->Update();
-  m_pColliTargetObj->read();
-  //m_pColliDataObj->Update();
-  m_pColliDataObj->read();
+  if( ! ninit->msgq_empty() )
+  {
+    if( ninit->msgq_first_is<NavigatorInterface::SetDriveModeMessage>() )
+    {
+      NavigatorInterface::SetDriveModeMessage *msgTmp = ninit->msgq_first_safe(msgTmp);
+      ninit->set_drive_mode(msgTmp->drive_mode());
+      ninit->write();
+      ninit->msgq_pop();
+    }
+  }
+  if(! ninit->msgq_empty())
+  {
+    if( ninit->msgq_first_is<NavigatorInterface::SetMaxVelocityMessage>() )
+    {
+      NavigatorInterface::SetMaxVelocityMessage *msgTmp = ninit->msgq_first_safe(msgTmp);
+      ninit->set_max_velocity(msgTmp->max_velocity());
+      ninit->write();
+      ninit->msgq_pop();
+    }
+  }
+  if(! ninit->msgq_empty())
+  {
+    if( ninit->msgq_first_is<NavigatorInterface::SetSecurityDistanceMessage>() )
+    {
+      NavigatorInterface::SetSecurityDistanceMessage *msgTmp = ninit->msgq_first_safe(msgTmp);
+      ninit->set_security_distance(msgTmp->security_distance());
+      ninit->write();
+      ninit->msgq_pop();
+    }
+  }
+  if(! ninit->msgq_empty())
+  {
+    if( ninit->msgq_first_is<NavigatorInterface::SetEscapingMessage>() )
+    {
+      NavigatorInterface::SetEscapingMessage *msgTmp = ninit->msgq_first_safe(msgTmp);
+      ninit->set_escaping_enabled(msgTmp->is_escaping_enabled());
+      ninit->write();
+      ninit->msgq_pop();
+    }
+  }  
 }
-//--------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 void ColliThread::UpdateColliStateMachine()
 {
   // initialize
@@ -1098,7 +1132,6 @@ void ColliThread::set_visualization_thread(ColliVisualizationThreadBase *visthre
 //--------------------------------------------------------------------------------------------------------------------
 void ColliThread::transform_odom()
 {
-  m_pMopoObj->read();
   tf::Quaternion o_r(-m_pMopoObj->odometry_orientation(), 0, 0);
   tf::Vector3 o_t(m_pMopoObj->odometry_position_x(),-m_pMopoObj->odometry_position_y(), 0);
   tf::Transform o_tr(o_r, o_t);

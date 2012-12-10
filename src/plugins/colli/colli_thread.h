@@ -80,6 +80,7 @@ class ColliThread
   void visualize_cells();
   void set_visualization_thread(ColliVisualizationThreadBase *visthread);
   void visualize_grid();
+  void update_navi();
 
   //ColliNavigationThreadBase *navthread_;
   //void set_navigation_thread(ColliNavigationThreadBase *navthread);

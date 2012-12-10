@@ -99,7 +99,7 @@ void ColliVisualizationThread::init()
  
   server = new interactive_markers::InteractiveMarkerServer("drive_mode_marker");
   drive_mode_sub_ = new ros::Subscriber();
-  *drive_mode_sub_ = rosnode->subscribe("drive_mode_marker/feedback", 10,&ColliVisualizationThread::processFeedback,this);
+  *drive_mode_sub_ = rosnode->subscribe("drive_mode_marker/feedback", 100,&ColliVisualizationThread::processFeedback,this);
 }
 //-----------------------------------------------------------------------------------------------------------
 void ColliVisualizationThread::finalize()
@@ -205,7 +205,6 @@ void ColliVisualizationThread::callback( const geometry_msgs::PoseStamped::Const
   navpub_->publish(targ);
   rvizTarget = HomPoint(poseMsg.pose.position.x,poseMsg.pose.position.y,0);
 
- // rvizTarget = HomPoint(0.5,0.0);
   rviz_target_ = rvizTarget;
   HomPoint base_target = transform_base(rvizTarget);
   rvizTarget = base_target;
@@ -231,8 +230,16 @@ void ColliVisualizationThread::callback( const geometry_msgs::PoseStamped::Const
   m_navi->msgq_enqueue(nav_msg);
 
   NavigatorInterface::SetDriveModeMessage *drive_msg = new NavigatorInterface::SetDriveModeMessage();
-  drive_msg->set_drive_mode(NavigatorInterface::SlowAllowBackward);
+  drive_msg->set_drive_mode(NavigatorInterface::SlowForward);
   m_navi->msgq_enqueue(drive_msg);
+
+  NavigatorInterface::SetMaxVelocityMessage *maxvel_msg = new NavigatorInterface::SetMaxVelocityMessage();
+  maxvel_msg->set_max_velocity(1.5);
+  m_navi->msgq_enqueue(maxvel_msg);
+
+  NavigatorInterface::SetSecurityDistanceMessage *seq_msg = new NavigatorInterface::SetSecurityDistanceMessage(); 
+  seq_msg->set_security_distance(0.2);
+  m_navi->msgq_enqueue(seq_msg);
 }
 //---------------------------------------------------------------------------------------------------
 void ColliVisualizationThread::processFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
