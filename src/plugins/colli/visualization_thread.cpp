@@ -97,9 +97,9 @@ void ColliVisualizationThread::init()
   drive_mode_pub_ = new ros::Publisher();
   *drive_mode_pub_ = rosnode->advertise<visualization_msgs::InteractiveMarker>("drive_mode", 100);
  
-  server = new interactive_markers::InteractiveMarkerServer("drive_mode_marker");
+  server = new interactive_markers::InteractiveMarkerServer("colli_params_marker");
   drive_mode_sub_ = new ros::Subscriber();
-  *drive_mode_sub_ = rosnode->subscribe("drive_mode_marker/feedback", 100,&ColliVisualizationThread::processFeedback,this);
+  *drive_mode_sub_ = rosnode->subscribe("colli_params_marker/feedback", 100,&ColliVisualizationThread::processFeedback,this);
 }
 //-----------------------------------------------------------------------------------------------------------
 void ColliVisualizationThread::finalize()
@@ -251,39 +251,71 @@ void ColliVisualizationThread::processFeedback(const visualization_msgs::Interac
         << ", " << feedback->pose.position.z );
 
   feedback_id = feedback->menu_entry_id;
-  if( feedback_id != -1 )
+  if(( feedback_id <= 8 ) && ( feedback_id > 0 ))
   {
     NavigatorInterface::SetDriveModeMessage *drive_msg = new NavigatorInterface::SetDriveModeMessage();
     switch( feedback_id )
     {
-      case 0:
+      case 1:
         drive_msg->set_drive_mode(NavigatorInterface::MovingNotAllowed);
         break;
-      case 1:
+      case 2:
         drive_msg->set_drive_mode(NavigatorInterface::CarefulForward);
         break;
-      case 2:
+      case 3:
         drive_msg->set_drive_mode(NavigatorInterface::SlowForward);
         break;
-      case 3:
+      case 4:
         drive_msg->set_drive_mode(NavigatorInterface::ModerateForward);
         break;
-      case 4:
+      case 5:
         drive_msg->set_drive_mode(NavigatorInterface::FastForward);
         break;
-      case 5:
+      case 6:
         drive_msg->set_drive_mode(NavigatorInterface::CarefulAllowBackward);
         break;
-      case 6:
+      case 7:
         drive_msg->set_drive_mode(NavigatorInterface::SlowAllowBackward);
         break;
-      case 7:
+      case 8:
         drive_msg->set_drive_mode(NavigatorInterface::ModerateAllowBackward);
         break;
           
     }
     m_navi->msgq_enqueue(drive_msg);
   }
+  else if(( feedback_id <= 14 ) && ( feedback_id >= 12 ))
+  {
+    NavigatorInterface::SetMaxVelocityMessage *maxvel_msg = new NavigatorInterface::SetMaxVelocityMessage();
+    switch( feedback_id )
+    {
+      case 12:
+        maxvel_msg->set_max_velocity(1.0);
+        break;
+      case 13:
+        maxvel_msg->set_max_velocity(1.5);
+        break;
+      case 14:
+        maxvel_msg->set_max_velocity(2.0);
+        break;
+    }
+    m_navi->msgq_enqueue(maxvel_msg);
+  }
+  else if(( feedback_id <= 17 ) && ( feedback_id >= 16 ))
+  {
+    NavigatorInterface::SetSecurityDistanceMessage *seq_msg = new NavigatorInterface::SetSecurityDistanceMessage();
+    switch( feedback_id )
+    {
+      case 16:
+        seq_msg->set_security_distance(0.0);
+        break;
+      case 17:
+        seq_msg->set_security_distance(0.2);
+        break;
+    }
+    m_navi->msgq_enqueue(seq_msg);
+  }
+
 }
 //---------------------------------------------------------------------------------------------------
 void ColliVisualizationThread::loop()
@@ -362,7 +394,7 @@ void ColliVisualizationThread::loop()
   visualize_found_astar_occ();
   visualize_free_cells();
   visualize_seen_states();
-  visualize_drive_modes();
+  visualize_colli_params();
 }
 //------------------------------------------------------------------------------
 HomPoint ColliVisualizationThread::transform( HomPoint point )
@@ -418,26 +450,35 @@ HomPoint ColliVisualizationThread::transform_base(HomPoint point)
   return res;  
 }
 //-------------------------------------------------------------------------------------
-void ColliVisualizationThread::visualize_drive_modes()
+void ColliVisualizationThread::visualize_colli_params()
 {
   visualization_msgs::InteractiveMarker dmode;
-  dmode.header.frame_id = frame_id_;
-  dmode.name = "Drive Mode Selection";
-  dmode.description = "Drive Mode Selection";
+  dmode.header.frame_id = "/base_link";
+  dmode.header.stamp = ros::Time::now();
+  dmode.name = "Colli Parameters Selection";
+  dmode.description = "Colli Parameters Selection";
+  dmode.pose.position.x = 3.5;
+  dmode.pose.position.y = 0.0;
+  dmode.pose.position.z = 0.0;
   visualization_msgs::Marker box_marker;
   box_marker.type = visualization_msgs::Marker::CUBE;
-  box_marker.scale.x = 0.45;
-  box_marker.scale.y = 0.45;
-  box_marker.scale.z = 0.45;
-  box_marker.color.r = 0.5;
+  box_marker.scale.x = 0.2;
+  box_marker.scale.y = 0.2;
+  box_marker.scale.z = 0.2;
+  box_marker.color.r = 1.0;
   box_marker.color.g = 0.5;
-  box_marker.color.b = 0.5;
+  box_marker.color.b = 0.0;
   box_marker.color.a = 1.0;
-
+  box_marker.lifetime = ros::Duration(120, 0);
+  
   visualization_msgs::InteractiveMarkerControl box_control;
   box_control.always_visible = true;
+  box_control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MENU;
+  box_control.name = "menu";
+  box_control.description = "Colli Parameters Menu"; 
   box_control.markers.push_back( box_marker );
   dmode.controls.push_back( box_control );
+
 
   vector<string > drive_modes_vec;
   drive_modes_vec.push_back("MovingNotAllowed");
@@ -454,110 +495,70 @@ void ColliVisualizationThread::visualize_drive_modes()
   drive_modes_vec.push_back("ModerateBackward");
   drive_modes_vec.push_back("FastBackward");
   drive_modes_vec.push_back("ESCAPE");
-    
-  /*visualization_msgs::MenuEntry menues[14]; 
-  for( size_t i = 0; i < drive_modes_vec.size(); i++ )
+
+  visualization_msgs::MenuEntry menuDrive;
+  menuDrive.title = "Drive Modes->";
+  menuDrive.command_type = visualization_msgs::MenuEntry::FEEDBACK;
+  menuDrive.id = 10;
+  menuDrive.parent_id = 0;
+  dmode.menu_entries.push_back(menuDrive);
+
+
+  visualization_msgs::MenuEntry menues[8]; 
+  for( size_t i = 0; i < 8; i++ )
   {
     menues[i].title = drive_modes_vec[i];
     menues[i].command_type = visualization_msgs::MenuEntry::FEEDBACK;
-  //  menues[i].command = drive_modes_vec[i];
-    menues[i].id = i;
+    menues[i].id = i+1;
+    menues[i].parent_id = menuDrive.id;
     dmode.menu_entries.push_back(menues[i]);
-  }*/
+  }
+
+  visualization_msgs::MenuEntry menuVel;
+  menuVel.title = "Maximum Velocity->";
+  menuVel.command_type = visualization_msgs::MenuEntry::FEEDBACK;
+  menuVel.id = 11;
+  menuVel.parent_id = 0;
+  dmode.menu_entries.push_back(menuVel);
+
+  visualization_msgs::MenuEntry menuesVel[3];
+  float min_vel = 1.0;
+  for( size_t i = 0; i < 3; i++ )
+  {
+    float cur_vel = min_vel + ((float) i )* (0.5);
+    stringstream ss;
+    ss << cur_vel;
+    menuesVel[i].title = ss.str();
+    menuesVel[i].command_type = visualization_msgs::MenuEntry::FEEDBACK;
+    menuesVel[i].id = menuVel.id + i + 1;
+    menuesVel[i].parent_id = menuVel.id;
+    dmode.menu_entries.push_back(menuesVel[i]);
+  }
+
+  visualization_msgs::MenuEntry menuSecDis;
+  menuSecDis.title = "Security Distance->";
+  menuSecDis.command_type = visualization_msgs::MenuEntry::FEEDBACK;
+  menuSecDis.id = 15;
+  menuSecDis.parent_id = 0;
+  dmode.menu_entries.push_back(menuSecDis);
+
+  visualization_msgs::MenuEntry menuesSecDis[2];
+  float min_dis = 0.0;
+  for( size_t i = 0; i < 2; i++ )
+  {
+    float cur_dis = min_dis + ((float) i )* (0.2);
+    stringstream ss;
+    ss << cur_dis;
+    menuesSecDis[i].title = ss.str();
+    menuesSecDis[i].command_type = visualization_msgs::MenuEntry::FEEDBACK;
+    menuesSecDis[i].id = menuSecDis.id + i + 1;
+    menuesSecDis[i].parent_id = menuSecDis.id;
+    dmode.menu_entries.push_back(menuesSecDis[i]);
+  }
 
 
-  visualization_msgs::MenuEntry menu1;
-  menu1.title = drive_modes_vec[0];
-  menu1.command_type = visualization_msgs::MenuEntry::FEEDBACK;
-  menu1.id = 0;
-  dmode.menu_entries.push_back(menu1);  
-
-  visualization_msgs::MenuEntry menu2;
-  menu2.title = drive_modes_vec[1];
-  menu2.command_type = visualization_msgs::MenuEntry::FEEDBACK;
-  menu2.id = 1;
-  dmode.menu_entries.push_back(menu2); 
-  
-  visualization_msgs::MenuEntry menu3;
-  menu3.title = drive_modes_vec[2];
-  menu3.command_type = visualization_msgs::MenuEntry::FEEDBACK;
-  menu3.id = 2;
-  dmode.menu_entries.push_back(menu3); 
-
-  visualization_msgs::MenuEntry menu4;
-  menu4.title = drive_modes_vec[3];
-  menu4.command_type = visualization_msgs::MenuEntry::FEEDBACK;
-  menu4.id = 3;
-  dmode.menu_entries.push_back(menu4); 
-
-  visualization_msgs::MenuEntry menu5;
-  menu5.title = drive_modes_vec[4];
-  menu5.command_type = visualization_msgs::MenuEntry::FEEDBACK;
-  menu5.id = 4;
-  dmode.menu_entries.push_back(menu5); 
-
-  visualization_msgs::MenuEntry menu6;
-  menu6.title = drive_modes_vec[5];
-  menu6.command_type = visualization_msgs::MenuEntry::FEEDBACK;
-  menu6.id = 5;
-  dmode.menu_entries.push_back(menu6); 
-
-  visualization_msgs::MenuEntry menu7;
-  menu7.title = drive_modes_vec[6];
-  menu7.command_type = visualization_msgs::MenuEntry::FEEDBACK;
-  menu7.id = 6;
-  dmode.menu_entries.push_back(menu7);
- 
-  visualization_msgs::MenuEntry menu8;
-  menu8.title = drive_modes_vec[7];
-  menu8.command_type = visualization_msgs::MenuEntry::FEEDBACK;
-  menu8.id = 7;
-  dmode.menu_entries.push_back(menu8);
-
-  /*visualization_msgs::MenuEntry menu9;
-  menu9.title = drive_modes_vec[8];
-  menu9.command_type = visualization_msgs::MenuEntry::FEEDBACK;
-  menu9.id = 8;
-  dmode.menu_entries.push_back(menu9);
-
-  visualization_msgs::MenuEntry menu10;
-  menu10.title = drive_modes_vec[9];
-  menu10.command_type = visualization_msgs::MenuEntry::FEEDBACK;
-  menu10.id = 9;
-  dmode.menu_entries.push_back(menu10);
-
-  visualization_msgs::MenuEntry menu11;
-  menu11.title = drive_modes_vec[10];
-  menu11.command_type = visualization_msgs::MenuEntry::FEEDBACK;
-  menu11.id = 10;
-  dmode.menu_entries.push_back(menu11);
-
-  visualization_msgs::MenuEntry menu12;
-  menu12.title = drive_modes_vec[11];
-  menu12.command_type = visualization_msgs::MenuEntry::FEEDBACK;
-  menu12.id = 11;
-  dmode.menu_entries.push_back(menu12);
-
-  visualization_msgs::MenuEntry menu13;
-  menu13.title = drive_modes_vec[12];
-  menu13.command_type = visualization_msgs::MenuEntry::FEEDBACK;
-  menu13.id = 12;
-  dmode.menu_entries.push_back(menu13);
-
-  visualization_msgs::MenuEntry menu14;
-  menu14.title = drive_modes_vec[13];
-  menu14.command_type = visualization_msgs::MenuEntry::FEEDBACK;
-  menu14.id = 13;
-  dmode.menu_entries.push_back(menu14);
-*/
-  visualization_msgs::InteractiveMarkerControl rotate_control;
-  rotate_control.name = "menu";
-  rotate_control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MENU;
-
-  dmode.controls.push_back(rotate_control);
   server->insert(dmode);
   server->applyChanges();
- // drive_mode_pub_->publish(dmode);
 }
 //---------------------------------------------------------------------------------
 void ColliVisualizationThread::visualize_target_odom()
@@ -673,7 +674,7 @@ void ColliVisualizationThread::visualize_laser_points()
   laser_points_pub->publish(lgs);
 
 }
-
+//--------------------------------------------------------------------------------------
 void ColliVisualizationThread::visualize_orig_laser_points()
 {
   nav_msgs::GridCells lgs;
@@ -982,20 +983,3 @@ void ColliVisualizationThread::visualize_grid_boundary()
   rec4pub_->publish(targc4);  // ** between 1-3
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

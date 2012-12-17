@@ -31,6 +31,7 @@ namespace ros {
 #include <geometry_msgs/PoseStamped.h>
 #include <visualization_msgs/InteractiveMarker.h>
 #include <interactive_markers/interactive_marker_server.h>
+#include <interactive_markers/menu_handler.h>
 
 using namespace ros;
 using namespace fawkes;
@@ -73,7 +74,7 @@ class ColliVisualizationThread
   void visualize_found_astar_occ();
   void visualize_free_cells();
   void visualize_seen_states();
-  void visualize_drive_modes();
+  void visualize_colli_params();
   HomPoint transform( HomPoint point );
   HomPoint transform_robo( HomPoint point );
   HomPoint transform_odom(HomPoint point);
@@ -81,7 +82,6 @@ class ColliVisualizationThread
   void visualize_target_odom();
   void callback( const geometry_msgs::PoseStamped::ConstPtr &msg);
   void processFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback );
-  
  private:
   fawkes::Mutex mutex_;
   std::string frame_id_;
