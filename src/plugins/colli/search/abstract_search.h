@@ -84,7 +84,7 @@ public:
   /** update complete plan things
    *  precondition: the occupancy grid has to be updated previously!
    */
-  virtual void Update( int roboX, int roboY, int targetX, int targetY,CLaserOccupancyGrid * occGrid ) = 0;
+  virtual void Update( int roboX, int roboY, int targetX, int targetY) = 0;
 
 
   /** Returns after an update, if the update was successful.

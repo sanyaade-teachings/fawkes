@@ -123,7 +123,7 @@ class OccupancyGrid
     if( (x >= 0) && (x < m_Width) && (y >= 0) && (y < m_Height) ) {
       return m_OccupancyProb[x][y];
     } else {
-      return 1.;
+      return 1;
     }
   }
 

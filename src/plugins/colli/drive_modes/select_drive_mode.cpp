@@ -373,8 +373,8 @@ void CSelectDriveMode::Update( bool escape )
 
 float CSelectDriveMode::GetMotorTranslation(float vtrans, float vori)
 { 
-  float m_vx = vtrans * sin(vori);
-  if (  m_vx >= 0 )
+  float m_vx = vtrans *cos(vori);
+  if (  m_vx > 0 )
     return vtrans;
   else
     return -vtrans;

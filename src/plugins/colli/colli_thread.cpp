@@ -222,7 +222,6 @@ void ColliThread::visualize_cells()
   vector<HomPoint > middle_cells;
   vector<HomPoint > laser_points;
   vector<HomPoint > free_cells;
-  //logger->log_info(name(),"grid size: %d,%d\n",m_pLaserOccGrid->getWidth(),m_pLaserOccGrid->getHeight());
   for ( int gridY = 0; gridY < m_pLaserOccGrid->getHeight(); gridY++ )
   {
     for ( int gridX = 0; gridX < m_pLaserOccGrid->getWidth(); gridX++ )
@@ -254,7 +253,6 @@ void ColliThread::visualize_cells()
     }
   }
   vector<HomPoint > search_occ_cells;
-  //CLaserOccupancyGrid* socc = m_pSearch->get_grid();
   OccupancyGrid * socc = m_pSearch->get_astar_grid(); 
   for ( int gridY = 0; gridY < m_pLaserOccGrid->getHeight(); gridY++ )
   {
@@ -267,7 +265,6 @@ void ColliThread::visualize_cells()
     }
   }
 
-  //visthread_->visualize("/bese_laser",cells);
   for( int i = 0; i < m_pLaser->GetNumberOfReadings(); i++ )
   {
     float posx = m_pLaser->GetReadingPosX(i);
@@ -283,125 +280,37 @@ void ColliThread::visualize_cells()
     float ori = float(i) * M_PI / 180.;
     float posx = m_pLaserScannerObj->distances(i) * cos(ori);
     float posy = m_pLaserScannerObj->distances(i) * sin(ori);
-
     HomPoint plaser(posx,posy);
     orig_laser_points.push_back(plaser);
   }
-  //cout << endl;
 
- //cout << "number of readings "<<m_pLaser->GetNumberOfReadings() << endl;
   vector< HomPoint > plan = m_pSearch->GetPlan();
-  int non_valid_count = 0;
-  for( unsigned int i = 0; i < plan.size(); i++ )
-  {
-    if (m_pLaserOccGrid->getProb( plan[i].x(), plan[i].y() ) == _COLLI_CELL_OCCUPIED_)
-    {
-      non_valid_count++;
-    }
-  }
-  logger->log_info(name(),"#of non valid cells in returned plan is: %d\n",non_valid_count);
-  //vector< HomPoint > plan = m_vSolution;
   HomPoint target = m_TargetGridPos; 
- // HomPoint target_odom = HomPoint(m_TargetPointX,m_TargetPointY);
   HomPoint target_odom = HomPoint(m_pColliTargetObj->dest_x(),m_pColliTargetObj->dest_y());
- //logger->log_info(name(),"current velocity is: %f,%f",m_pMopoObj->vx(),m_pMopoObj->omega());
-// float m_des_x = m_pMopoObj->vx() * cos(m_pMopoObj->omega());
-// float m_des_y = m_pMopoObj->vx() * sin(m_pMopoObj->omega());
- float m_des_x = m_ProposedTranslation * cos(m_ProposedRotation);
- float m_des_y = -m_ProposedTranslation * sin(m_ProposedRotation);
+  float m_des_x = m_ProposedTranslation * cos(m_ProposedRotation);
+  float m_des_y = -m_ProposedTranslation * sin(m_ProposedRotation);
 
- HomPoint motor_des_point(m_des_x,m_des_y);
- /*float m_x = mopo_obj->vx() * cos(mopo_obj->omega());
- float m_y = mopo_obj->vx() * sin(mopo_obj->omega());*/
- float m_x = m_pMopoObj->vx() * cos(m_pMopoObj->omega());
- float m_y = m_pMopoObj->vx() * sin(m_pMopoObj->omega());
- //logger->log_info(name(),"motor remote velocity is: %f", mopo_obj->vx());
- HomPoint motor_real(m_x,m_y);
- vector<HomPoint > astar_found_occ = m_pSearch->get_occ_astar_search();
- vector<HomPoint > seen_states = m_pSearch->get_astar_states();
+  HomPoint motor_des_point(m_des_x,m_des_y);
+  float m_x = m_pMopoObj->vx() * cos(m_pMopoObj->omega());
+  float m_y = m_pMopoObj->vx() * sin(m_pMopoObj->omega());
+  HomPoint motor_real(m_x,m_y);
+  vector<HomPoint > astar_found_occ = m_pSearch->get_occ_astar_search();
+  vector<HomPoint > seen_states = m_pSearch->get_astar_states();
 
- /*vector<HomPoint > test_occ_cells;
- vector<HomPoint > test_free_cells;
- vector< HomPoint > test_plan;
- vector<HomPoint > test_orig_laser_points;
- visualize_test(test_occ_cells,test_free_cells,test_plan,test_orig_laser_points);
- free_cells.clear();
- free_cells = test_free_cells;
- occ_cells.clear();
- occ_cells = test_occ_cells; 
- plan.clear();
- plan = test_plan;
- orig_laser_points.clear();
- orig_laser_points = test_orig_laser_points;*/
- visthread_->visualize("/base_link",occ_cells,near_cells,far_cells,middle_cells,m_RoboGridPos,m_LaserGridPos,laser_points,plan,motor_des_point,
+  HomPoint modTarget = m_pSearch->get_mod_target();
+  visthread_->visualize("/base_link",occ_cells,near_cells,far_cells,middle_cells,m_RoboGridPos,m_LaserGridPos,laser_points,plan,motor_des_point,
                        m_pLaserOccGrid->getCellWidth(),m_pLaserOccGrid->getCellHeight(),target,
-                       m_OccGridWidth,m_OccGridHeight,motor_real,m_LocalTarget,target_odom,orig_laser_points,search_occ_cells,astar_found_occ,free_cells,seen_states);
+                       m_OccGridWidth,m_OccGridHeight,motor_real,m_LocalTarget,target_odom,orig_laser_points,
+                       search_occ_cells,astar_found_occ,free_cells,seen_states,modTarget);
 }
 #endif
 //-------------------------------------------------------------------------------------------
-void ColliThread::visualize_test(vector<HomPoint > &test_occ_cells,vector<HomPoint > &test_free_cells,vector< HomPoint > &test_plan,vector<HomPoint > &test_orig_laser_points)
-{
-  m_pLaserScannerObjTest->read();
-  m_pLaserOccGridTest->UpdateOccGrid( 65, 65, 0.,0.,0., 0.,0. );
-  logger->log_info(name(),"test cellw: %d, test cellh: %d, test occw %d, test occH %d",m_pLaserOccGridTest->getCellWidth(),m_pLaserOccGridTest->getCellHeight()
-                  ,m_pLaserOccGridTest->getWidth(),m_pLaserOccGridTest->getHeight());  
-  for ( int gridY = 0; gridY < m_pLaserOccGridTest->getHeight(); gridY++ )
-  {
-    for ( int gridX = 0; gridX < m_pLaserOccGridTest->getWidth(); gridX++ )
-    {
-      if ( m_pLaserOccGridTest->getProb( gridX, gridY ) == _COLLI_CELL_OCCUPIED_ )
-      {
-        HomPoint p(gridX,gridY);
-        test_occ_cells.push_back(p);
-      }
-      else if ( m_pLaserOccGridTest->getProb( gridX, gridY ) == _COLLI_CELL_NEAR_ )
-      {
-   //     cout << "cell is near: " << gridX <<":" <<gridY <<"\t";
-      }
-      else if ( m_pLaserOccGridTest->getProb( gridX, gridY ) == _COLLI_CELL_FAR_ )
-      {
-     //   cout << "cell is far: " << gridX << ":"<<gridY <<"\t";
-      }
-      else if ( m_pLaserOccGridTest->getProb( gridX, gridY ) == _COLLI_CELL_MIDDLE_ )
-      {
-       // cout << "cell is middle: " << gridX << ":"<<gridY <<"\t";
-      }
-      else if ( m_pLaserOccGridTest->getProb( gridX, gridY ) == _COLLI_CELL_FREE_ )
-      {
-       // cout << "cell is free: " << gridX << ":"<<gridY <<"\t";
-        HomPoint p(gridX,gridY);
-        test_free_cells.push_back(p);
-      }
-      //else
-      //cout << "cell is not valid: " << gridX << ":"<<gridY <<"\t";
-    }
-  }
-  //cout << endl;
-  m_LaserGridPos = HomPoint(65,65);
-  logger->log_info(name(),"laser pos is: %f : %f", m_LaserGridPos.x(),m_LaserGridPos.y());
-  m_TargetGridPos = HomPoint(90,90);
-  m_RoboGridPos = m_LaserGridPos;
-  m_pSearchTest->Update(65,65,75,75,m_pLaserOccGridTest);
-  test_plan = m_pSearchTest->GetPlan();
-
-  for( unsigned int i = 0; i < m_pLaserScannerObjTest->maxlenof_distances(); i++ )
-  {
-    float ori = float(i) * M_PI / 180.;
-    float posx = m_pLaserScannerObjTest->distances(i) * cos(ori);
-    float posy = m_pLaserScannerObjTest->distances(i) * sin(ori);
-
-    HomPoint plaser(posx,posy);
-    test_orig_laser_points.push_back(plaser);
-  }
-  
-}
-//--------------------------------------------------------------------------------------------
 void ColliThread::loop()
 {
   #ifdef HAVE_VISUAL_DEBUGGING
   visualize_cells();
   #endif
-  transform_odom();
+  publish_odom();
   // to be on the sure side of life
   m_ProposedTranslation = 0.0;
   m_ProposedRotation    = 0.0;
@@ -600,21 +509,16 @@ void ColliThread::loop()
             }
           else
             { // search for a path
-               //logger->log_info(name(),"to update grid\n");
                m_pSearch->Update( (int)m_RoboGridPos.x(), (int)m_RoboGridPos.y(),
-                                 (int)m_TargetGridPos.x(), (int)m_TargetGridPos.y(),m_pLaserOccGrid );
+                                 (int)m_TargetGridPos.x(), (int)m_TargetGridPos.y() );
               if ( m_pSearch->UpdatedSuccessful() )
                 { //   if path exists, 
-                  logger->log_info(name(),"update successful\n");
                   m_vSolution.clear();
                   m_LocalGridTarget = m_pSearch->GetLocalTarget();
                   m_LocalGridTrajec = m_pSearch->GetLocalTrajec();
-                  logger->log_info(name(),"local grid target: targetx = %f, targety = %f\n",m_LocalGridTarget.x(),m_LocalGridTarget.y());
-                 // logger->log_info(name(),"local grid trajectory: trajx = %f, trajy = %f\n",m_LocalGridTrajec.x(),m_LocalGridTarget.y());
                   // coordinate transformation from grid coordinates to relative robot coordinates
                   m_LocalTarget = HomPoint( (m_LocalGridTarget.x() - m_RoboGridPos.x())*m_pLaserOccGrid->getCellWidth()/100.0,
                                           (m_LocalGridTarget.y() - m_RoboGridPos.y())*m_pLaserOccGrid->getCellHeight()/100.0 );
-                  logger->log_info(name(),"local target: targetx = %f, targety = %f\n",m_LocalTarget.x(),m_LocalTarget.y());
                   m_LocalTrajec = HomPoint( (m_LocalGridTrajec.x() - m_RoboGridPos.x())*m_pLaserOccGrid->getCellWidth()/100.0,
                                           (m_LocalGridTrajec.y() - m_RoboGridPos.y())*m_pLaserOccGrid->getCellHeight()/100.0 );
 
@@ -680,23 +584,6 @@ void ColliThread::RegisterAtBlackboard()
   m_pColliTargetObj->read();
   
   ninit = blackboard->open_for_writing<NavigatorInterface>("NavigatorTarget");
-
-  m_pLaserScannerObjTest = blackboard->open_for_writing<Laser360Interface>("LaserTest");  
-  init_laser();
-}
-//---------------------------------------------------------------------------
-void ColliThread::init_laser()
-{
-  for( unsigned int i = 0; i < 360; i++ )
-  {
-    m_pLaserScannerObjTest->set_distances (i,0.98);
-  }
-  m_pLaserScannerObjTest->write();
-  m_pLaserScannerObjTest->read();
- /* for( unsigned int id = 0; id < 360;id++ )
-  {
-    cout << m_pLaserScannerObjTest->distances(id) << "\t";
-  }*/
 }
 //--------------------------------------------------------------------------
 //Initialize all modules used by the Colli
@@ -709,11 +596,6 @@ void ColliThread::InitializeModules()
   m_pLaser->UpdateLaser(); 
   m_pLaser->transform(tf_listener);
 
-  m_pLaserTest = new Laser( m_pLaserScannerObjTest, "" );
-  m_pLaserOccGridTest = new CLaserOccupancyGrid( logger, config, m_pLaserTest, (int) ((m_OccGridWidth*100)/m_OccGridCellWidth),
-                                            (int)((m_OccGridHeight*100)/m_OccGridCellHeight),
-                                            m_OccGridCellWidth, m_OccGridCellHeight);  
-  m_pSearchTest = new CSearch( logger, config, m_pLaserOccGridTest );
   // SECOND(!): the occupancy grid (it uses the laser)
 
   // set the cell width and heigth to 5 cm and the grid size to 7.5 m x 7.5 m.
@@ -768,7 +650,6 @@ void ColliThread::InitializeModules()
 /// Get the newest values from the blackboard
 void ColliThread::UpdateBB()
 {
-  //m_pLaserScannerObj->Update();
   m_pLaserScannerObj->read();
   
   m_pMopoObj->read();
@@ -776,19 +657,13 @@ void ColliThread::UpdateBB()
   motor_des->set_odometry_position_y(m_pMopoObj->odometry_position_y());
   motor_des->set_odometry_orientation(m_pMopoObj->odometry_orientation());
   motor_des->set_motor_state(m_pMopoObj->motor_state());
-  //motor_des->set_vx(m_pMopoObj->vx());
-  //motor_des->set_omega(m_pMopoObj->omega());
+  motor_des->set_vx(m_pMopoObj->vx());
+  motor_des->set_omega(m_pMopoObj->omega());
   motor_des->write();
 
   motor_des->read();  
   update_navi();
- /* m_Updx = m_pMopoObj->odometry_position_x();
-  m_Updy = m_pMopoObj->odometry_position_y();
-  m_UpdOri = GetMotorOri(m_pMopoObj->odometry_orientation());*/
-   //m_pMopoObj->read();
-  //m_pColliTargetObj->Update();
   m_pColliTargetObj->read();
-  //m_pColliDataObj->Update();
   m_pColliDataObj->read();
 }
 //---------------------------------------------------------------------------------------------
@@ -799,8 +674,9 @@ void ColliThread::update_navi()
     if( ninit->msgq_first_is<NavigatorInterface::CartesianGotoMessage>() )
     {
       NavigatorInterface::CartesianGotoMessage *msgTmp = ninit->msgq_first_safe(msgTmp);
-      ninit->set_dest_x(msgTmp->x());
-      ninit->set_dest_y(msgTmp->y());
+      HomPoint trans = transform_base_to_odom(HomPoint(msgTmp->x(),msgTmp->y()));
+      ninit->set_dest_x(trans.x());
+      ninit->set_dest_y(trans.y());
       ninit->set_dest_ori(msgTmp->orientation());
       ninit->write();
       ninit->msgq_pop();
@@ -810,12 +686,9 @@ void ColliThread::update_navi()
       NavigatorInterface::PolarGotoMessage *msgTmp = ninit->msgq_first_safe(msgTmp);
       float new_x = msgTmp->dist() * cos(msgTmp->phi());
       float new_y = msgTmp->dist() * sin(msgTmp->phi());
-      new_x += m_pMopoObj->odometry_position_x();
-      new_y += m_pMopoObj->odometry_position_y();
-      float tx = ( new_x*cos( m_pMopoObj->odometry_orientation ()  ) + new_y*sin( m_pMopoObj->odometry_orientation () ) );
-      float ty = ( new_y*cos( m_pMopoObj->odometry_orientation ()  ) - new_x*sin( m_pMopoObj->odometry_orientation () ) );
-      ninit->set_dest_x(tx);
-      ninit->set_dest_y(ty);
+      HomPoint trans = transform_base_to_odom(HomPoint(new_x,new_y));
+      ninit->set_dest_x(trans.x());
+      ninit->set_dest_y(trans.y());
       ninit->set_dest_ori(msgTmp->orientation());
       ninit->write();
       ninit->msgq_pop();
@@ -860,7 +733,9 @@ void ColliThread::update_navi()
       ninit->write();
       ninit->msgq_pop();
     }
-  }  
+  } 
+  //ninit->set_escaping_enabled(true); 
+  ninit->write();
 }
 //---------------------------------------------------------------------------------------------
 void ColliThread::UpdateColliStateMachine()
@@ -994,12 +869,6 @@ void ColliThread::UpdateOwnModules()
   float targetContX = ( aX*cos( GetMotorOri(m_pMopoObj->odometry_orientation () ) ) + aY*sin( GetMotorOri(m_pMopoObj->odometry_orientation ()) ) );
   //float targetContY = (-aX*sin( m_pMotorInstruct->GetCurrentOri() ) + aY*cos( m_pMotorInstruct->GetCurrentOri() ) );
   float targetContY = (-aX*sin( GetMotorOri(m_pMopoObj->odometry_orientation ()) ) + aY*cos( GetMotorOri(m_pMopoObj->odometry_orientation ()) ) );
-  
-/*
-  HomPoint target_base = transform_odom(HomPoint(m_TargetPointX,m_TargetPointY));
-  float targetContX = target_base.x();
-  float targetContY = target_base.y();
-*/
   // calculation, where in the grid the target is, thats relative to the motorpos, so add it ;-)
   int targetGridX = (int)( (targetContX * 100.0) / (float)m_pLaserOccGrid->getCellWidth() );
   int targetGridY = (int)( (targetContY * 100.0) / (float)m_pLaserOccGrid->getCellHeight() );
@@ -1045,7 +914,7 @@ void ColliThread::UpdateOwnModules()
         {
           //m_RoboIncrease = m_pColliTargetObj->GetSecureDistance();
           m_RoboIncrease = m_pColliTargetObj->security_distance();
-          logger->log_info(name(),"BBClient( UpdateOwnModules ): Setting EXTERN Robot secure distance = %f . ATTENTION TO THE ROBOT!!!!\n", m_RoboIncrease);
+          logger->log_info(name(),"UpdateOwnModules: Setting EXTERN Robot secure distance = %f . ATTENTION TO THE ROBOT!!!!\n", m_RoboIncrease);
         }
       else
         {
@@ -1059,7 +928,7 @@ void ColliThread::UpdateOwnModules()
         {
           //m_RoboIncrease = m_pColliTargetObj->GetSecureDistance();
           m_RoboIncrease = m_pColliTargetObj->security_distance();
-          logger->log_info(name(),"BBClient( UpdateOwnModules ): Setting EXTERN Robot secure distance = %f ATTENTION TO THE ROBOT!!!!\n"
+          logger->log_info(name(),"UpdateOwnModules: Setting EXTERN Robot secure distance = %f ATTENTION TO THE ROBOT!!!!\n"
                           , m_RoboIncrease);
         }
       else
@@ -1102,6 +971,7 @@ void ColliThread::UpdateOwnModules()
                                   m_pMotorInstruct->GetMotorDesiredTranslation(),
                                   relxdiff, relydiff, oridiff );*/
   m_pLaserOccGrid->UpdateOccGrid( laserpos_x, laserpos_y, m_RoboIncrease,GetMotorTranslation(motor_des->vx(),motor_des->omega()),relxdiff, relydiff, oridiff );
+//  m_pLaserOccGrid->UpdateOccGrid( robopos_x, robopos_y, m_RoboIncrease,GetMotorTranslation(motor_des->vx(),motor_des->omega()),relxdiff, relydiff, oridiff );
   // update the positions
   m_LaserGridPos  = HomPoint( laserpos_x, laserpos_y );
   m_RoboGridPos   = HomPoint( robopos_x, robopos_y );
@@ -1130,7 +1000,7 @@ void ColliThread::set_visualization_thread(ColliVisualizationThreadBase *visthre
 }
 #endif
 //--------------------------------------------------------------------------------------------------------------------
-void ColliThread::transform_odom()
+void ColliThread::publish_odom()
 {
   tf::Quaternion o_r(-m_pMopoObj->odometry_orientation(), 0, 0);
   tf::Vector3 o_t(m_pMopoObj->odometry_position_x(),-m_pMopoObj->odometry_position_y(), 0);
@@ -1141,7 +1011,7 @@ void ColliThread::transform_odom()
   m_tf_pub_odom->send_transform(o_tr, o_time, "/odom", "/base_link");
 }
 //-----------------------------------------------------------------------------------------------------------------
-HomPoint ColliThread::transform_odom(HomPoint point)
+HomPoint ColliThread::transform_odom_to_base(HomPoint point)
 {
   HomPoint res;
   try {
@@ -1158,27 +1028,27 @@ HomPoint ColliThread::transform_odom(HomPoint point)
   return res;
 }
 //---------------------------------------------------------------------------------------------------------------------
-void ColliThread::transform_navi()
+HomPoint ColliThread::transform_base_to_odom(HomPoint point)
 {
+  HomPoint res;
   try {
-    tf::Stamped<tf::Point> centroid(tf::Point(ninit->dest_x(),ninit->dest_y(),0.),
-                   fawkes::Time(0, 0), "/odom");
-    tf::Stamped<tf::Point> baserel_centroid;
-    tf_listener->transform_point("/base_link", centroid, baserel_centroid);
-    ninit->set_dest_x(baserel_centroid.x());
-    ninit->set_dest_y(baserel_centroid.y());
-    ninit->write();
+    tf::Stamped<tf::Point> target_base(tf::Point(point.x(),point.y(),0.),fawkes::Time(0, 0), "/base_link");
+    tf::Stamped<tf::Point> odomrel_target;
+    tf_listener->transform_point("/odom", target_base, odomrel_target);
+    HomPoint target_trans(odomrel_target.x(),-odomrel_target.y());
+    res = target_trans;
   } catch (tf::TransformException &e) {
-    logger->log_warn(name(),"can't transform from odom");
+    logger->log_warn(name(),"can't transform from baselink to odometry");
     e.print_trace();
   }
-
+  return res;
 }
+
 //----------------------------------------------------------------------------------------------------------------------
 float ColliThread::GetMotorTranslation(float vtrans, float vori)
 {
-  float m_vx = vtrans * sin(vori);
-  if (  m_vx >= 0 )
+  float m_vx = vtrans * cos(vori);
+  if (  m_vx > 0 )
     return vtrans;
   else
     return -vtrans;

@@ -173,7 +173,6 @@ RoboShape::~RoboShape()
 {
 }
 
-
 // return if it is a round robot
 bool RoboShape::IsRoundRobot()
 {

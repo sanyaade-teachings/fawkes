@@ -56,7 +56,7 @@ class ColliVisualizationThread
                          vector< HomPoint > plan,HomPoint motor_des,int cell_width,int cell_height,HomPoint target,
                          int grid_width, int grid_height, HomPoint motor_real,HomPoint localTarget,HomPoint target_odom,
                          vector<HomPoint > orig_laser_points,vector<HomPoint > search_occ,
-                         vector<HomPoint > astar_found_occ,vector<HomPoint > free_cells,vector<HomPoint > seen_states) throw();
+                         vector<HomPoint > astar_found_occ,vector<HomPoint > free_cells,vector<HomPoint > seen_states,HomPoint modTarget) throw();
 
   void visualize_grid_boundary();
   void visualize_path();
@@ -75,10 +75,12 @@ class ColliVisualizationThread
   void visualize_free_cells();
   void visualize_seen_states();
   void visualize_colli_params();
+  void visualize_modified_target();
   HomPoint transform( HomPoint point );
   HomPoint transform_robo( HomPoint point );
-  HomPoint transform_odom(HomPoint point);
-  HomPoint transform_base(HomPoint point);
+  HomPoint transform_odom_to_base(HomPoint point);
+  HomPoint transform_base_to_odom(HomPoint point);
+  HomPoint transform_laser_to_base(HomPoint point);
   void visualize_target_odom();
   void callback( const geometry_msgs::PoseStamped::ConstPtr &msg);
   void processFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback );
@@ -97,6 +99,7 @@ class ColliVisualizationThread
   ros::Publisher *pathpubcells_;
   ros::Publisher *targetpub_;
   ros::Publisher *tarfixpub_;
+  ros::Publisher *tarmpub_;
   ros::Publisher *target_real_pub_;
   ros::Publisher *target_local_pub_;
   ros::Publisher *target_odom_pub_;
@@ -141,6 +144,7 @@ class ColliVisualizationThread
   HomPoint local_target_;
   HomPoint rviz_target_;
   HomPoint rvizTarget;
+  HomPoint modTarget_;
   float odomx_;;
   float odomy_;
   float odomori_;

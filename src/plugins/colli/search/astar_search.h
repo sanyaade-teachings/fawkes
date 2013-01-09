@@ -88,7 +88,7 @@ public:
 
   // update complete plan things
   // precondition: the occupancy grid has to be updated previously!
-  void Update( int roboX, int roboY, int targetX, int targetY ,CLaserOccupancyGrid * occGrid );
+  void Update( int roboX, int roboY, int targetX, int targetY  );
 
   // returns, if the update was successful or not.
   // precondition: update had to be called.
@@ -116,6 +116,11 @@ public:
   vector<HomPoint > get_astar_states()
   {
     return m_pAStar->get_seen_states();
+  }
+
+  HomPoint get_mod_target()
+  {
+    return m_TargetPosition;
   }
 private:
 

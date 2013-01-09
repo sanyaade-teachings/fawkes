@@ -29,6 +29,8 @@ class Ellipse
 
   const HomPoint GetBorderPoint( float angle ) const;
 
+  const float GetSquaredDistanceTo( const HomPoint  p1, const HomPoint  p2) const;
+  const float GetAngleTo( const HomPoint  p1 ,const HomPoint  p2) const;
   const bool IsInside( const HomPoint & p ) const;
 
   HomPoint m_Center;
@@ -125,14 +127,20 @@ inline const HomPoint Ellipse::GetBorderPoint( float angle ) const
   return p;  
 }
 
+inline const float Ellipse::GetSquaredDistanceTo( const HomPoint  p1, const HomPoint  p2) const
+{
+  return ( p2.x() - p1.x()) * ( p2.x() - p1.x()) + ( p2.y() - p1.y()) * ( p2.y() - p1.y());
+}
+
+inline const float Ellipse::GetAngleTo( const HomPoint  p1 ,const HomPoint  p2) const
+{
+  return atan2f( p2.y() - p1.y(),p2.x() - p1.x() );
+}
 
 inline const bool Ellipse::IsInside( const HomPoint & p ) const 
 {
  // return (m_Center.GetSquaredDistanceTo(p) <= m_Center.GetSquaredDistanceTo(GetBorderPoint(m_Center.GetAngleTo(p))));
-  HomPoint p1Tmp( (m_Center.x() - p.x()), (m_Center.y() - p.y()) );
-  float angle = atan2f( p1Tmp.y() - m_Center.y(), p.x() - m_Center.x() );
-  HomPoint p2Tmp( (m_Center.x() - (GetBorderPoint(angle)).x()), (m_Center.y() - (GetBorderPoint(angle)).y()) );
-  return (p1Tmp.distance() <= p2Tmp.distance());
+  return (GetSquaredDistanceTo(m_Center,p) <= GetSquaredDistanceTo(m_Center,GetBorderPoint(GetAngleTo(m_Center,p))));
 }
 
 //#endif

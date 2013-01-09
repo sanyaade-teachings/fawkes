@@ -130,13 +130,8 @@ std::vector< HomPoint >  CSearch::GetPlan()
 
 // Perform an Update by searching in the occgrid for a plan
 //   from robopos to targetpos
-void CSearch::Update( int roboX, int roboY, int targetX, int targetY,CLaserOccupancyGrid * occGrid )
+void CSearch::Update( int roboX, int roboY, int targetX, int targetY)
 {
-  loggerAstar->log_info("ASTAR SEARCH","target grid pos is: %d:%d\n",targetX,targetY);
-  loggerAstar->log_info("ASTAR SEARCH","robo grid pos is: %d:%d\n",roboX,roboY);
-
-  m_pOccGrid = occGrid;
-  update_occ(occGrid);
   m_UpdatedSuccessful = false;
   // check, if a position is in an obstacle
   m_RoboPosition = HomPoint(roboX, roboY);
@@ -151,17 +146,14 @@ void CSearch::Update( int roboX, int roboY, int targetX, int targetY,CLaserOccup
 	stepX = -1;
       if ( roboY < targetY ) 
 	stepY = -1;
-      m_TargetPosition = m_pAStar->RemoveTargetFromObstacle( targetX, targetY, 
-							     stepX, stepY, occGrid );
+      m_TargetPosition = m_pAStar->RemoveTargetFromObstacle( targetX, targetY,stepX, stepY );
     }
   else
     {
       m_TargetPosition = HomPoint( targetX, targetY );
     }
-  
-  m_pAStar->Solve( m_RoboPosition, m_TargetPosition, m_vPlan,m_pOccGrid );
-      
-
+ 
+    m_pAStar->Solve( m_RoboPosition, m_TargetPosition, m_vPlan);
   
   if (m_vPlan.size() > 0)
     {
@@ -169,8 +161,7 @@ void CSearch::Update( int roboX, int roboY, int targetX, int targetY,CLaserOccup
       m_LocalTarget     = CalculateLocalTarget();
       m_LocalTarget     = AdjustWaypoint( m_LocalTarget );
       m_LocalTrajectory = CalculateLocalTrajectoryPoint();
-    }
-  
+    } 
 #ifdef _COLLI_VISUALIZE_
   if ( m_pVis != 0 )
     {

@@ -377,8 +377,8 @@ inline void CBaseMotorInstruct::ExecuteStop()
 
 inline float CBaseMotorInstruct::GetMotorTranslation(float vtrans, float vori)
 {
-  float m_vx = vtrans * sin(vori);
-  if (  m_vx >= 0 )
+  float m_vx = vtrans * cos(vori);
+  if (  m_vx > 0 )
     return vtrans;
   else
     return -vtrans;

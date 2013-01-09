@@ -92,7 +92,7 @@ CEscapeDriveModule::CEscapeDriveModule( Logger* logger, Configuration *config, L
 */
 //  confFileName = "../cfg/navigation/robot_shape.cfg";
  // m_pRoboShape = new CRoboShape_Colli( (char *)confFileName.c_str(), 2 );
-   // ** m_pRoboShape = new CRoboShape_Colli( logger, config, 2) ; // ** Not implemented since roboshape can just be 1 ** //
+  m_pRoboShape = new CRoboShape_Colli( logger, config, 2) ; 
   if(!config->exists("/plugins/colli/CEscapeDriveModule/EscapeForwardDriveModule_MAX_TRANS") )
   {
     cout << "***** ERROR *****: Could not find: EscapeForwardDriveModule_MAX_TRANS "

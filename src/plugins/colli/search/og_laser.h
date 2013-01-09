@@ -194,6 +194,8 @@ public:
   {
     return (x*x);
   }
+
+
 };
 
 #endif

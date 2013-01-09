@@ -187,7 +187,7 @@ void Laser::transform(tf::TransformListener *tf_listener)
       cout << "can't transform to the base link" << endl;
     }
     m_pReadings->SetPosX(i,base_point.x());
-    m_pReadings->SetPosY(i,base_point.y()); 
+    m_pReadings->SetPosY(i,-base_point.y()); 
   }
   
 }

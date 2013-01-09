@@ -35,7 +35,6 @@
 #define _COLLI_CELL_FREE_          1.0 // default free value  | COST  1!
 #endif
 
-//#incluse "colli_laser.h"
 // Colli States
 enum ColliState
   {
@@ -63,7 +62,6 @@ using namespace std;
 const string default_hostname = "";
 #ifdef HAVE_VISUAL_DEBUGGING
 class ColliVisualizationThreadBase;
-//class ColliNavigationThreadBase;
 #endif
 
 class ColliThread
@@ -102,13 +100,7 @@ class ColliThread
   fawkes::Laser360Interface *laserDeadSpots;
   fawkes::BlackBoard * bb_;
 
-  fawkes::Laser360Interface *m_pLaserScannerObjTest;
-  Laser*                          m_pLaserTest;
-  CLaserOccupancyGrid*            m_pLaserOccGridTest;
-  CSearch*                        m_pSearchTest;
-
   void init_laser();
-  void visualize_test(vector<HomPoint > &test_occ_cells,vector<HomPoint > &test_free_cells,vector< HomPoint > &test_plan,vector<HomPoint > &test_orig_laser_points);
 
   fawkes::tf::TransformPublisher *m_tf_pub_odom;
 
@@ -184,11 +176,9 @@ class ColliThread
   float GetMotorTranslation(float vtrans, float vori);
   float GetMotorOri(float odom_ori);
 
-  void transform_odom();
-  HomPoint transform_odom(HomPoint point);
- 
-  void transform_navi();
-  
+  void publish_odom();
+  HomPoint transform_odom_to_base(HomPoint point);
+  HomPoint transform_base_to_odom(HomPoint point);
 
   inline float sqr( float x )
   {

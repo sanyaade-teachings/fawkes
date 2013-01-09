@@ -237,7 +237,6 @@ void CLaserOccupancyGrid::ResetOld( int max_age )
 void CLaserOccupancyGrid::UpdateOccGrid( int midX, int midY, float inc, float vel, 
 					 float xdiff, float ydiff, float oridiff )
 {
-  m_pLaser->UpdateLaser();
   for ( int y = 0; y < m_Height; ++y )
     for ( int x = 0; x < m_Width; ++x )
       m_OccupancyProb[x][y] = _COLLI_CELL_FREE_;
@@ -272,7 +271,6 @@ void CLaserOccupancyGrid::IntegrateOldReadings( int midX, int midY, float inc, f
 			        oldpos_y * m_pTrigTable->GetCos( oridiff ) );
 
 	float angle_to_old_reading = atan2( newpos_y, newpos_x );
-	//float sqr_distance_to_old_reading = pow(( newpos_x ),2) + pow(( newpos_y ),2);
         float sqr_distance_to_old_reading = sqr( newpos_x ) + sqr( newpos_y );
 
  	int number_of_old_reading = (int)
@@ -280,7 +278,6 @@ void CLaserOccupancyGrid::IntegrateOldReadings( int midX, int midY, float inc, f
  			     rad2deg(angle_to_old_reading) ) );
 	bool SollEintragen = true;
 
- 	//if ( pow(( m_pLaser->GetReadingLength( number_of_old_reading ) - 0.3 ),2) > sqr_distance_to_old_reading )
  	  if ( sqr( m_pLaser->GetReadingLength( number_of_old_reading ) - 0.3 ) > sqr_distance_to_old_reading )
  	  {
  	    SollEintragen = false;
@@ -336,17 +333,16 @@ void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
         //point = transformLaser2Motor(HomPoint(m_pLaser->GetReadingPosX(i), m_pLaser->GetReadingPosY(i)));
 	point = HomPoint(m_pLaser->GetReadingPosX(i), m_pLaser->GetReadingPosY(i)); 
 	p_x = point.x();
-	p_y = point.y();
+        p_y = point.y();
 	if ( !((p_x == 0.0) && (p_y == 0.0)) && 
             sqr(p_x-oldp_x)+sqr(p_y-oldp_y) > sqr( m_EllipseDistance ) )
-	     //pow((p_x-oldp_x),2)+pow((p_y-oldp_y),2) > pow(( m_EllipseDistance ),2) )
 	  {
 	    oldp_x = p_x;
 	    oldp_y = p_y;
 	    posX = midX + (int)((p_x*100.0) / ((float)m_CellWidth ));
 	    posY = midY + (int)((p_y*100.0) / ((float)m_CellHeight ));
-            
-	    if ( !( (posX <= 5) || (posX >= m_Width-6) ||
+   
+   	    if ( !( (posX <= 5) || (posX >= m_Width-6) ||
 		    (posY <= 5) || (posY >= m_Height-6) ) )
 	      {
 		// float dec = max( (sqrt(sqr(p_x)+sqr(p_y))/3.0-1.0), 0.0 );
@@ -355,22 +351,22 @@ void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
 		    
 		float height = 0.0;
 		height = m_pRoboShape->GetRobotLengthforRad( deg2rad( 90. ) ); 
-		height = max( 4.0, ((height + inc - dec)*100.0)/m_CellHeight );
-		    
+		height = max( 4.0, ((height + inc - dec)*100.0)/(float)m_CellHeight );
+		
 		float rad = normalize_rad( m_pLaser->GetRadiansForReading( i ) );
 		float length = 0.0;
 		//length = m_pRoboShape->GetRobotLengthforRad( rad );
-
+                
 		if (fabs(normalize_mirror_rad(rad)) < M_PI_2)
 		  length = m_pRoboShape->GetRobotLengthforRad( deg2rad( 90. ) );
 		else
 		  length = m_pRoboShape->GetRobotLengthforRad( rad );
 
 		  length = max( 4.0, ((length + inc - dec)*100.0)/(float)m_CellWidth );
-		    
+                    
 		   if ( !m_pLaser->IsPipe( rad ) )
 		   {
-		    integrateObstacle( Ellipse( HomPoint( posX, posY ), height, length, 0.0 ) );
+		    integrateObstacle( Ellipse( HomPoint( posX, posY ), (int)height, (int)length, 0.0 ) );
 		    if ( !Contained( p_x, p_y ) )
 		    {
 			m_vOldReadings.push_back( p_x );
@@ -388,7 +384,6 @@ void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
 bool CLaserOccupancyGrid::Contained( float p_x, float p_y )
 {
   for ( unsigned int i = 0; i < m_vOldReadings.size(); i+=3 )
-    //if ( pow((p_x - m_vOldReadings[i]),2) + pow((p_y - m_vOldReadings[i+1]),2) < pow(( m_EllipseDistance ),2) )
     if ( sqr(p_x - m_vOldReadings[i]) + sqr(p_y - m_vOldReadings[i+1]) < sqr( m_EllipseDistance ) )  
       {
 	return true;
@@ -410,7 +405,7 @@ void CLaserOccupancyGrid::integrateObstacle( Ellipse ellipse )
 
   int posX = 0;
   int posY = 0;
-
+  
   // i = x offset, i+1 = y offset, i+2 is cost
   for ( unsigned int i = 0; i < fast_ellipse.size(); i+=3 )
     {

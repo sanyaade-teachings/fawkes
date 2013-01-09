@@ -139,7 +139,7 @@ public:
      *  @return 0 if there is no rod, 1 if there is, 
      *      and 3 if unsure (for now all rods are unsure).
      */
-    static int IsRodforRad( float anglerad );
+    int IsRodforRad( float anglerad );
 
     /** Returns if there is a rod waiting in this direction.
      *  @param angledeg is an angle in degree.
@@ -190,7 +190,7 @@ public:
     
 
     // ======================================================= //
-    
+  
 
 private:
     
