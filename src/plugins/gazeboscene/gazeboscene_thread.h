@@ -32,6 +32,10 @@
 #include <plugins/mongodb/aspect/mongodb.h>
 #include <plugins/gazebo/aspect/gazebo.h>
 
+#ifdef USE_RRD
+#include <plugins/rrd/aspect/rrd.h>
+#endif
+
 #include <tf/types.h>
 
 #include <string>
@@ -42,6 +46,7 @@
 
 namespace mongo {
   class GridFS;
+  class BSONObj;
 }
 
 class GazeboSceneThread
@@ -52,6 +57,9 @@ class GazeboSceneThread
   public fawkes::BlackBoardAspect,
   public fawkes::TransformAspect,
   public fawkes::MongoDBAspect,
+  #ifdef USE_RRD
+  public fawkes::RRDAspect,
+  #endif
   public fawkes::GazeboAspect
 {
  public:
@@ -69,14 +77,16 @@ class GazeboSceneThread
   void OnTimeMsg(ConstDoublePtr&);
   void OnRequestMsg(ConstRequestPtr&);
   void OnTransformRequestMsg(ConstTransformRequestPtr&);
-  void OnStatusMsg(ConstRequestPtr&);
   void OnWorldStatisticsMsg(ConstWorldStatisticsPtr&);
   void OnControlMsg(ConstSceneFrameworkControlPtr&);
+  void OnLaserMsg(ConstLasersPtr&);
   gazebo::msgs::Pose Convert(fawkes::tf::Stamped<fawkes::tf::Pose>);
   double send_transforms(double,double);
   double buffer_objects(double,double);
   double buffer_positions(double,double);
   double buffer_joints(double,double);
+  void draw_lasers(double);
+  void fill_document_message(mongo::BSONObj&, gazebo::msgs::SceneDocument&, std::string);
 
   mongo::DBClientBase                     *__mongodb;
   std::map< std::string, mongo::GridFS* >  __mongogrids;
@@ -84,35 +94,59 @@ class GazeboSceneThread
   gazebo::transport::NodePtr               __gazebo;
   std::string                              __database,
                                            __collection;
-  std::list<std::string>                   __tfcollections,
+  std::list<std::string>                   __collections,
+                                           __tfcollections,
                                            __poscollections;
+  std::map< std::string, bool >            __lasercollections;
   fawkes::Time                            *__scenestart,
                                           *__pausestart;
   double                                   __dbtimeoffset,
                                            __dbcurtimeoffset,
                                            __dbscenelength,
                                            __dbbuffered,
+                                           __dbcurrenttime,
                                            __lasttf;
   unsigned int                             __dbbuffer;
-  bool                                     __pause;
+  bool                                     __pause,
+                                           __step,
+                                           __available,
+                                           __buffering;
   
   
 
   gazebo::transport::PublisherPtr          objectinstantiatorResponsePub,
                                            objectinstantiatorObjectPub,
-                                           robotcontrollerResponsePub,
                                            robotcontrollerControlPub,
                                            scenereconstructionGuiPub,
                                            timePub,
                                            setupPub,
                                            transformPub,
                                            worldcontrolPub,
+                                           drawingPub,
+                                           lasersPub,
                                            statusPub;
   gazebo::transport::SubscriberPtr         frameworkRequestSub,
                                            transformRequestSub,
-                                           statusSub,
                                            controlSub,
+                                           laserSub,
                                            worldSub;
+  #ifdef USE_RRD
+  boost::mutex                            *__outmutex;
+  boost::mutex                            *__inmutex;
+  fawkes::Time                            *__rrdupdate;
+  fawkes::RRDDefinition                   *__inmsgcount_rrd;
+  fawkes::RRDGraphDefinition              *__inmsgcount_graph;
+  std::map<std::string, int>               __inmsgcounts;
+  fawkes::RRDDefinition                   *__inmsgsize_rrd;
+  fawkes::RRDGraphDefinition              *__inmsgsize_graph;
+  std::map<std::string, int>               __inmsgsizes;
+  fawkes::RRDDefinition                   *__outmsgcount_rrd;
+  fawkes::RRDGraphDefinition              *__outmsgcount_graph;
+  std::map<std::string, int>               __outmsgcounts;
+  fawkes::RRDDefinition                   *__outmsgsize_rrd;
+  fawkes::RRDGraphDefinition              *__outmsgsize_graph;
+  std::map<std::string, int>               __outmsgsizes;
+  #endif
 };
 
 #endif
