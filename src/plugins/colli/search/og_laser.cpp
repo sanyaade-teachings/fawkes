@@ -164,6 +164,18 @@ OccupancyGrid( width, height, cell_width, cell_height )
     m_RobocupMode = config->get_int("/plugins/colli/CLaserOccupancyGrid/Colli_ROBOCUP_MODE");
   }
 
+  if(!config->exists("/plugins/colli/ColliMaxCellExtension"))
+  {
+      cout << "***** ERROR *****: Could not find: " << "ColliMaxCellExtension"
+           << " --> ABORTING!" << endl << endl;
+      return;
+
+  }
+  else
+  {
+    m_MaxCellExt = config->get_float("/plugins/colli/ColliMaxCellExtension");
+  }
+
   loggerGrid->log_info("CLaserOccupancyGrid","Generating trigonometry table\n");
   m_pTrigTable = new TrigTable( m_TrigTableResolution );
   loggerGrid->log_info("CLaserOccupancyGrid","Generating trigonometry table done\n");
@@ -345,14 +357,14 @@ void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
    	    if ( !( (posX <= 5) || (posX >= m_Width-6) ||
 		    (posY <= 5) || (posY >= m_Height-6) ) )
 	      {
-		// float dec = max( (sqrt(sqr(p_x)+sqr(p_y))/3.0-1.0), 0.0 );
-		// float dec = max((m_pLaser->GetReadingLength(i)/2.0)-1.0, 0.0 );
+		//float dec = max( (sqrt(sqr(p_x)+sqr(p_y))/3.0-1.0), 0.0 );
+		//float dec = max((m_pLaser->GetReadingLength(i)/2.0)-1.0, 0.0 );
 		float dec = 0.0;
 		    
 		float height = 0.0;
 		height = m_pRoboShape->GetRobotLengthforRad( deg2rad( 90. ) ); 
 		height = max( 4.0, ((height + inc - dec)*100.0)/(float)m_CellHeight );
-		
+                height = min(m_MaxCellExt,height);
 		float rad = normalize_rad( m_pLaser->GetRadiansForReading( i ) );
 		float length = 0.0;
 		//length = m_pRoboShape->GetRobotLengthforRad( rad );
@@ -363,7 +375,7 @@ void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
 		  length = m_pRoboShape->GetRobotLengthforRad( rad );
 
 		  length = max( 4.0, ((length + inc - dec)*100.0)/(float)m_CellWidth );
-                    
+                  length = min(m_MaxCellExt,length);
 		   if ( !m_pLaser->IsPipe( rad ) )
 		   {
 		    integrateObstacle( Ellipse( HomPoint( posX, posY ), (int)height, (int)length, 0.0 ) );
@@ -372,7 +384,7 @@ void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
 			m_vOldReadings.push_back( p_x );
 			m_vOldReadings.push_back( p_y );
 			m_vOldReadings.push_back( 0.0 );
-		     }
+		    }
 		   }
 	      }
 	  }

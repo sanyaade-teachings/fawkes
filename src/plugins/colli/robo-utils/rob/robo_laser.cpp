@@ -128,7 +128,7 @@ Laser::~Laser( )
 
 // ** just as help function ** //
 inline float number2rad( int nr, int numberOfReadings = 360) {
-    return ( ((float)nr) / ((float)numberOfReadings) ) * 2 * M_PI;
+    return ( ((float)nr) / ((float)numberOfReadings) ) * 2. * M_PI;
 }
 
 // Update the laserdata. Call this with the Laser_Clientect in your Loop.

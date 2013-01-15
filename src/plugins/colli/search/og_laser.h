@@ -183,6 +183,8 @@ public:
 
   int m_RobocupMode;
 
+  float m_MaxCellExt;
+
   CEllipseMap * ellipse_map;
 
   Logger* loggerGrid;
