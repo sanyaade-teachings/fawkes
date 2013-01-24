@@ -203,6 +203,7 @@ void ColliVisualizationThread::callback( const geometry_msgs::PoseStamped::Const
   rvizTarget = HomPoint(poseMsg.pose.position.x,poseMsg.pose.position.y,0);
 
   rviz_target_ = rvizTarget;
+  m_navi->read();
   NavigatorInterface::CartesianGotoMessage *nav_msg = new NavigatorInterface::CartesianGotoMessage();
   nav_msg->set_x(rvizTarget.x());
   nav_msg->set_y(rvizTarget.y());
@@ -214,9 +215,12 @@ void ColliVisualizationThread::callback( const geometry_msgs::PoseStamped::Const
   NavigatorInterface::PolarGotoMessage *nav_msg = new NavigatorInterface::PolarGotoMessage(ini_phi,ini_dis,0);
   m_navi->msgq_enqueue(nav_msg);
 */
-  NavigatorInterface::SetDriveModeMessage *drive_msg = new NavigatorInterface::SetDriveModeMessage();
-  drive_msg->set_drive_mode(NavigatorInterface::SlowAllowBackward);
-  m_navi->msgq_enqueue(drive_msg);
+  if( m_navi->drive_mode() == NavigatorInterface::MovingNotAllowed ) 
+  {
+    NavigatorInterface::SetDriveModeMessage *drive_msg = new NavigatorInterface::SetDriveModeMessage();
+    drive_msg->set_drive_mode(NavigatorInterface::SlowAllowBackward);
+    m_navi->msgq_enqueue(drive_msg);
+  }
 
   NavigatorInterface::SetMaxVelocityMessage *maxvel_msg = new NavigatorInterface::SetMaxVelocityMessage();
   maxvel_msg->set_max_velocity(1.5);

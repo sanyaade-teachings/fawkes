@@ -271,18 +271,18 @@ inline void CBaseMotorInstruct::SetCommand(  )
   // Send the commands to the motor. No controlling afterwards done!!!!
   //SendCommand();
    //loggerTmp->log_info("drive realization","vx %f, vy %f, omega %f",vx,vy,omega );
-//   if ( motor_if->motor_state() == motor_if->MOTOR_ENABLED )
-  // {
+   if ( motor_if->motor_state() == motor_if->MOTOR_ENABLED )
+   {
      MotorInterface::TransRotMessage *msg = new MotorInterface::TransRotMessage(vx,vy,omega);
      motor_if_cmd->msgq_enqueue(msg);
      motor_if->set_vx(vx);
      motor_if->set_omega(omega);
      motor_if->write();
-  // }
-  // else
-  // {
-  //   loggerTmp->log_info("drive realization","motor message can't be sent because motor is disabled\n");
-  // }
+   }
+   else
+   {
+     loggerTmp->log_info("drive realization","motor message can't be sent because motor is disabled\n");
+   }
   
 }
 
