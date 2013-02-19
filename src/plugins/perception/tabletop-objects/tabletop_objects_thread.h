@@ -29,12 +29,18 @@
 #include <aspect/blackboard.h>
 #include <aspect/tf.h>
 #include <aspect/pointcloud.h>
-
 #include <Eigen/StdVector>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/filters/voxel_grid.h>
+#include <pcl/tracking/tracking.h>
+#include <pcl/tracking/particle_filter.h>
+#include <pcl/tracking/kld_adaptive_particle_filter_omp.h>
+#include <pcl/tracking/distance_coherence.h>
+#include <pcl/tracking/hsv_color_coherence.h>
+
+#include "cluster_colors.h"
 
 namespace fawkes {
   class Position3DInterface;
@@ -71,15 +77,22 @@ class TabletopObjectsThread
 
  private:
   typedef pcl::PointXYZ PointType;
+  typedef PointType RefPointType;
   typedef pcl::PointCloud<PointType> Cloud;
+  typedef pcl::PointCloud<RefPointType> RefCloud;
 
   typedef pcl::PointXYZRGB ColorPointType;
   typedef pcl::PointCloud<ColorPointType> ColorCloud;
   typedef Cloud::Ptr CloudPtr;
   typedef Cloud::ConstPtr CloudConstPtr;
+  typedef RefCloud::Ptr RefCloudPtr;
+
 
   typedef ColorCloud::Ptr ColorCloudPtr;
   typedef ColorCloud::ConstPtr ColorCloudConstPtr;
+
+  typedef pcl::tracking::ParticleXYZRPY ParticleT;
+  typedef pcl::tracking::ParticleFilterTracker<RefPointType, ParticleT> ParticleFilter;
 
  private:
   void set_position(fawkes::Position3DInterface *iface,
@@ -95,6 +108,11 @@ class TabletopObjectsThread
                                 const float step, const float max_error = 0.01);
 
   bool is_polygon_edge_better(PointType &cb_br_p1p, PointType &cb_br_p2p, PointType &br_p1p, PointType &br_p2p);
+
+  void extractSegmentCluster (const CloudConstPtr &cloud,
+                              const std::vector<pcl::PointIndices> cluster_indices,
+                              const int segment_index,
+                              Cloud &result);
 
  /** Stub to see name in backtrace for easier debugging. @see Thread::run() */
  protected: virtual void run() { Thread::run(); }
@@ -112,6 +130,8 @@ class TabletopObjectsThread
   fawkes::Position3DInterface *table_pos_if_;
 
   fawkes::SwitchInterface *switch_if_;
+
+  boost::shared_ptr<ParticleFilter> tracker_[MAX_CENTROIDS];
 
   float cfg_depth_filter_min_x_;
   float cfg_depth_filter_max_x_;
@@ -131,6 +151,9 @@ class TabletopObjectsThread
   unsigned int cfg_cluster_min_size_;
   unsigned int cfg_cluster_max_size_;
   std::string cfg_result_frame_;
+  bool first_run_;
+  unsigned int num_of_objects;
+  bool active_trackers[MAX_CENTROIDS];
 
   fawkes::RefPtr<Cloud> ftable_model_;
   CloudPtr table_model_;

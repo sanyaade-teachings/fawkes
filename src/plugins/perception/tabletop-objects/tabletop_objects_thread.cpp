@@ -47,6 +47,7 @@
 #include <pcl/common/centroid.h>
 #include <pcl/common/transforms.h>
 #include <pcl/common/distances.h>
+#include <pcl/tracking/approx_nearest_pair_point_cloud_coherence.h>
 
 #include <interfaces/Position3DInterface.h>
 #include <interfaces/SwitchInterface.h>
@@ -131,6 +132,8 @@ TabletopObjectsThread::init()
   finput_ = pcl_manager->get_pointcloud<PointType>("openni-pointcloud-xyz");
   input_ = pcl_utils::cloudptr_from_refptr(finput_);
 
+  first_run_ = true;
+
   try {
     double rotation[4] = {0., 0., 0., 1.};
     table_pos_if_ = NULL;
@@ -199,6 +202,65 @@ TabletopObjectsThread::init()
   seg_.setDistanceThreshold(cfg_segm_distance_threshold_);
 
   loop_count_ = 0;
+
+  {
+    using namespace pcl::tracking;
+    //TODO check thread_nr value
+    int thread_nr = -1;
+    std::vector<double> default_step_covariance = std::vector<double> (6, 0.015 * 0.015);
+    default_step_covariance[3] *= 40.0;
+    default_step_covariance[4] *= 40.0;
+    default_step_covariance[5] *= 40.0;
+    std::vector<double> initial_noise_covariance = std::vector<double> (6, 0.00001);
+    std::vector<double> default_initial_mean = std::vector<double> (6, 0.0);
+    for (int i = 0; i < MAX_CENTROIDS; i++)
+    {
+      boost::shared_ptr<KLDAdaptiveParticleFilterOMPTracker<RefPointType, ParticleT> > tracker
+      (new KLDAdaptiveParticleFilterOMPTracker<RefPointType, ParticleT> (thread_nr));
+      tracker->setMaximumParticleNum (500);
+      tracker->setDelta (0.99);
+      tracker->setEpsilon (0.2);
+      ParticleT bin_size;
+      bin_size.x = 0.1f;
+      bin_size.y = 0.1f;
+      bin_size.z = 0.1f;
+      bin_size.roll = 0.1f;
+      bin_size.pitch = 0.1f;
+      bin_size.yaw = 0.1f;
+      tracker->setBinSize (bin_size);
+      tracker->setTrans (Eigen::Affine3f::Identity ());
+      tracker->setStepNoiseCovariance (default_step_covariance);
+      tracker->setInitialNoiseCovariance (initial_noise_covariance);
+      tracker->setInitialNoiseMean (default_initial_mean);
+      tracker->setIterationNum (1);
+
+      tracker->setParticleNum (400);
+      tracker->setResampleLikelihoodThr(0.00);
+      tracker->setUseNormal (false);
+      // setup coherences
+      ApproxNearestPairPointCloudCoherence<RefPointType>::Ptr coherence = ApproxNearestPairPointCloudCoherence<RefPointType>::Ptr
+          (new ApproxNearestPairPointCloudCoherence<RefPointType> ());
+
+      boost::shared_ptr<DistanceCoherence<RefPointType> > distance_coherence
+      = boost::shared_ptr<DistanceCoherence<RefPointType> > (new DistanceCoherence<RefPointType> ());
+      coherence->addPointCoherence (distance_coherence);
+
+      // we don't have a ColorCloud
+      //  	boost::shared_ptr<HSVColorCoherence<RefPointType> > color_coherence
+      //  	= boost::shared_ptr<HSVColorCoherence<RefPointType> > (new HSVColorCoherence<RefPointType> ());
+      //  	color_coherence->setWeight (0.1);
+      //  	coherence->addPointCoherence (color_coherence);
+
+      //boost::shared_ptr<pcl::search::KdTree<RefPointType> > search (new pcl::search::KdTree<RefPointType> (false));
+      boost::shared_ptr<pcl::search::Octree<RefPointType> > search (new pcl::search::Octree<RefPointType> (0.01));
+      //boost::shared_ptr<pcl::search::OrganizedNeighbor<RefPointType> > search (new pcl::search::OrganizedNeighbor<RefPointType>);
+      coherence->setSearchMethod (search);
+      coherence->setMaximumDistance (0.01);
+      tracker->setCloudCoherence (coherence);
+      tracker_[i] = tracker;
+      active_trackers[i] = false;
+    }
+  }
 
 #ifdef USE_TIMETRACKER
   tt_ = new TimeTracker();
@@ -328,6 +390,7 @@ TabletopObjectsThread::loop()
   CloudPtr cloud_filt_;
   CloudPtr cloud_above_;
   CloudPtr cloud_objs_;
+  ColorCloudPtr colored_clusters(new ColorCloud());
   pcl::search::KdTree<PointType> kdtree_;
 
   grid_.setInputCloud(input_);
@@ -341,6 +404,11 @@ TabletopObjectsThread::loop()
     TimeWait::wait(50000);
     return;
   }
+
+  unsigned int centroid_i = 0;
+  std::vector<Eigen::Vector4f, Eigen::aligned_allocator<Eigen::Vector4f> > centroids;
+  centroids.resize(MAX_CENTROIDS);
+  //cloud_hull_.reset(new Cloud());
 
   TIMETRACK_INTER(ttc_voxelize_, ttc_plane_)
 
@@ -945,12 +1013,12 @@ TabletopObjectsThread::loop()
   condrem.setInputCloud(cloud_above_);
   //condrem.setKeepOrganized(true);
   cloud_objs_.reset(new Cloud());
-  condrem.filter(*cloud_objs_);
+  condrem.filter(*cloud_objs_); // filter all objects below the table, cloud_objs_ contains only objects above the table
 
   //CloudPtr table_points(new Cloud());
   //condrem.setInputCloud(temp_cloud2);
   //condrem.filter(*table_points);
-  
+
   // CLUSTERS
   // extract clusters of OBJECTS
 
@@ -976,68 +1044,124 @@ TabletopObjectsThread::loop()
     p2.g = table_color[1];
     p2.b = table_color[2];
   }
-
   TIMETRACK_INTER(ttc_table_to_output_, ttc_cluster_objects_)
+  if (first_run_) {
+		if (cloud_objs_->points.size() > 0) { // cloud_objs_ contains only points above the table
+		  // Creating the KdTree object for the search method of the extraction
+		  pcl::search::KdTree<PointType>::Ptr
+		  kdtree_cl(new pcl::search::KdTree<PointType>());
+		  kdtree_cl->setInputCloud(cloud_objs_);
 
-  std::vector<Eigen::Vector4f, Eigen::aligned_allocator<Eigen::Vector4f> > centroids;
-  centroids.resize(MAX_CENTROIDS);
-  unsigned int centroid_i = 0;
+		  std::vector<pcl::PointIndices> cluster_indices;
+		  pcl::EuclideanClusterExtraction<PointType> ec;
+		  ec.setClusterTolerance(cfg_cluster_tolerance_);
+		  ec.setMinClusterSize(cfg_cluster_min_size_);
+		  ec.setMaxClusterSize(cfg_cluster_max_size_);
+		  ec.setSearchMethod(kdtree_cl);
+		  ec.setInputCloud(cloud_objs_);
+		  ec.extract(cluster_indices);
 
-  if (cloud_objs_->points.size() > 0) {
-    // Creating the KdTree object for the search method of the extraction
-    pcl::search::KdTree<PointType>::Ptr
-      kdtree_cl(new pcl::search::KdTree<PointType>());
-    kdtree_cl->setInputCloud(cloud_objs_);
+		  //logger->log_debug(name(), "Found %zu clusters", cluster_indices.size());
 
-    std::vector<pcl::PointIndices> cluster_indices;
-    pcl::EuclideanClusterExtraction<PointType> ec;
-    ec.setClusterTolerance(cfg_cluster_tolerance_);
-    ec.setMinClusterSize(cfg_cluster_min_size_);
-    ec.setMaxClusterSize(cfg_cluster_max_size_);
-    ec.setSearchMethod(kdtree_cl);
-    ec.setInputCloud(cloud_objs_);
-    ec.extract(cluster_indices);
+		  colored_clusters->header.frame_id = clusters_->header.frame_id;
+		  std::vector<pcl::PointIndices>::const_iterator it;
+		  unsigned int cci = 0;
+		  //unsigned int i = 0;
+		  unsigned int num_points = 0;
+		  for (it = cluster_indices.begin(); it != cluster_indices.end(); ++it)
+		    num_points += it->indices.size();
 
-    //logger->log_debug(name(), "Found %zu clusters", cluster_indices.size());
+		  if (num_points > 0) {
+		    colored_clusters->points.resize(num_points);
+		    for (it = cluster_indices.begin();
+		        it != cluster_indices.end() && centroid_i < MAX_CENTROIDS;
+		        ++it, ++centroid_i)
+		    {
+		      // calculate each centroid and save it to the vector centroids
+		      pcl::compute3DCentroid(*cloud_objs_, it->indices, centroids[centroid_i]);
+//		      logger->log_warn(name(), "centroid: %f %f %f", centroids[centroid_i][0], centroids[centroid_i][1], centroids[centroid_i][2]);
 
-    ColorCloudPtr colored_clusters(new ColorCloud());
-    colored_clusters->header.frame_id = clusters_->header.frame_id;
-    std::vector<pcl::PointIndices>::const_iterator it;
-    unsigned int cci = 0;
-    //unsigned int i = 0;
-    unsigned int num_points = 0;
-    for (it = cluster_indices.begin(); it != cluster_indices.end(); ++it)
-      num_points += it->indices.size();
+		      std::vector<int>::const_iterator pit;
+		      for (pit = it->indices.begin(); pit != it->indices.end(); ++pit) {
+		        ColorPointType &p1 = colored_clusters->points[cci++];
+		        PointType &p2 = cloud_objs_->points[*pit];
+		        p1.x = p2.x;
+		        p1.y = p2.y;
+		        p1.z = p2.z;
+		        p1.r = cluster_colors[centroid_i][0];
+		        p1.g = cluster_colors[centroid_i][1];;
+		        p1.b = cluster_colors[centroid_i][2];;
+		      }
+		      CloudPtr segmented_cloud_(new Cloud());
+		      // TODO we are iterating over cluster_indices, why not just use it->indices here?
+		      extractSegmentCluster(cloud_objs_, cluster_indices, centroid_i, *segmented_cloud_);
+		      RefCloudPtr transed_ref (new RefCloud);
+		      Eigen::Affine3f trans = Eigen::Affine3f::Identity ();
+		      trans.translation () = Eigen::Vector3f (centroids[centroid_i][0], centroids[centroid_i][1], centroids[centroid_i][2]);
+		      pcl::transformPointCloud(*segmented_cloud_, *transed_ref, trans.inverse());
+		      tracker_[centroid_i]->setReferenceCloud (transed_ref);
+		      tracker_[centroid_i]->setTrans (trans);
+		      tracker_[centroid_i]->setMinIndices (int (segmented_cloud_->size()) / 2);
+		      active_trackers[centroid_i] = true;
+		    }
+		    first_run_ = false;
+		    num_of_objects = centroid_i;
 
-    if (num_points > 0) {
-      colored_clusters->points.resize(num_points);
-      for (it = cluster_indices.begin();
-           it != cluster_indices.end() && centroid_i < MAX_CENTROIDS;
-           ++it, ++centroid_i)
-      {
-        pcl::compute3DCentroid(*cloud_objs_, it->indices, centroids[centroid_i]);
+		    *tmp_clusters += *colored_clusters;
+
+		  } else {
+		    logger->log_info(name(), "No clustered points found");
+		  }
+		} else {
+		  logger->log_info(name(), "Filter left no points for clustering");
+		}
+
+  }
+  else {
+
+    unsigned int new_num_of_objects = 0;
+    for (centroid_i = 0; centroid_i < MAX_CENTROIDS; centroid_i++)
+    {
+      if (active_trackers[centroid_i]) {
+        tracker_[centroid_i]->setInputCloud(temp_cloud);
+        tracker_[centroid_i]->compute();
+        pcl::tracking::ParticleXYZRPY result = tracker_[centroid_i]->getResult ();
+        Eigen::Affine3f transformation = tracker_[centroid_i]->toEigenMatrix (result);
+        RefCloudPtr result_cloud (new RefCloud ());
+        pcl::transformPointCloud<RefPointType> (*(tracker_[centroid_i]->getReferenceCloud ()), *result_cloud, transformation);
+        pcl::compute3DCentroid<RefPointType>(*result_cloud, centroids[centroid_i]);
+//        logger->log_warn(name(), "centroid %d: %f %f %f", centroid_i, centroids[centroid_i][0], centroids[centroid_i][1], centroids[centroid_i][2]);
 
         std::vector<int>::const_iterator pit;
-        for (pit = it->indices.begin(); pit != it->indices.end(); ++pit) {
-          ColorPointType &p1 = colored_clusters->points[cci++];
-          PointType &p2 = cloud_objs_->points[*pit];
-          p1.x = p2.x;
-          p1.y = p2.y;
-          p1.z = p2.z;
-          p1.r = cluster_colors[centroid_i][0];
-          p1.g = cluster_colors[centroid_i][1];;
-          p1.b = cluster_colors[centroid_i][2];;
+        boost::shared_ptr<std::vector<int>> indices = tracker_[centroid_i]->getIndices();
+        if (indices->size() > 0) {
+          new_num_of_objects++;
+          colored_clusters->points.resize(indices->size());
+          unsigned int cci = 0;
+          // TODO showing the cluster doesn't work (there are random points around the camera), this might be the wrong data
+          for (pit = indices->begin(); pit != indices->end(); ++pit) {
+            ColorPointType &p1 = colored_clusters->points[cci++];
+            PointType &p2 = cloud_objs_->points[*pit];
+            p1.x = p2.x;
+            p1.y = p2.y;
+            p1.z = p2.z;
+            p1.r = cluster_colors[centroid_i][0];
+            p1.g = cluster_colors[centroid_i][1];;
+            p1.b = cluster_colors[centroid_i][2];;
+          }
         }
+        else
+          active_trackers[centroid_i] = false;
       }
-
-      *tmp_clusters += *colored_clusters;
-    } else {
-      logger->log_info(name(), "No clustered points found");
     }
-  } else {
-    logger->log_info(name(), "Filter left no points for clustering");
+    num_of_objects = new_num_of_objects;
+    *tmp_clusters += *colored_clusters;
+//    if (num_of_objects == 0 || loop_count_ % 20 == 0) {
+//      logger->log_warn(name(), "rescanning");
+//      first_run_ = true;
+//    }
   }
-
+  // save positions to blackboard
   for (unsigned int i = 0; i < MAX_CENTROIDS; ++i) {
     set_position(pos_ifs_[i], i < centroid_i, centroids[i]);
   }
@@ -1095,6 +1219,25 @@ TabletopObjectsThread::loop()
 #endif
 }
 
+void TabletopObjectsThread::extractSegmentCluster (const CloudConstPtr &cloud,
+    const std::vector<pcl::PointIndices> cluster_indices,
+    const int segment_index,
+    Cloud &result)
+{
+  pcl::PointIndices segmented_indices = cluster_indices[segment_index];
+  for (size_t i = 0; i < segmented_indices.indices.size (); i++)
+  {
+    try {
+      PointType point = cloud->points[segmented_indices.indices[i]];
+      result.points.push_back (point);
+    } catch(Exception &e) {
+      logger->log_error(name(), e);
+    }
+  }
+  result.width = uint32_t (result.points.size ());
+  result.height = 1;
+  result.is_dense = true;
+}
 
 void
 TabletopObjectsThread::set_position(fawkes::Position3DInterface *iface,
