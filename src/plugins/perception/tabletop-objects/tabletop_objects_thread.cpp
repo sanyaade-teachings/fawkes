@@ -215,19 +215,19 @@ TabletopObjectsThread::init()
     std::vector<double> default_initial_mean = std::vector<double> (6, 0.0);
     for (int i = 0; i < MAX_CENTROIDS; i++)
     {
-      boost::shared_ptr<KLDAdaptiveParticleFilterOMPTracker<RefPointType, ParticleT> > tracker
-      (new KLDAdaptiveParticleFilterOMPTracker<RefPointType, ParticleT> (thread_nr));
-      tracker->setMaximumParticleNum (500);
-      tracker->setDelta (0.99);
-      tracker->setEpsilon (0.2);
-      ParticleT bin_size;
-      bin_size.x = 0.1f;
-      bin_size.y = 0.1f;
-      bin_size.z = 0.1f;
-      bin_size.roll = 0.1f;
-      bin_size.pitch = 0.1f;
-      bin_size.yaw = 0.1f;
-      tracker->setBinSize (bin_size);
+      boost::shared_ptr<ParticleFilter> tracker
+      (new TrackerType (thread_nr));
+//      tracker->setMaximumParticleNum (500);
+//      tracker->setDelta (0.99);
+//      tracker->setEpsilon (0.2);
+//      ParticleT bin_size;
+//      bin_size.x = 0.1f;
+//      bin_size.y = 0.1f;
+//      bin_size.z = 0.1f;
+//      bin_size.roll = 0.1f;
+//      bin_size.pitch = 0.1f;
+//      bin_size.yaw = 0.1f;
+//      tracker->setBinSize (bin_size);
       tracker->setTrans (Eigen::Affine3f::Identity ());
       tracker->setStepNoiseCovariance (default_step_covariance);
       tracker->setInitialNoiseCovariance (initial_noise_covariance);

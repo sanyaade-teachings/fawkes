@@ -37,6 +37,7 @@
 #include <pcl/tracking/tracking.h>
 #include <pcl/tracking/particle_filter.h>
 #include <pcl/tracking/kld_adaptive_particle_filter_omp.h>
+#include <pcl/tracking/particle_filter_omp.h>
 #include <pcl/tracking/distance_coherence.h>
 #include <pcl/tracking/hsv_color_coherence.h>
 
@@ -93,6 +94,8 @@ class TabletopObjectsThread
 
   typedef pcl::tracking::ParticleXYZRPY ParticleT;
   typedef pcl::tracking::ParticleFilterTracker<RefPointType, ParticleT> ParticleFilter;
+//  typedef pcl::tracking::KLDAdaptiveParticleFilterOMPTracker<RefPointType, ParticleT> TrackerType;
+  typedef pcl::tracking::ParticleFilterOMPTracker<RefPointType, ParticleT> TrackerType;
 
  private:
   void set_position(fawkes::Position3DInterface *iface,
