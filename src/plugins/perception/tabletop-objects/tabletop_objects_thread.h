@@ -158,7 +158,6 @@ class TabletopObjectsThread
   unsigned int cfg_tracking_particlenum_;
   float cfg_tracking_resample_likelihood_;
   bool first_run_;
-  unsigned int num_of_objects;
   bool active_trackers[MAX_CENTROIDS];
 
   fawkes::RefPtr<Cloud> ftable_model_;

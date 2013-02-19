@@ -409,6 +409,7 @@ TabletopObjectsThread::loop()
   }
 
   unsigned int centroid_i = 0;
+  unsigned int highest_obj_id = 0;
   std::vector<Eigen::Vector4f, Eigen::aligned_allocator<Eigen::Vector4f> > centroids;
   centroids.resize(MAX_CENTROIDS);
   //cloud_hull_.reset(new Cloud());
@@ -1108,7 +1109,8 @@ TabletopObjectsThread::loop()
 		      active_trackers[centroid_i] = true;
 		    }
 		    first_run_ = false;
-		    num_of_objects = centroid_i;
+		    if (centroid_i > 0)
+		      highest_obj_id = centroid_i - 1;
 
 		    *tmp_clusters += *colored_clusters;
 
@@ -1122,7 +1124,6 @@ TabletopObjectsThread::loop()
   }
   else {
 
-    unsigned int new_num_of_objects = 0;
     for (centroid_i = 0; centroid_i < MAX_CENTROIDS; centroid_i++)
     {
       if (active_trackers[centroid_i]) {
@@ -1138,7 +1139,6 @@ TabletopObjectsThread::loop()
         std::vector<int>::const_iterator pit;
         boost::shared_ptr<std::vector<int>> indices = tracker_[centroid_i]->getIndices();
         if (indices->size() > 0) {
-          new_num_of_objects++;
           colored_clusters->points.resize(indices->size());
           unsigned int cci = 0;
           // TODO showing the cluster doesn't work (there are random points around the camera), this might be the wrong data
@@ -1152,12 +1152,12 @@ TabletopObjectsThread::loop()
             p1.g = cluster_colors[centroid_i][1];;
             p1.b = cluster_colors[centroid_i][2];;
           }
+          highest_obj_id = centroid_i;
         }
         else
           active_trackers[centroid_i] = false;
       }
     }
-    num_of_objects = new_num_of_objects;
     *tmp_clusters += *colored_clusters;
 //    if (num_of_objects == 0 || loop_count_ % 20 == 0) {
 //      logger->log_warn(name(), "rescanning");
@@ -1166,9 +1166,9 @@ TabletopObjectsThread::loop()
   }
   // save positions to blackboard
   for (unsigned int i = 0; i < MAX_CENTROIDS; ++i) {
-    set_position(pos_ifs_[i], i < centroid_i, centroids[i]);
+      set_position(pos_ifs_[i], active_trackers[i], centroids[i]);
   }
-  centroids.resize(centroid_i);
+  centroids.resize(highest_obj_id + 1);
 
   TIMETRACK_INTER(ttc_cluster_objects_, ttc_visualization_)
 
