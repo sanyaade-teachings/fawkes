@@ -76,3 +76,12 @@ perception/tabletop-objects:
   # Vertical viewing angle of the camera, used for frustrum, value is for Kinect; deg
   vertical_viewing_angle: 43.0
 
+  # Tracking: Maximum distance an object may move between two frames
+  tracking_maxdistance: 0.01
+
+  # Tracking: number of the particles
+  tracking_particle_number: 400
+
+  # Tracking: threshold to re-initialize the particles of the tracker
+  tracking_resample_likelihood: 0.00
+

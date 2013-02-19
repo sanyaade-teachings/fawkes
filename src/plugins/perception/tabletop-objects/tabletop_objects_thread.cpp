@@ -128,6 +128,9 @@ TabletopObjectsThread::init()
   cfg_cluster_min_size_      = config->get_uint(CFG_PREFIX"cluster_min_size");
   cfg_cluster_max_size_      = config->get_uint(CFG_PREFIX"cluster_max_size");
   cfg_result_frame_          = config->get_string(CFG_PREFIX"result_frame");
+  cfg_tracking_maxdistance_  = config->get_float(CFG_PREFIX"tracking_maxdistance");
+  cfg_tracking_particlenum_   = config->get_uint(CFG_PREFIX"tracking_particle_number");
+  cfg_tracking_resample_likelihood_ = config->get_float(CFG_PREFIX"tracking_resample_likelihood");
 
   finput_ = pcl_manager->get_pointcloud<PointType>("openni-pointcloud-xyz");
   input_ = pcl_utils::cloudptr_from_refptr(finput_);
@@ -234,8 +237,8 @@ TabletopObjectsThread::init()
       tracker->setInitialNoiseMean (default_initial_mean);
       tracker->setIterationNum (1);
 
-      tracker->setParticleNum (400);
-      tracker->setResampleLikelihoodThr(0.00);
+      tracker->setParticleNum (cfg_tracking_particlenum_);
+      tracker->setResampleLikelihoodThr(cfg_tracking_resample_likelihood_);
       tracker->setUseNormal (false);
       // setup coherences
       ApproxNearestPairPointCloudCoherence<RefPointType>::Ptr coherence = ApproxNearestPairPointCloudCoherence<RefPointType>::Ptr
@@ -255,7 +258,7 @@ TabletopObjectsThread::init()
       boost::shared_ptr<pcl::search::Octree<RefPointType> > search (new pcl::search::Octree<RefPointType> (0.01));
       //boost::shared_ptr<pcl::search::OrganizedNeighbor<RefPointType> > search (new pcl::search::OrganizedNeighbor<RefPointType>);
       coherence->setSearchMethod (search);
-      coherence->setMaximumDistance (0.01);
+      coherence->setMaximumDistance (cfg_tracking_maxdistance_);
       tracker->setCloudCoherence (coherence);
       tracker_[i] = tracker;
       active_trackers[i] = false;
