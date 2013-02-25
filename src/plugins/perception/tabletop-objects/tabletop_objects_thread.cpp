@@ -1123,7 +1123,8 @@ TabletopObjectsThread::loop()
 
   }
   else {
-
+    unsigned int cci = 0;
+    unsigned int size = 0;
     for (centroid_i = 0; centroid_i < MAX_CENTROIDS; centroid_i++)
     {
       if (active_trackers[centroid_i]) {
@@ -1134,35 +1135,28 @@ TabletopObjectsThread::loop()
         RefCloudPtr result_cloud (new RefCloud ());
         pcl::transformPointCloud<RefPointType> (*(tracker_[centroid_i]->getReferenceCloud ()), *result_cloud, transformation);
         pcl::compute3DCentroid<RefPointType>(*result_cloud, centroids[centroid_i]);
-//        logger->log_warn(name(), "centroid %d: %f %f %f", centroid_i, centroids[centroid_i][0], centroids[centroid_i][1], centroids[centroid_i][2]);
+        //        logger->log_warn(name(), "centroid %d: %f %f %f", centroid_i, centroids[centroid_i][0], centroids[centroid_i][1], centroids[centroid_i][2]);
 
-        std::vector<int>::const_iterator pit;
-        boost::shared_ptr<std::vector<int>> indices = tracker_[centroid_i]->getIndices();
-        if (indices->size() > 0) {
-          colored_clusters->points.resize(indices->size());
-          unsigned int cci = 0;
-          // TODO showing the cluster doesn't work (there are random points around the camera), this might be the wrong data
-          for (pit = indices->begin(); pit != indices->end(); ++pit) {
-            ColorPointType &p1 = colored_clusters->points[cci++];
-            PointType &p2 = cloud_objs_->points[*pit];
-            p1.x = p2.x;
-            p1.y = p2.y;
-            p1.z = p2.z;
-            p1.r = cluster_colors[centroid_i][0];
-            p1.g = cluster_colors[centroid_i][1];;
-            p1.b = cluster_colors[centroid_i][2];;
-          }
-          highest_obj_id = centroid_i;
+        size += result_cloud->size();
+        colored_clusters->points.resize(size);
+        Cloud::const_iterator pit;
+        for (pit = result_cloud->begin(); pit != result_cloud->end(); pit++) {
+          ColorPointType &p1 = colored_clusters->points[cci++];
+          PointType p2 = *pit;
+          p1.x = p2.x;
+          p1.y = p2.y;
+          p1.z = p2.z;
+          p1.r = cluster_colors[centroid_i][0];
+          p1.g = cluster_colors[centroid_i][1];;
+          p1.b = cluster_colors[centroid_i][2];;
         }
+        if (result_cloud->size() > 0)
+          highest_obj_id = centroid_i;
         else
           active_trackers[centroid_i] = false;
       }
     }
     *tmp_clusters += *colored_clusters;
-//    if (num_of_objects == 0 || loop_count_ % 20 == 0) {
-//      logger->log_warn(name(), "rescanning");
-//      first_run_ = true;
-//    }
   }
   // save positions to blackboard
   for (unsigned int i = 0; i < MAX_CENTROIDS; ++i) {
