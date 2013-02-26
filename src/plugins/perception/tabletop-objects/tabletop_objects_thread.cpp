@@ -1141,7 +1141,7 @@ TabletopObjectsThread::loop()
     for (centroid_i = 0; centroid_i < MAX_CENTROIDS; centroid_i++)
     {
       if (active_trackers[centroid_i]) {
-        tracker_[centroid_i]->setInputCloud(temp_cloud);
+        tracker_[centroid_i]->setInputCloud(cloud_objs_);
         tracker_[centroid_i]->compute();
         pcl::tracking::ParticleXYZRPY result = tracker_[centroid_i]->getResult ();
         Eigen::Affine3f transformation = tracker_[centroid_i]->toEigenMatrix (result);
