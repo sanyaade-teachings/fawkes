@@ -188,6 +188,12 @@ TabletopObjectsThread::init()
   pcl_manager->add_pointcloud("tabletop-table-model", ftable_model_);
   pcl_utils::set_time(ftable_model_, fawkes::Time(clock));
 
+  ftracking_cloud_ = new Cloud();
+  tracking_cloud_ = pcl_utils::cloudptr_from_refptr(ftracking_cloud_);
+  tracking_cloud_->header.frame_id = finput_->header.frame_id;
+  pcl_manager->add_pointcloud("tabletop-tracking-points", ftracking_cloud_);
+  pcl_utils::set_time(ftracking_cloud_, fawkes::Time(clock));
+
   fsimplified_polygon_ = new Cloud();
   simplified_polygon_ = pcl_utils::cloudptr_from_refptr(fsimplified_polygon_);
   simplified_polygon_->header.frame_id = finput_->header.frame_id;
@@ -299,6 +305,7 @@ TabletopObjectsThread::finalize()
   pcl_manager->remove_pointcloud("tabletop-object-clusters");
   pcl_manager->remove_pointcloud("tabletop-table-model");
   pcl_manager->remove_pointcloud("tabletop-simplified-polygon");
+  pcl_manager->remove_pointcloud("tabletop-tracking-points");
   
   blackboard->close(table_pos_if_);
   blackboard->close(switch_if_);
@@ -1048,7 +1055,12 @@ TabletopObjectsThread::loop()
     p2.g = table_color[1];
     p2.b = table_color[2];
   }
+
   TIMETRACK_INTER(ttc_table_to_output_, ttc_cluster_objects_)
+
+  CloudPtr tracking_cloud(new Cloud());
+  tracking_cloud->header.frame_id = input_->header.frame_id;
+
   if (first_run_) {
 		if (cloud_objs_->points.size() > 0) { // cloud_objs_ contains only points above the table
 		  // Creating the KdTree object for the search method of the extraction
@@ -1107,6 +1119,7 @@ TabletopObjectsThread::loop()
 		      tracker_[centroid_i]->setTrans (trans);
 		      tracker_[centroid_i]->setMinIndices (int (segmented_cloud_->size()) / 2);
 		      active_trackers[centroid_i] = true;
+		      *tracking_cloud += *segmented_cloud_;
 		    }
 		    first_run_ = false;
 		    if (centroid_i > 0)
@@ -1134,6 +1147,7 @@ TabletopObjectsThread::loop()
         Eigen::Affine3f transformation = tracker_[centroid_i]->toEigenMatrix (result);
         RefCloudPtr result_cloud (new RefCloud ());
         pcl::transformPointCloud<RefPointType> (*(tracker_[centroid_i]->getReferenceCloud ()), *result_cloud, transformation);
+        *tracking_cloud += *result_cloud;
         pcl::compute3DCentroid<RefPointType>(*result_cloud, centroids[centroid_i]);
         //        logger->log_warn(name(), "centroid %d: %f %f %f", centroid_i, centroids[centroid_i][0], centroids[centroid_i][1], centroids[centroid_i][2]);
 
@@ -1167,9 +1181,11 @@ TabletopObjectsThread::loop()
   TIMETRACK_INTER(ttc_cluster_objects_, ttc_visualization_)
 
   *clusters_ = *tmp_clusters;
+  *tracking_cloud_ = *tracking_cloud;
   pcl_utils::copy_time(finput_, fclusters_);
   pcl_utils::copy_time(finput_, ftable_model_);
   pcl_utils::copy_time(finput_, fsimplified_polygon_);
+  pcl_utils::copy_time(finput_, ftracking_cloud_);
 
 #ifdef HAVE_VISUAL_DEBUGGING
   if (visthread_) {
