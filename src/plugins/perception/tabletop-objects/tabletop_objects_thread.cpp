@@ -1141,12 +1141,19 @@ TabletopObjectsThread::loop()
     for (centroid_i = 0; centroid_i < MAX_CENTROIDS; centroid_i++)
     {
       if (active_trackers[centroid_i]) {
-        tracker_[centroid_i]->setInputCloud(cloud_objs_);
-        tracker_[centroid_i]->compute();
-        pcl::tracking::ParticleXYZRPY result = tracker_[centroid_i]->getResult ();
-        Eigen::Affine3f transformation = tracker_[centroid_i]->toEigenMatrix (result);
         RefCloudPtr result_cloud (new RefCloud ());
-        pcl::transformPointCloud<RefPointType> (*(tracker_[centroid_i]->getReferenceCloud ()), *result_cloud, transformation);
+        if (cloud_objs_ && !cloud_objs_->points.empty()) {
+//          if (!tracker_[centroid_i]->getReferenceCloud() || tracker_[centroid_i]->getReferenceCloud()->points.empty())
+//            logger->log_warn(name(), "tracker %u: Reference Cloud is empty", centroid_i);
+          tracker_[centroid_i]->setInputCloud(cloud_objs_);
+          tracker_[centroid_i]->compute();
+          pcl::tracking::ParticleXYZRPY result = tracker_[centroid_i]->getResult ();
+          Eigen::Affine3f transformation = tracker_[centroid_i]->toEigenMatrix (result);
+          pcl::transformPointCloud<RefPointType> (*(tracker_[centroid_i]->getReferenceCloud ()), *result_cloud, transformation);
+        } else {
+          logger->log_debug(name(), "cloud_objs_ is empty, don't track.");
+          *result_cloud = *tracker_[centroid_i]->getReferenceCloud();
+        }
         *tracking_cloud += *result_cloud;
         pcl::compute3DCentroid<RefPointType>(*result_cloud, centroids[centroid_i]);
         //        logger->log_warn(name(), "centroid %d: %f %f %f", centroid_i, centroids[centroid_i][0], centroids[centroid_i][1], centroids[centroid_i][2]);
