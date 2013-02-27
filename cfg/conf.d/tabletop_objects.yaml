@@ -80,7 +80,7 @@ perception/tabletop-objects:
   tracking_maxdistance: 0.01
 
   # Tracking: number of the particles
-  tracking_particle_number: 400
+  tracking_particle_number: 100
 
   # Tracking: threshold to re-initialize the particles of the tracker
   tracking_resample_likelihood: 0.00
