@@ -1117,7 +1117,7 @@ TabletopObjectsThread::loop()
 		      pcl::transformPointCloud(*segmented_cloud_, *transed_ref, trans.inverse());
 		      tracker_[centroid_i]->setReferenceCloud (transed_ref);
 		      tracker_[centroid_i]->setTrans (trans);
-		      tracker_[centroid_i]->setMinIndices (int (segmented_cloud_->size()) / 2);
+		      tracker_[centroid_i]->setMinIndices(static_cast<int> (segmented_cloud_->size() / 2));
 		      active_trackers[centroid_i] = true;
 		      *tracking_cloud += *segmented_cloud_;
 		    }
