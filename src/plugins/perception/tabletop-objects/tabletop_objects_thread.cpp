@@ -401,6 +401,7 @@ TabletopObjectsThread::loop()
   CloudPtr cloud_above_;
   CloudPtr cloud_objs_;
   ColorCloudPtr colored_clusters(new ColorCloud());
+  colored_clusters->header.frame_id = clusters_->header.frame_id;
   pcl::search::KdTree<PointType> kdtree_;
 
   grid_.setInputCloud(input_);
@@ -1065,9 +1066,7 @@ TabletopObjectsThread::loop()
 		if (cloud_objs_->points.size() > 0) { // cloud_objs_ contains only points above the table
 		  std::vector<pcl::PointIndices> cluster_indices = extract_object_clusters(cloud_objs_);
 
-		  colored_clusters->header.frame_id = clusters_->header.frame_id;
 		  std::vector<pcl::PointIndices>::const_iterator it;
-		  unsigned int cci = 0;
 		  //unsigned int i = 0;
 		  unsigned int num_points = 0;
 		  for (it = cluster_indices.begin(); it != cluster_indices.end(); ++it)
@@ -1083,17 +1082,8 @@ TabletopObjectsThread::loop()
 		      pcl::compute3DCentroid(*cloud_objs_, it->indices, centroids[centroid_i]);
 //		      logger->log_warn(name(), "centroid: %f %f %f", centroids[centroid_i][0], centroids[centroid_i][1], centroids[centroid_i][2]);
 
-		      std::vector<int>::const_iterator pit;
-		      for (pit = it->indices.begin(); pit != it->indices.end(); ++pit) {
-		        ColorPointType &p1 = colored_clusters->points[cci++];
-		        PointType &p2 = cloud_objs_->points[*pit];
-		        p1.x = p2.x;
-		        p1.y = p2.y;
-		        p1.z = p2.z;
-		        p1.r = cluster_colors[centroid_i][0];
-		        p1.g = cluster_colors[centroid_i][1];;
-		        p1.b = cluster_colors[centroid_i][2];;
-		      }
+		      *colored_clusters += colorize_cluster(*cloud_objs_, it->indices, centroid_i);
+
 		      CloudPtr segmented_cloud_(new Cloud());
 		      // TODO we are iterating over cluster_indices, why not just use it->indices here?
 		      extractSegmentCluster(cloud_objs_, cluster_indices, centroid_i, *segmented_cloud_);
@@ -1122,7 +1112,6 @@ TabletopObjectsThread::loop()
 
   }
   else {
-    unsigned int cci = 0;
     unsigned int size = 0;
     for (centroid_i = 0; centroid_i < MAX_CENTROIDS; centroid_i++)
     {
@@ -1153,17 +1142,8 @@ TabletopObjectsThread::loop()
 
         size += result_cloud->size();
         colored_clusters->points.resize(size);
-        Cloud::const_iterator pit;
-        for (pit = result_cloud->begin(); pit != result_cloud->end(); pit++) {
-          ColorPointType &p1 = colored_clusters->points[cci++];
-          PointType p2 = *pit;
-          p1.x = p2.x;
-          p1.y = p2.y;
-          p1.z = p2.z;
-          p1.r = cluster_colors[centroid_i][0];
-          p1.g = cluster_colors[centroid_i][1];;
-          p1.b = cluster_colors[centroid_i][2];;
-        }
+        *colored_clusters += colorize_cluster(*result_cloud, centroid_i);
+
         if (result_cloud->size() > 0)
           highest_obj_id = centroid_i;
         else
@@ -1251,6 +1231,33 @@ TabletopObjectsThread::extract_object_clusters(CloudConstPtr input) {
        //logger->log_debug(name(), "Found %zu clusters", cluster_indices.size());
 
        return cluster_indices;
+}
+
+TabletopObjectsThread::ColorCloud TabletopObjectsThread::colorize_cluster (
+    const Cloud &input_cloud,
+    const std::vector<int> &cluster,
+    uint color) {
+  return colorize_cluster(Cloud(input_cloud, cluster), color);
+}
+
+TabletopObjectsThread::ColorCloud TabletopObjectsThread::colorize_cluster (
+    const Cloud &input_cloud,
+    uint color) {
+  ColorCloud result;
+  result.resize(input_cloud.size());
+  Cloud::const_iterator pit;
+  uint i = 0;
+  for (pit = input_cloud.begin(); pit != input_cloud.end(); ++pit, ++i) {
+    ColorPointType &p1 = result.points[i];
+    const PointType &p2 = *pit;
+    p1.x = p2.x;
+    p1.y = p2.y;
+    p1.z = p2.z;
+    p1.r = cluster_colors[color][0];
+    p1.g = cluster_colors[color][1];
+    p1.b = cluster_colors[color][2];
+  }
+  return result;
 }
 
 void TabletopObjectsThread::extractSegmentCluster (const CloudConstPtr &cloud,
