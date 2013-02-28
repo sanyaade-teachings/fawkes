@@ -1146,7 +1146,14 @@ TabletopObjectsThread::loop()
 //          if (!tracker_[centroid_i]->getReferenceCloud() || tracker_[centroid_i]->getReferenceCloud()->points.empty())
 //            logger->log_warn(name(), "tracker %u: Reference Cloud is empty", centroid_i);
           tracker_[centroid_i]->setInputCloud(cloud_objs_);
+
+          // the coherences print errors if there are no points near the original position of the tracked object
+          // turn off PCL_ERRORs for the computation because this is expected behavior
+          // TODO find a proper way to prevent the coherences from reporting errors which are expected
+          pcl::console::VERBOSITY_LEVEL verbosity = pcl::console::getVerbosityLevel();
+          pcl::console::setVerbosityLevel(pcl::console::VERBOSITY_LEVEL::L_ALWAYS);
           tracker_[centroid_i]->compute();
+          pcl::console::setVerbosityLevel(verbosity);
           pcl::tracking::ParticleXYZRPY result = tracker_[centroid_i]->getResult ();
           Eigen::Affine3f transformation = tracker_[centroid_i]->toEigenMatrix (result);
           pcl::transformPointCloud<RefPointType> (*(tracker_[centroid_i]->getReferenceCloud ()), *result_cloud, transformation);
