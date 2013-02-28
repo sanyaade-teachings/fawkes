@@ -1063,21 +1063,7 @@ TabletopObjectsThread::loop()
 
   if (first_run_) {
 		if (cloud_objs_->points.size() > 0) { // cloud_objs_ contains only points above the table
-		  // Creating the KdTree object for the search method of the extraction
-		  pcl::search::KdTree<PointType>::Ptr
-		  kdtree_cl(new pcl::search::KdTree<PointType>());
-		  kdtree_cl->setInputCloud(cloud_objs_);
-
-		  std::vector<pcl::PointIndices> cluster_indices;
-		  pcl::EuclideanClusterExtraction<PointType> ec;
-		  ec.setClusterTolerance(cfg_cluster_tolerance_);
-		  ec.setMinClusterSize(cfg_cluster_min_size_);
-		  ec.setMaxClusterSize(cfg_cluster_max_size_);
-		  ec.setSearchMethod(kdtree_cl);
-		  ec.setInputCloud(cloud_objs_);
-		  ec.extract(cluster_indices);
-
-		  //logger->log_debug(name(), "Found %zu clusters", cluster_indices.size());
+		  std::vector<pcl::PointIndices> cluster_indices = extract_object_clusters(cloud_objs_);
 
 		  colored_clusters->header.frame_id = clusters_->header.frame_id;
 		  std::vector<pcl::PointIndices>::const_iterator it;
@@ -1244,6 +1230,27 @@ TabletopObjectsThread::loop()
     tt_->print_to_stdout();
   }
 #endif
+}
+
+std::vector<pcl::PointIndices>
+TabletopObjectsThread::extract_object_clusters(CloudConstPtr input) {
+  // Creating the KdTree object for the search method of the extraction
+       pcl::search::KdTree<PointType>::Ptr
+       kdtree_cl(new pcl::search::KdTree<PointType>());
+       kdtree_cl->setInputCloud(input);
+
+       std::vector<pcl::PointIndices> cluster_indices;
+       pcl::EuclideanClusterExtraction<PointType> ec;
+       ec.setClusterTolerance(cfg_cluster_tolerance_);
+       ec.setMinClusterSize(cfg_cluster_min_size_);
+       ec.setMaxClusterSize(cfg_cluster_max_size_);
+       ec.setSearchMethod(kdtree_cl);
+       ec.setInputCloud(input);
+       ec.extract(cluster_indices);
+
+       //logger->log_debug(name(), "Found %zu clusters", cluster_indices.size());
+
+       return cluster_indices;
 }
 
 void TabletopObjectsThread::extractSegmentCluster (const CloudConstPtr &cloud,

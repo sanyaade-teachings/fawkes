@@ -117,6 +117,9 @@ class TabletopObjectsThread
                               const int segment_index,
                               Cloud &result);
 
+  std::vector<pcl::PointIndices> extract_object_clusters(CloudConstPtr input);
+
+
  /** Stub to see name in backtrace for easier debugging. @see Thread::run() */
  protected: virtual void run() { Thread::run(); }
 
