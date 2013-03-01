@@ -24,6 +24,7 @@
 #include <config/sqlite.h>
 #include <core/threading/mutex.h>
 #include <core/exceptions/system.h>
+#include <core/exceptions/software.h>
 
 #include <sqlite3.h>
 
@@ -43,7 +44,6 @@ namespace fawkes {
 
 #define TABLE_HOST_CONFIG "config"
 #define TABLE_DEFAULT_CONFIG "defaults.config"
-#define TABLE_HOST_TAGGED "tagged_config"
 
 #define SQL_CREATE_TABLE_HOST_CONFIG					\
   "CREATE TABLE IF NOT EXISTS config (\n"				\
@@ -61,16 +61,6 @@ namespace fawkes {
   "  value     NOT NULL,\n"						\
   "  comment   TEXT,\n"							\
   "  PRIMARY KEY (path)\n"						\
-  ")"
-
-#define SQL_CREATE_TABLE_TAGGED_CONFIG					\
-  "CREATE TABLE IF NOT EXISTS tagged_config (\n"			\
-  "  tag       TEXT NOT NULL,\n"					\
-  "  path      TEXT NOT NULL,\n"					\
-  "  type      TEXT NOT NULL,\n"					\
-  "  value     NOT NULL,\n"						\
-  "  comment   TEXT,\n"							\
-  "  PRIMARY KEY (tag, path)\n"						\
   ")"
 
 #define SQL_CREATE_TABLE_MODIFIED_CONFIG				\
@@ -139,14 +129,6 @@ namespace fawkes {
 
 #define SQL_INSERT_DEFAULT_VALUE					\
   "INSERT INTO defaults.config (path, type, value) VALUES (?, ?, ?)"
-
-#define SQL_SELECT_TAGS							\
-  "SELECT tag FROM tagged_config GROUP BY tag"
-
-#define SQL_INSERT_TAG							\
-  "INSERT INTO tagged_config "						\
-  "(tag, path, type, value, comment) "					\
-  "SELECT \"%s\",* FROM config"
 
 #define SQL_SELECT_ALL							\
   "SELECT *, 0 AS is_default FROM config UNION "			\
@@ -285,13 +267,10 @@ SQLiteConfiguration::~SQLiteConfiguration()
 
 /** Initialize the configuration database(s).
  * Initialize databases. If the host-specific database already exists
- * an exception is thrown. You have to delete it before calling init().
- * First the host-specific database is created. It will contain two tables,
- * on is named 'config' and the other one is named 'tagged'. The 'config'
- * table will hold the current configuration for this machine. The 'tagged'
- * table contains the same fields as config with an additional "tag" field.
- * To tag a given revision of the config you give it a name, copy all values
- * over to the 'tagged' table with "tag" set to the desired name.
+ * an exception is thrown. You have to delete it before calling
+ * init().  First the host-specific database is created. It will
+ * contain one table, named 'config'. The 'config' table will hold the
+ * current configuration for this machine.
  *
  * The 'config' table is created with the following schema:
  * @code
@@ -316,18 +295,6 @@ SQLiteConfiguration::~SQLiteConfiguration()
  * )
  * @endcode
  *
- * After this the 'tagged' table is created with the following schema:
- * @code
- * CREATE TABLE IF NOT EXISTS tagged_config (
- *   tag       TEXT NOT NULL,
- *   path      TEXT NOT NULL,
- *   type      TEXT NOT NULL,
- *   value     NOT NULL,
- *   comment   TEXT
- *   PRIMARY KEY (tag, path)
- * )
- * @endcode
- *
  * If no default database exists it is created. The database is kept in a file
  * called default.db. It contains a single table called 'config' with the same
  * structure as the 'config' table in the host-specific database.
@@ -337,8 +304,7 @@ SQLiteConfiguration::init_dbs()
 {
   char *errmsg;
   if ( (sqlite3_exec(db, SQL_CREATE_TABLE_HOST_CONFIG, NULL, NULL, &errmsg) != SQLITE_OK) ||
-       (sqlite3_exec(db, SQL_CREATE_TABLE_DEFAULT_CONFIG, NULL, NULL, &errmsg) != SQLITE_OK) ||
-       (sqlite3_exec(db, SQL_CREATE_TABLE_TAGGED_CONFIG, NULL, NULL, &errmsg) != SQLITE_OK) ) {
+       (sqlite3_exec(db, SQL_CREATE_TABLE_DEFAULT_CONFIG, NULL, NULL, &errmsg) != SQLITE_OK) ) {
     CouldNotOpenConfigException ce(sqlite3_errmsg(db));
     sqlite3_close(db);
     throw ce;
@@ -608,8 +574,7 @@ SQLiteConfiguration::attach_default(const char *db_file)
 
 
 void
-SQLiteConfiguration::load(const char *name, const char *defaults_name,
-			  const char *tag)
+SQLiteConfiguration::load(const char *file_path)
 {
   mutex->lock();
 
@@ -621,34 +586,23 @@ SQLiteConfiguration::load(const char *name, const char *defaults_name,
   const char *try_paths[] = {__sysconfdir, __userconfdir};
   int try_paths_len = 2;
 
-  char *host_name;
+  char *host_name = NULL;
 
-  if (name == NULL) {
+  if (strcmp(file_path, ":memory:") == 0) {
+    __host_file = strdup(":memory:");
+
+    if (sqlite3_open(file_path, &db) != SQLITE_OK) {
+      CouldNotOpenConfigException ce(sqlite3_errmsg(db));
+      ce.append("Failed to open memory database");
+      throw ce;
+    }
+  } else {
     HostInfo hostinfo;
     if ( asprintf(&host_name, "%s.db", hostinfo.short_name()) == -1 ) {
       host_name = strdup(hostinfo.short_name());
     }
-  } else {
-    host_name = strdup(name);
-  }
 
-  // determine host file
-  if (strcmp(host_name, ":memory:") == 0) {
-    if (sqlite3_open(host_name, &db) != SQLITE_OK) {
-      CouldNotOpenConfigException ce(sqlite3_errmsg(db));
-      ce.append("Failed to open host db (memory)");
-      throw ce;
-    }
-  } else if (host_name[0] == '/') {
-    // absolute path, take as is
-    if (sqlite3_open(host_name, &db) == SQLITE_OK) {
-      __host_file = strdup(host_name);
-    } else {
-      CouldNotOpenConfigException ce(sqlite3_errmsg(db));
-      ce.append("Failed to open host db (absolute)");
-      throw ce;
-    }
-  } else {
+    // determine host file
     // try sysconfdir and userconfdir
     for (int i = 0; i < try_paths_len; ++i) {
       char *path;
@@ -661,36 +615,37 @@ SQLiteConfiguration::load(const char *name, const char *defaults_name,
 	}
       }
     }
-    if (__host_file == NULL) {
-      CouldNotOpenConfigException ce(sqlite3_errmsg(db));
-      ce.append("Failed to open host db (paths)");
-      free(host_name);
-      throw ce;
-    }
   }
 
-  if (defaults_name == NULL) {
-    defaults_name = "default.sql";
+  if (__host_file == NULL) {
+    CouldNotOpenConfigException ce(sqlite3_errmsg(db));
+    ce.append("Failed to open host db (paths)");
+    if (host_name) free(host_name);
+    throw ce;
+  }
+
+  if (file_path == NULL) {
+    file_path = "default.sql";
   }
 
   // determine default file
-  if (strcmp(defaults_name, ":memory:") == 0) {
+  if (strcmp(file_path, ":memory:") == 0) {
     try {
       attach_default(":memory:");
     } catch (...) {
-      free(host_name);
+      if (host_name)  free(host_name);
       throw;
     }
     __default_file = strdup(":memory:");
   } else {
-    if (defaults_name[0] == '/') {
+    if (file_path[0] == '/') {
       // absolute path, take as is
-      __default_sql = strdup(defaults_name);
+      __default_sql = strdup(file_path);
     } else {
       // try sysconfdir and userconfdir
       for (int i = 0; i < try_paths_len; ++i) {
 	char *path;
-	if (asprintf(&path, "%s/%s", try_paths[i], defaults_name) != -1) {
+	if (asprintf(&path, "%s/%s", try_paths[i], file_path) != -1) {
 	  if (access(path, F_OK | R_OK) == 0) {
 	    __default_sql = path;
 	    break;
@@ -705,14 +660,14 @@ SQLiteConfiguration::load(const char *name, const char *defaults_name,
 
     // generate filename
     char *defaults_db;
-    size_t len = strlen(defaults_name);
-    if (fnmatch("*.sql", defaults_name, FNM_PATHNAME) == 0) {
+    size_t len = strlen(file_path);
+    if (fnmatch("*.sql", file_path, FNM_PATHNAME) == 0) {
       defaults_db = (char *)calloc(1, len); // yes, that's one byte less!
-      strncpy(defaults_db, defaults_name, len - 3);
+      strncpy(defaults_db, file_path, len - 3);
       strcat(defaults_db, "db");
     } else {
       defaults_db = (char *)calloc(1, len + 4);
-      strcpy(defaults_db, defaults_name);
+      strcpy(defaults_db, file_path);
       strcat(defaults_db, ".db");
     }
 
@@ -721,7 +676,7 @@ SQLiteConfiguration::load(const char *name, const char *defaults_name,
 	attach_default(defaults_db);
 	__default_file = defaults_db;
       } catch (...) {
-	free(host_name);
+	if (host_name)  free(host_name);
 	free(defaults_db);
 	throw;
       }
@@ -743,7 +698,7 @@ SQLiteConfiguration::load(const char *name, const char *defaults_name,
     free(defaults_db);
 
     if (__default_file == NULL) {
-      free(host_name);
+      if (host_name)  free(host_name);
       throw CouldNotOpenConfigException("Could not create default filename");
     }
   }
@@ -751,23 +706,11 @@ SQLiteConfiguration::load(const char *name, const char *defaults_name,
   init_dbs();
 
   if ( __default_sql )  import_default(__default_sql);
-  free(host_name);
+  if (host_name)  free(host_name);
 
   opened = true;
 
   mutex->unlock();
-}
-
-
-/** Load config from default files.
- * Default file is "shorthostname.db" (shorthostname replaced by the
- * short host name returned by uname) and default.db).
- * @param tag optional tag to restore
- */
-void
-SQLiteConfiguration::load(const char *tag)
-{
-  load(NULL, NULL, tag);
 }
 
 
@@ -801,56 +744,6 @@ SQLiteConfiguration::copy(Configuration *copyconf)
   delete i;
   transaction_commit();
   copyconf->unlock();
-}
-
-
-/** Tag this configuration version.
- * This creates a new tagged version of the current config. The tagged config can be
- * accessed via load().
- * @param tag tag for this version
- */
-void
-SQLiteConfiguration::tag(const char *tag)
-{
-  char *insert_sql;
-  char *errmsg;
-
-  mutex->lock();
-
-  if ( asprintf(&insert_sql, SQL_INSERT_TAG, tag) == -1 ) {
-    mutex->unlock();
-    throw ConfigurationException("Could not create insert statement for tagging");
-  }
-
-  if (sqlite3_exec(db, insert_sql, NULL, NULL, &errmsg) != SQLITE_OK) {
-    ConfigurationException ce("Could not insert tag", sqlite3_errmsg(db));
-    free(insert_sql);
-    mutex->unlock();
-    throw ce;
-  }
-
-  free(insert_sql);
-  mutex->unlock();
-}
-
-
-std::list<std::string>
-SQLiteConfiguration::tags()
-{
-  mutex->lock();
-  std::list<std::string> l;
-  sqlite3_stmt *stmt;
-  const char   *tail;
-  if ( sqlite3_prepare(db, SQL_SELECT_TAGS, -1, &stmt, &tail) != SQLITE_OK ) {
-    mutex->unlock();
-    throw ConfigurationException("get_type: Preparation SQL failed");
-  }
-  while ( sqlite3_step(stmt) == SQLITE_ROW ) {
-    l.push_back((char *)sqlite3_column_text(stmt, 0));
-  }
-  sqlite3_finalize(stmt);
-  mutex->unlock();
-  return l;
 }
 
 
@@ -1008,6 +901,13 @@ bool
 SQLiteConfiguration::is_string(const char *path)
 {
   return (get_type(path) == "string");
+}
+
+
+bool
+SQLiteConfiguration::is_list(const char *path)
+{
+  return false;
 }
 
 
@@ -1178,6 +1078,40 @@ SQLiteConfiguration::get_string(const char *path)
     mutex->unlock();
     throw;
   }
+}
+
+
+
+std::vector<float>
+SQLiteConfiguration::get_floats(const char *path)
+{
+  throw NotImplementedException("SQLiteConf: list values are not supported");
+}
+
+
+std::vector<unsigned int>
+SQLiteConfiguration::get_uints(const char *path)
+{
+  throw NotImplementedException("SQLiteConf: list values are not supported");
+}
+
+
+std::vector<int>
+SQLiteConfiguration::get_ints(const char *path)
+{
+  throw NotImplementedException("SQLiteConf: list values are not supported");
+}
+
+std::vector<bool>
+SQLiteConfiguration::get_bools(const char *path)
+{
+  throw NotImplementedException("SQLiteConf: list values are not supported");
+}
+
+std::vector<std::string>
+SQLiteConfiguration::get_strings(const char *path)
+{
+  throw NotImplementedException("SQLiteConf: list values are not supported");
 }
 
 
@@ -1506,6 +1440,42 @@ SQLiteConfiguration::set_string(const char *path, std::string &s)
   set_string(path, s.c_str());
 }
 
+
+void
+SQLiteConfiguration::set_floats(const char *path, std::vector<float> &f)
+{
+  throw NotImplementedException("SQLiteConf: list values are not supported");
+}
+
+void
+SQLiteConfiguration::set_uints(const char *path, std::vector<unsigned int> &u)
+{
+  throw NotImplementedException("SQLiteConf: list values are not supported");
+}
+
+void
+SQLiteConfiguration::set_ints(const char *path, std::vector<int> &i)
+{
+  throw NotImplementedException("SQLiteConf: list values are not supported");
+}
+
+void
+SQLiteConfiguration::set_bools(const char *path, std::vector<bool> &b)
+{
+  throw NotImplementedException("SQLiteConf: list values are not supported");
+}
+
+void
+SQLiteConfiguration::set_strings(const char *path, std::vector<std::string> &s)
+{
+  throw NotImplementedException("SQLiteConf: list values are not supported");
+}
+
+void
+SQLiteConfiguration::set_strings(const char *path, std::vector<const char *> &s)
+{
+  throw NotImplementedException("SQLiteConf: list values are not supported");
+}
 
 void
 SQLiteConfiguration::set_comment(const char *path, const char *comment)
@@ -1944,6 +1914,13 @@ SQLiteConfiguration::iterator()
 }
 
 
+/** Iterator for all default values.
+ * Returns an iterator that can be used to iterate over all default values in
+ * the current default configuration. Note that this might return less paths than
+ * available, because the values for which no default entry exists are not
+ * returned.
+ * @return iterator over all default values
+ */
 Configuration::ValueIterator *
 SQLiteConfiguration::iterator_default()
 {
@@ -1957,6 +1934,13 @@ SQLiteConfiguration::iterator_default()
   return new SQLiteValueIterator(stmt);
 }
 
+/** Iterator for all host-specific values.
+ * Returns an iterator that can be used to iterate over all host-specific values
+ * in the current configuration. Note that this might return less paths than
+ * available, because the default values for which no host-specific entry exists
+ * are not returned.
+ * @return iterator over all host-specific values
+ */
 Configuration::ValueIterator *
 SQLiteConfiguration::iterator_hostspecific()
 {
@@ -2107,9 +2091,6 @@ SQLiteConfiguration::SQLiteValueIterator::type() const
 }
 
 
-/** Check if current value is a float.
- * @return true, if value is a float, false otherwise
- */
 bool
 SQLiteConfiguration::SQLiteValueIterator::is_float() const
 {
@@ -2117,18 +2098,12 @@ SQLiteConfiguration::SQLiteValueIterator::is_float() const
 }
 
 
-/** Check if current value is a unsigned int.
- * @return true, if value is a unsigned int, false otherwise
- */
 bool
 SQLiteConfiguration::SQLiteValueIterator::is_uint() const
 {
   return (strcmp("unsigned int", (const char *)sqlite3_column_text(__stmt, 1)) == 0);
 }
 
-/** Check if current value is a int.
- * @return true, if value is a int, false otherwise
- */
 bool
 SQLiteConfiguration::SQLiteValueIterator::is_int() const
 {
@@ -2136,9 +2111,6 @@ SQLiteConfiguration::SQLiteValueIterator::is_int() const
 }
 
 
-/** Check if current value is a bool.
- * @return true, if value is a bool, false otherwise
- */
 bool
 SQLiteConfiguration::SQLiteValueIterator::is_bool() const
 {
@@ -2146,13 +2118,23 @@ SQLiteConfiguration::SQLiteValueIterator::is_bool() const
 }
 
 
-/** Check if current value is a string.
- * @return true, if value is a string, false otherwise
- */
 bool
 SQLiteConfiguration::SQLiteValueIterator::is_string() const
 {
   return (strcmp("string", (const char *)sqlite3_column_text(__stmt, 1)) == 0);
+}
+
+bool
+SQLiteConfiguration::SQLiteValueIterator::is_list() const
+{
+  return false;
+}
+
+
+size_t
+SQLiteConfiguration::SQLiteValueIterator::get_list_size() const
+{
+  return 0;
 }
 
 bool
@@ -2214,6 +2196,36 @@ SQLiteConfiguration::SQLiteValueIterator::get_string() const
   return (const char *)sqlite3_column_text(__stmt, 2);
 }
 
+
+std::vector<float>
+SQLiteConfiguration::SQLiteValueIterator::get_floats() const
+{
+  throw NotImplementedException("SQLiteConf: list values are not supported");
+}
+
+std::vector<unsigned int>
+SQLiteConfiguration::SQLiteValueIterator::get_uints() const
+{
+  throw NotImplementedException("SQLiteConf: list values are not supported");
+}
+
+std::vector<int>
+SQLiteConfiguration::SQLiteValueIterator::get_ints() const
+{
+  throw NotImplementedException("SQLiteConf: list values are not supported");
+}
+
+std::vector<bool>
+SQLiteConfiguration::SQLiteValueIterator::get_bools() const
+{
+  throw NotImplementedException("SQLiteConf: list values are not supported");
+}
+
+std::vector<std::string>
+SQLiteConfiguration::SQLiteValueIterator::get_strings() const
+{
+  throw NotImplementedException("SQLiteConf: list values are not supported");
+}
 
 /** Get value as string.
  * @return value

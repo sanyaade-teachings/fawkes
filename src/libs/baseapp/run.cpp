@@ -30,6 +30,7 @@
 
 #include <blackboard/local.h>
 #include <config/sqlite.h>
+#include <config/yaml.h>
 #include <config/net_handler.h>
 #include <utils/ipc/shm.h>
 #include <utils/system/argparser.h>
@@ -54,6 +55,7 @@
 #include <cstring>
 #include <unistd.h>
 #include <signal.h>
+#include <fnmatch.h>
 
 namespace fawkes {
   namespace runtime {
@@ -67,7 +69,7 @@ FawkesMainThread          * main_thread = NULL;
 MultiLogger               * logger = NULL;
 NetworkLogger             * network_logger = NULL;
 BlackBoard                * blackboard = NULL;
-SQLiteConfiguration       * config = NULL;
+Configuration             * config = NULL;
 PluginManager             * plugin_manager = NULL;
 AspectManager             * aspect_manager = NULL;
 ThreadManager             * thread_manager = NULL;
@@ -144,7 +146,24 @@ init(InitOptions options)
 
   // *** setup base thread and shm registry
   Thread::init_main();
-  shm_registry = new SharedMemoryRegistry(true);
+
+  shm_registry = NULL;
+  struct passwd *uid_pw = getpwuid(getuid());
+  if (uid_pw == NULL) {
+    shm_registry = new SharedMemoryRegistry();
+  } else {
+    char *registry_name;
+    if (asprintf(&registry_name, USER_SHM_NAME, uid_pw->pw_name) == -1) {
+      shm_registry = new SharedMemoryRegistry();
+    } else {
+      shm_registry = new SharedMemoryRegistry(registry_name);
+      free(registry_name);
+    }
+  }
+
+  if (! shm_registry) {
+    throw Exception("Failed to create shared memory registry");
+  }
 
   // *** setup logging
   if (options.has_loggers()) {
@@ -177,30 +196,42 @@ init(InitOptions options)
   }
 
   // *** setup config
-  config = new SQLiteConfiguration(CONFDIR);
+  
+  SQLiteConfiguration *sqconfig = NULL;
 
-  config->load(options.host_config(), options.default_config());
+  if (options.config_file() &&
+      fnmatch("*.sql", options.config_file(), FNM_PATHNAME) == 0)
+  {
+    sqconfig = new SQLiteConfiguration(CONFDIR);
+    config = sqconfig;
+  } else {
+    config = new YamlConfiguration(CONFDIR);
+  }
 
-  try {
-    SQLiteConfiguration::SQLiteValueIterator *i = config->modified_iterator();
-    while (i->next()) {
-      std::string modtype = i->get_modtype();
-      if (modtype == "changed") {
-	logger->log_warn("FawkesMainThread", "Default config value CHANGED: %s"
-			 "(was: %s now: %s)", i->path(),
-			 i->get_oldvalue().c_str(), i->get_as_string().c_str());
-      } else if (modtype == "erased") {
-	logger->log_warn("FawkesMainThread", "Default config value ERASED:  %s",
-			 i->path());
-      } else {
-	logger->log_debug("FawkesMainThread", "Default config value ADDED:   %s "
-			  "(value: %s)", i->path(), i->get_as_string().c_str());
+  config->load(options.config_file());
+
+  if (sqconfig) {
+    try {
+      SQLiteConfiguration::SQLiteValueIterator *i = sqconfig->modified_iterator();
+      while (i->next()) {
+	std::string modtype = i->get_modtype();
+	if (modtype == "changed") {
+	  logger->log_warn("FawkesMainThread", "Default config value CHANGED: %s"
+			   "(was: %s now: %s)", i->path(),
+			   i->get_oldvalue().c_str(), i->get_as_string().c_str());
+	} else if (modtype == "erased") {
+	  logger->log_warn("FawkesMainThread", "Default config value ERASED:  %s",
+			   i->path());
+	} else {
+	  logger->log_debug("FawkesMainThread", "Default config value ADDED:   %s "
+			    "(value: %s)", i->path(), i->get_as_string().c_str());
+	}
       }
+      delete i;
+    } catch (Exception &e) {
+      logger->log_warn("FawkesMainThread", "Failed to read modified default "
+		       "config values, no dump?");
     }
-    delete i;
-  } catch (Exception &e) {
-    logger->log_warn("FawkesMainThread", "Failed to read modified default "
-		     "config values, no dump?");
   }
 
 
@@ -415,10 +446,9 @@ print_usage(const char *progname)
 	 "where [options] is one or more of:\n"
          " -h                       These help instructions\n"
          " -C                       Cleanup old BB and shared memory segments\n"
-         " -c db-file               Mutable configuration file, created if it "
-	 "does not\n                          "
-	 "exist, if it does must contain valid SQLite database\n"
-         " -d sql-file              Default configuration SQL dump file.\n"
+         " -c config file           Configuration file to load.\n"
+	 "                          Examples: default.sql or config.yaml\n"
+         " -d                       Enable debug output\n"
          " -q[qqq]                  Quiet mode, -q omits debug, -qq debug and"
 	 "info,\n                          "
 	 "-qqq omit debug, info and warn, -qqqq no output\n"

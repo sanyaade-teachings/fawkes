@@ -26,7 +26,7 @@
 #ifndef __UTILS_GRAPH_RCSOFT_MAP_GRAPH_H_
 #define __UTILS_GRAPH_RCSOFT_MAP_GRAPH_H_
 
-#include "rcsoft_map_node.h"
+#include <utils/graph/topological_map_graph.h>
 
 namespace xmlpp {
   class DomParser;
@@ -38,36 +38,7 @@ namespace fawkes {
 }
 #endif
 
-class RCSoftMapGraph
-{
- public:
-  RCSoftMapGraph(std::string filename);
-  ~RCSoftMapGraph();
-  
-  std::string                         graph_name();
-  std::vector<fawkes::RCSoftMapNode>  nodes();
-  fawkes::RCSoftMapNode               node(std::string name_or_alias);
-  fawkes::RCSoftMapNode               root_node();
-
-  fawkes::RCSoftMapNode               closest_node(float pos_x, float pos_y,
-						   std::string property);
-
-  std::vector<fawkes::RCSoftMapNode>  search_nodes(std::string property);
-
- private:
-  void            parse_graph();
-  std::string     get_node_text(xmlpp::Node *root, std::string subnode = "");
-  float           get_node_float(xmlpp::Node *root, std::string subnode = "");
-  RCSoftMapNode   get_node(xmlpp::Node *node);
-
- private:
-  xmlpp::DomParser *__dom;
-  xmlpp::Node      *__root;
-
-  fawkes::RCSoftMapNode __root_node;
-  std::string  __graph_name;
-  std::vector<fawkes::RCSoftMapNode> __nodes;
-};
+extern TopologicalMapGraph *  load_rcsoft_graph(std::string filename);
 
 } // end of namespace fawkes
 

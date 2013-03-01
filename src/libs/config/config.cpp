@@ -37,25 +37,12 @@ namespace fawkes {
  * @fn Configuration::~Configuration()
  * Virtual empty destructor.
  *
- * @fn void Configuration::load(const char *name, const char *defaults_name, const char *tag)
+ * @fn void Configuration::load(const char *file_path)
  * Load configuration.
  * Loads configuration data, or opens a file, depending on the implementation. After
  * this call access to all other methods shall be possible.
- * @param name name of the host-based configuration. If this does not exist it shall
- * be created from the default configuration. The name depends on the implementation and
- * could be a filename.
- * @param defaults_name name of the default database. As for the name this depends on
- * the actual implementation.
- * @param tag this optional parameter can denote a specific config version to load. This
- * will cause the host-specific database to be flushed and filled with the values for
- * the given tag. All values that did not exist for the tag are copied over from the
- * default database.
+ * @param file_path path of the configuration file.
  * 
- * @fn void Configuration::tag(const char *tag)
- * Tag this configuration version.
- * This creates a new tagged version of the current config. The tagged config can be
- * accessed via load().
- * @param tag tag for this version
  *
  * @fn void Configuration::copy(Configuration *copyconf)
  * Copy all values from the given configuration.
@@ -64,10 +51,6 @@ namespace fawkes {
  * created, but values existent in current config but not in the copie config
  * will remain unchanged.
  * @param copyconf configuration to copy
- * 
- * @fn std::list<std::string> Configuration::tags()
- * List of tags.
- * @return list of tags
  * 
  * @fn bool Configuration::exists(const char *path)
  * Check if a given value exists.
@@ -98,6 +81,11 @@ namespace fawkes {
  * Check if a value is of type string
  * @param path path to value
  * @return true if the value exists and is of type string
+ *
+ * @fn bool Configuration::is_list(const char *path)
+ * Check if a value is a list.
+ * @param path path to value
+ * @return true if the value exists and is a list
  * 
  * @fn bool Configuration::is_default(const char *path)
  * Check if a value was read from the default config.
@@ -126,6 +114,31 @@ namespace fawkes {
  * 
  * @fn std::string Configuration::get_string(const char *path)
  * Get value from configuration which is of type string
+ * @param path path to value
+ * @return value
+ *
+ * @fn std::vector<float> Configuration::get_floats(const char *path)
+ * Get list of values from configuration which is of type float
+ * @param path path to value
+ * @return value
+ * 
+ * @fn std::vector<unsigned int> Configuration::get_uints(const char *path)
+ * Get list of values from configuration which is of type unsigned int
+ * @param path path to value
+ * @return value
+ * 
+ * @fn std::vector<int> Configuration::get_ints(const char *path)
+ * Get list of values from configuration which is of type int
+ * @param path path to value
+ * @return value
+ * 
+ * @fn std::vector<bool> Configuration::get_bools(const char *path)
+ * Get list of values from configuration which is of type bool
+ * @param path path to value
+ * @return value
+ * 
+ * @fn std::vector<std::string> Configuration::get_strings(const char *path)
+ * Get list of values from configuration which is of type string
  * @param path path to value
  * @return value
  *
@@ -190,6 +203,38 @@ namespace fawkes {
  * Just takes an good ol' char array instead of a std::string.
  * @param path path to value
  * @param s new string value
+ *
+ * @fn void Configuration::set_floats(const char *path, std::vector<float> &f)
+ * Set new value in configuration of type float
+ * @param path path to value
+ * @param f new float values
+ * 
+ * @fn void Configuration::set_uints(const char *path, std::vector<unsigned int> &uint)
+ * Set new value in configuration of type unsigned int
+ * @param path path to value
+ * @param uint new unsigned int values
+ * 
+ * @fn void Configuration::set_ints(const char *path, std::vector<int> &i)
+ * Set new value in configuration of type int
+ * @param path path to value
+ * @param i new int values
+ * 
+ * @fn void Configuration::set_bools(const char *path, std::vector<bool> &b)
+ * Set new value in configuration of type bool
+ * @param path path to value
+ * @param b new bool values
+ * 
+ * @fn void Configuration::set_strings(const char *path, std::vector<std::string> &s)
+ * Set new value in configuration of type string
+ * @param path path to value
+ * @param s new string values
+ *
+ * @fn void Configuration::set_strings(const char *path, std::vector<const char *> &s)
+ * Set new value in configuration of type string. Works like the aforementioned method.
+ * Just takes an good ol' char array instead of a std::string.
+ * @param path path to value
+ * @param s new string values
+
  *
  * @fn void Configuration::set_comment(const char *path, std::string &comment)
  * Set new comment for existing value.
@@ -262,22 +307,6 @@ namespace fawkes {
  * exists you will only see the host-specific value.
  * @return iterator over all values
  *
- * @fn Configuration::ValueIterator * Configuration::iterator_default()
- * Iterator for all default values.
- * Returns an iterator that can be used to iterate over all default values in
- * the current default configuration. Note that this might return less paths than
- * available, because the values for which no default entry exists are not
- * returned.
- * @return iterator over all default values
- *
- * @fn Configuration::ValueIterator * Configuration::iterator_hostspecific()
- * Iterator for all host-specific values.
- * Returns an iterator that can be used to iterate over all host-specific values
- * in the current configuration. Note that this might return less paths than
- * available, because the default values for which no host-specific entry exists
- * are not returned.
- * @return iterator over all host-specific values
- *
  * @fn Configuration::ValueIterator * Configuration::search(const char *path)
  * Iterator with search results.
  * Returns an iterator that can be used to iterate over the search results. All values
@@ -303,6 +332,13 @@ namespace fawkes {
  * @fn void Configuration::unlock()
  * Unlock the config.
  * Modifications and queries are possible again.
+ *
+ * @fn void Configuration::try_dump()
+ * Try to dump configuration.
+ * For configuration methods that transform configuration files in a binary
+ * format this can be used to write out the text representation on shutdown
+ * of Fawkes.
+ * @exception Exception thrown if dumping fails
  *
  */
 
@@ -434,6 +470,15 @@ CouldNotOpenConfigException::CouldNotOpenConfigException(const char *format, ...
  * Check if current value is a string.
  * @return true, if value is a string, false otherwise
  *
+ * @fn bool Configuration::ValueIterator::is_list() const
+ * Check if a value is a list.
+ * @return true if the value exists and is a list
+ *
+ * @fn size_t Configuration::ValueIterator::get_list_size() const
+ * Get number of elements in list value.
+ * @return number of elements in list value
+ * @throw Exception thrown if the element is not a list.
+ *
  * @fn bool Configuration::ValueIterator::is_default() const
  * Check if current value was read from the default config.
  * @return true, if value was read from the default config, false otherwise
@@ -456,6 +501,26 @@ CouldNotOpenConfigException::CouldNotOpenConfigException(const char *format, ...
  *
  * @fn std::string Configuration::ValueIterator::get_string() const
  * Get string value.
+ * @return value
+ *
+ * @fn std::vector<float> Configuration::ValueIterator::get_floats() const
+ * Get list of values from configuration which is of type float
+ * @return value
+ * 
+ * @fn std::vector<unsigned int> Configuration::ValueIterator::get_uints() const
+ * Get list of values from configuration which is of type unsigned int
+ * @return value
+ * 
+ * @fn std::vector<int> Configuration::ValueIterator::get_ints() const
+ * Get list of values from configuration which is of type int
+ * @return value
+ * 
+ * @fn std::vector<bool> Configuration::ValueIterator::get_bools() const
+ * Get list of values from configuration which is of type bool
+ * @return value
+ * 
+ * @fn std::vector<std::string> Configuration::ValueIterator::get_strings() const
+ * Get list of values from configuration which is of type string
  * @return value
  *
  * @fn std::string Configuration::ValueIterator::get_comment() const
