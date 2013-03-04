@@ -113,15 +113,19 @@ class TabletopObjectsThread
   bool is_polygon_edge_better(PointType &cb_br_p1p, PointType &cb_br_p2p, PointType &br_p1p, PointType &br_p2p);
 
   void extractSegmentCluster (const CloudConstPtr &cloud,
-                              const std::vector<pcl::PointIndices> cluster_indices,
-                              const int segment_index,
-                              Cloud &result);
+      const pcl::PointIndices segmented_indices,
+      Cloud &result);
 
   std::vector<pcl::PointIndices> extract_object_clusters(CloudConstPtr input);
 
   ColorCloud colorize_cluster(const Cloud &input_cloud, const std::vector<int> &cluster, uint color);
 
   ColorCloud colorize_cluster (const Cloud &input_cloud, uint color);
+
+  unsigned int add_objects(CloudConstPtr input, CloudPtr tracking_cloud, ColorCloudPtr tmp_clusters);
+
+  void reset_obj_ids();
+  void reset_trackers();
 
  /** Stub to see name in backtrace for easier debugging. @see Thread::run() */
  protected: virtual void run() { Thread::run(); }
@@ -141,6 +145,8 @@ class TabletopObjectsThread
   fawkes::SwitchInterface *switch_if_;
 
   boost::shared_ptr<ParticleFilter> tracker_[MAX_CENTROIDS];
+  std::queue<int> free_obj_ids_;
+  std::vector<Eigen::Vector4f, Eigen::aligned_allocator<Eigen::Vector4f> > centroids;
 
   float cfg_depth_filter_min_x_;
   float cfg_depth_filter_max_x_;

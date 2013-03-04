@@ -137,6 +137,8 @@ TabletopObjectsThread::init()
 
   first_run_ = true;
 
+  reset_obj_ids();
+
   try {
     double rotation[4] = {0., 0., 0., 1.};
     table_pos_if_ = NULL;
@@ -418,7 +420,6 @@ TabletopObjectsThread::loop()
 
   unsigned int centroid_i = 0;
   unsigned int highest_obj_id = 0;
-  std::vector<Eigen::Vector4f, Eigen::aligned_allocator<Eigen::Vector4f> > centroids;
   centroids.resize(MAX_CENTROIDS);
   //cloud_hull_.reset(new Cloud());
 
@@ -1059,57 +1060,21 @@ TabletopObjectsThread::loop()
 
   TIMETRACK_INTER(ttc_table_to_output_, ttc_cluster_objects_)
 
-  CloudPtr tracking_cloud(new Cloud());
-  tracking_cloud->header.frame_id = input_->header.frame_id;
+
+  CloudPtr tmp_tracking_cloud(new Cloud());
+  tmp_tracking_cloud->header.frame_id = input_->header.frame_id;
+
 
   if (first_run_) {
+    reset_obj_ids();
+    reset_trackers();
 		if (cloud_objs_->points.size() > 0) { // cloud_objs_ contains only points above the table
-		  std::vector<pcl::PointIndices> cluster_indices = extract_object_clusters(cloud_objs_);
-
-		  std::vector<pcl::PointIndices>::const_iterator it;
-		  //unsigned int i = 0;
-		  unsigned int num_points = 0;
-		  for (it = cluster_indices.begin(); it != cluster_indices.end(); ++it)
-		    num_points += it->indices.size();
-
-		  if (num_points > 0) {
-		    colored_clusters->points.resize(num_points);
-		    for (it = cluster_indices.begin();
-		        it != cluster_indices.end() && centroid_i < MAX_CENTROIDS;
-		        ++it, ++centroid_i)
-		    {
-		      // calculate each centroid and save it to the vector centroids
-		      pcl::compute3DCentroid(*cloud_objs_, it->indices, centroids[centroid_i]);
-//		      logger->log_warn(name(), "centroid: %f %f %f", centroids[centroid_i][0], centroids[centroid_i][1], centroids[centroid_i][2]);
-
-		      *colored_clusters += colorize_cluster(*cloud_objs_, it->indices, centroid_i);
-
-		      CloudPtr segmented_cloud_(new Cloud());
-		      // TODO we are iterating over cluster_indices, why not just use it->indices here?
-		      extractSegmentCluster(cloud_objs_, cluster_indices, centroid_i, *segmented_cloud_);
-		      RefCloudPtr transed_ref (new RefCloud);
-		      Eigen::Affine3f trans = Eigen::Affine3f::Identity ();
-		      trans.translation () = Eigen::Vector3f (centroids[centroid_i][0], centroids[centroid_i][1], centroids[centroid_i][2]);
-		      pcl::transformPointCloud(*segmented_cloud_, *transed_ref, trans.inverse());
-		      tracker_[centroid_i]->setReferenceCloud (transed_ref);
-		      tracker_[centroid_i]->setTrans (trans);
-		      tracker_[centroid_i]->setMinIndices(static_cast<int> (segmented_cloud_->size() / 2));
-		      active_trackers[centroid_i] = true;
-		      *tracking_cloud += *segmented_cloud_;
-		    }
+		  unsigned int objects = add_objects(cloud_objs_, tmp_tracking_cloud, tmp_clusters);
+		  if (objects > 0)
 		    first_run_ = false;
-		    if (centroid_i > 0)
-		      highest_obj_id = centroid_i - 1;
-
-		    *tmp_clusters += *colored_clusters;
-
-		  } else {
-		    logger->log_info(name(), "No clustered points found");
-		  }
 		} else {
-		  logger->log_info(name(), "Filter left no points for clustering");
+		  logger->log_info(name(), "No clustered points found");
 		}
-
   }
   else {
     unsigned int size = 0;
@@ -1136,7 +1101,7 @@ TabletopObjectsThread::loop()
           logger->log_debug(name(), "cloud_objs_ is empty, don't track.");
           *result_cloud = *tracker_[centroid_i]->getReferenceCloud();
         }
-        *tracking_cloud += *result_cloud;
+        *tmp_tracking_cloud += *result_cloud;
         pcl::compute3DCentroid<RefPointType>(*result_cloud, centroids[centroid_i]);
         //        logger->log_warn(name(), "centroid %d: %f %f %f", centroid_i, centroids[centroid_i][0], centroids[centroid_i][1], centroids[centroid_i][2]);
 
@@ -1154,14 +1119,17 @@ TabletopObjectsThread::loop()
   }
   // save positions to blackboard
   for (unsigned int i = 0; i < MAX_CENTROIDS; ++i) {
+    if (active_trackers[i]) {
       set_position(pos_ifs_[i], active_trackers[i], centroids[i]);
+      highest_obj_id = i;
+    }
   }
   centroids.resize(highest_obj_id + 1);
 
   TIMETRACK_INTER(ttc_cluster_objects_, ttc_visualization_)
 
   *clusters_ = *tmp_clusters;
-  *tracking_cloud_ = *tracking_cloud;
+  *tracking_cloud_ = *tmp_tracking_cloud;
   pcl_utils::copy_time(finput_, fclusters_);
   pcl_utils::copy_time(finput_, ftable_model_);
   pcl_utils::copy_time(finput_, fsimplified_polygon_);
@@ -1233,6 +1201,72 @@ TabletopObjectsThread::extract_object_clusters(CloudConstPtr input) {
        return cluster_indices;
 }
 
+void TabletopObjectsThread::reset_obj_ids() {
+//  free_obj_ids_ new std::queue<int>(MAX_CENTROIDS);
+//  for (unsigned int i = 0; i < free_obj_ids_.size(); i++)
+//    free_obj_ids_.pop();
+  while (!free_obj_ids_.empty())
+    free_obj_ids_.pop();
+  for (int i = 0; i < MAX_CENTROIDS; i++) {
+    free_obj_ids_.push(i);
+  }
+}
+
+void TabletopObjectsThread::reset_trackers() {
+  for (int i = 0; i < MAX_CENTROIDS; i++)
+  {
+    tracker_[i]->resetTracking();
+    active_trackers[i] = false;
+  }
+}
+
+unsigned int TabletopObjectsThread::add_objects(CloudConstPtr input_cloud, CloudPtr tracking_cloud, ColorCloudPtr tmp_clusters) {
+  ColorCloudPtr colored_clusters(new ColorCloud());
+  std::vector<pcl::PointIndices> cluster_indices = extract_object_clusters(input_cloud);
+
+  std::vector<pcl::PointIndices>::const_iterator it;
+  //unsigned int i = 0;
+  unsigned int num_points = 0;
+  for (it = cluster_indices.begin(); it != cluster_indices.end(); ++it)
+    num_points += it->indices.size();
+
+  if (num_points > 0) {
+    colored_clusters->points.resize(num_points);
+    for (it = cluster_indices.begin();
+        it != cluster_indices.end() && !free_obj_ids_.empty();
+        ++it)
+    {
+      int centroid_i = free_obj_ids_.front();
+      free_obj_ids_.pop();
+      // calculate each centroid and save it to the vector centroids
+      pcl::compute3DCentroid(*input_cloud, it->indices, centroids[centroid_i]);
+      //          logger->log_warn(name(), "centroid: %f %f %f", centroids[centroid_i][0], centroids[centroid_i][1], centroids[centroid_i][2]);
+
+      *colored_clusters += colorize_cluster(*input_cloud, it->indices, centroid_i);
+
+      CloudPtr segmented_cloud_(new Cloud());
+      // TODO we are iterating over cluster_indices, why not just use it->indices here?
+      extractSegmentCluster(input_cloud, *it, *segmented_cloud_);
+      RefCloudPtr transed_ref (new RefCloud);
+      Eigen::Affine3f trans = Eigen::Affine3f::Identity ();
+      trans.translation () = Eigen::Vector3f (centroids[centroid_i][0], centroids[centroid_i][1], centroids[centroid_i][2]);
+      pcl::transformPointCloud(*segmented_cloud_, *transed_ref, trans.inverse());
+      tracker_[centroid_i]->setReferenceCloud (transed_ref);
+      tracker_[centroid_i]->setTrans (trans);
+      tracker_[centroid_i]->setMinIndices(static_cast<int> (segmented_cloud_->size() / 2));
+      active_trackers[centroid_i] = true;
+      *tracking_cloud += *segmented_cloud_;
+    }
+    //TODO why can't we write every cluster to tmp_clusters directly instead of writing to colored_clusters first?
+    *tmp_clusters += *colored_clusters;
+  }
+  else {
+    logger->log_info(name(), "No clustered points found");
+    return 0;
+  }
+  return cluster_indices.size();
+}
+
 TabletopObjectsThread::ColorCloud TabletopObjectsThread::colorize_cluster (
     const Cloud &input_cloud,
     const std::vector<int> &cluster,
@@ -1261,11 +1295,10 @@ TabletopObjectsThread::ColorCloud TabletopObjectsThread::colorize_cluster (
 }
 
 void TabletopObjectsThread::extractSegmentCluster (const CloudConstPtr &cloud,
-    const std::vector<pcl::PointIndices> cluster_indices,
-    const int segment_index,
+    const pcl::PointIndices segmented_indices,
     Cloud &result)
 {
-  pcl::PointIndices segmented_indices = cluster_indices[segment_index];
+//  pcl::PointIndices segmented_indices = cluster_indices[segment_index];
   for (size_t i = 0; i < segmented_indices.indices.size (); i++)
   {
     try {
