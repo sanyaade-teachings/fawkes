@@ -131,6 +131,7 @@ TabletopObjectsThread::init()
   cfg_tracking_maxdistance_  = config->get_float(CFG_PREFIX"tracking_maxdistance");
   cfg_tracking_particlenum_   = config->get_uint(CFG_PREFIX"tracking_particle_number");
   cfg_tracking_resample_likelihood_ = config->get_float(CFG_PREFIX"tracking_resample_likelihood");
+  cfg_cluster_min_distance = config->get_float(CFG_PREFIX"cluster_min_distance");
 
   finput_ = pcl_manager->get_pointcloud<PointType>("openni-pointcloud-xyz");
   input_ = pcl_utils::cloudptr_from_refptr(finput_);
@@ -1116,6 +1117,10 @@ TabletopObjectsThread::loop()
           active_trackers[centroid_i] = false;
       }
     }
+    boost::shared_ptr<std::vector<int>> new_objs_indices(new std::vector<int>);
+    if (find_new_indices(tmp_tracking_cloud, cloud_objs_, new_objs_indices)) {
+      add_objects(cloud_objs_, tmp_tracking_cloud, colored_clusters, new_objs_indices);
+    }
     *tmp_clusters += *colored_clusters;
   }
   // save positions to blackboard
@@ -1276,10 +1281,50 @@ unsigned int TabletopObjectsThread::add_objects(
     *tmp_clusters += *colored_clusters;
   }
   else {
-    logger->log_info(name(), "No clustered points found");
+//    logger->log_info(name(), "No clustered points found");
     return 0;
   }
   return cluster_indices.size();
+}
+
+/*
+ * find objects which weren't detected in earlier frames
+ */
+int TabletopObjectsThread::find_new_indices(
+    CloudConstPtr old_cloud, CloudConstPtr new_cloud, pcl::IndicesPtr indices) {
+  //TODO can we use octree to find new indices
+//  float resolution = 32.f; //TODO find out correct value
+//  pcl::octree::OctreePointCloudChangeDetector<PointType> octree(resolution);
+//  octree.setInputCloud(old_cloud);
+//  octree.addPointsFromInputCloud();
+//  octree.switchBuffers();
+//  octree.setInputCloud(new_cloud);
+//  octree.addPointsFromInputCloud();
+//  return octree.getPointIndicesFromNewVoxels(*indices);
+//  logger->log_warn(name(), "points in tracking_cloud: %u", old_cloud->size());
+//  if (old_cloud->empty())
+//    return 0;
+  pcl::KdTreeFLANN<PointType> kdtree;
+  PointType refpoint(0, 0, 0);
+  CloudPtr refcloud(new Cloud());
+  refcloud->push_back(refpoint);
+  kdtree.setInputCloud(old_cloud);
+  double radius = cfg_cluster_min_distance;
+  std::vector<int> k_indices;
+  std::vector<float> distances;
+  int count = 0;
+//  Cloud::iterator it;
+
+  for (unsigned int i = 0; i < new_cloud->size(); i++) {
+    int neighbors = kdtree.radiusSearch(new_cloud->at(i), radius, k_indices, distances);
+//    logger->log_warn(name(), "find_new_indices[%u]: %d neighbors", i, neighbors);
+    if (neighbors <= 0) {
+      indices->push_back(i);
+      count++;
+    }
+  }
+//  logger->log_warn(name(), "find_new_indices: %u indices", count);
+  return count;
 }
 
 TabletopObjectsThread::ColorCloud TabletopObjectsThread::colorize_cluster (

@@ -85,3 +85,6 @@ perception/tabletop-objects:
   # Tracking: threshold to re-initialize the particles of the tracker
   tracking_resample_likelihood: 0.00
 
+  # minimal distance between new points and points of existing objects
+  cluster_min_distance: 0.08
+

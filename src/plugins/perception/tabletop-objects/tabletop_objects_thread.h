@@ -128,6 +128,7 @@ class TabletopObjectsThread
       CloudPtr tracking_cloud,
       ColorCloudPtr tmp_clusters,
       pcl::IndicesPtr indices = pcl::IndicesPtr());
+  int find_new_indices(CloudConstPtr old_cloud, CloudConstPtr new_cloud, pcl::IndicesPtr indices);
 
   void reset_obj_ids();
   void reset_trackers();
@@ -174,6 +175,7 @@ class TabletopObjectsThread
   float cfg_tracking_maxdistance_;
   unsigned int cfg_tracking_particlenum_;
   float cfg_tracking_resample_likelihood_;
+  float cfg_cluster_min_distance;
   bool first_run_;
   bool active_trackers[MAX_CENTROIDS];
 
