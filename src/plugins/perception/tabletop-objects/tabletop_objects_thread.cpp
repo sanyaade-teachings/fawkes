@@ -1077,7 +1077,7 @@ TabletopObjectsThread::loop()
 		}
   }
   else {
-    unsigned int size = 0;
+    unsigned int cluster_size = 0;
     for (centroid_i = 0; centroid_i < MAX_CENTROIDS; centroid_i++)
     {
       if (active_trackers[centroid_i]) {
@@ -1101,12 +1101,13 @@ TabletopObjectsThread::loop()
           logger->log_debug(name(), "cloud_objs_ is empty, don't track.");
           *result_cloud = *tracker_[centroid_i]->getReferenceCloud();
         }
-        *tmp_tracking_cloud += *result_cloud;
         pcl::compute3DCentroid<RefPointType>(*result_cloud, centroids[centroid_i]);
         //        logger->log_warn(name(), "centroid %d: %f %f %f", centroid_i, centroids[centroid_i][0], centroids[centroid_i][1], centroids[centroid_i][2]);
 
-        size += result_cloud->size();
-        colored_clusters->points.resize(size);
+        cluster_size += result_cloud->size();
+        tmp_tracking_cloud->points.resize(cluster_size);
+        colored_clusters->points.resize(cluster_size);
+        *tmp_tracking_cloud += *result_cloud;
         *colored_clusters += colorize_cluster(*result_cloud, centroid_i);
 
         if (result_cloud->size() > 0)
