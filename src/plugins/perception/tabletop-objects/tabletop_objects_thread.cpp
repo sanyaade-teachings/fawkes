@@ -203,6 +203,12 @@ TabletopObjectsThread::init()
   pcl_manager->add_pointcloud("tabletop-simplified-polygon", fsimplified_polygon_);
   pcl_utils::set_time(fsimplified_polygon_, fawkes::Time(clock));
 
+  funknown_objs_ = new Cloud();
+  unknown_objs_ = pcl_utils::cloudptr_from_refptr(funknown_objs_);
+  unknown_objs_->header.frame_id = finput_->header.frame_id;
+  pcl_manager->add_pointcloud("tabletop-unknown-objs", funknown_objs_);
+  pcl_utils::set_time(funknown_objs_, fawkes::Time(clock));
+
   grid_.setFilterFieldName("x");
   grid_.setFilterLimits(cfg_depth_filter_min_x_, cfg_depth_filter_max_x_);
   grid_.setLeafSize(cfg_voxel_leaf_size_, cfg_voxel_leaf_size_, cfg_voxel_leaf_size_);
@@ -309,6 +315,8 @@ TabletopObjectsThread::finalize()
   pcl_manager->remove_pointcloud("tabletop-table-model");
   pcl_manager->remove_pointcloud("tabletop-simplified-polygon");
   pcl_manager->remove_pointcloud("tabletop-tracking-points");
+  pcl_manager->remove_pointcloud("tabletop-unknown-objs");
+
   
   blackboard->close(table_pos_if_);
   blackboard->close(switch_if_);
@@ -321,6 +329,7 @@ TabletopObjectsThread::finalize()
   fclusters_.reset();
   ftable_model_.reset();
   fsimplified_polygon_.reset();
+  funknown_objs_.reset();
 }
 
 template <typename PointType>
@@ -1065,6 +1074,8 @@ TabletopObjectsThread::loop()
   CloudPtr tmp_tracking_cloud(new Cloud());
   tmp_tracking_cloud->header.frame_id = input_->header.frame_id;
 
+  CloudPtr unknown_objs(new Cloud());
+  unknown_objs->header.frame_id = input_->header.frame_id;
 
   if (first_run_) {
     reset_obj_ids();
@@ -1119,7 +1130,14 @@ TabletopObjectsThread::loop()
     }
     boost::shared_ptr<std::vector<int>> new_objs_indices(new std::vector<int>);
     if (find_new_indices(tmp_tracking_cloud, cloud_objs_, new_objs_indices)) {
-      add_objects(cloud_objs_, tmp_tracking_cloud, colored_clusters, new_objs_indices);
+      unsigned int new_objs = add_objects(cloud_objs_, tmp_tracking_cloud, colored_clusters, new_objs_indices);
+      if (new_objs) {
+        unknown_objs->resize(new_objs_indices->size());
+        for (std::vector<int>::const_iterator it = new_objs_indices->begin(); it != new_objs_indices->end(); ++it) {
+          unknown_objs->push_back(cloud_objs_->at(*it));
+        }
+      }
+//      logger->log_debug(name(), "[%u] %u new Objects found.", loop_count_, new_objs);
     }
     *tmp_clusters += *colored_clusters;
   }
@@ -1134,12 +1152,15 @@ TabletopObjectsThread::loop()
 
   TIMETRACK_INTER(ttc_cluster_objects_, ttc_visualization_)
 
+  *unknown_objs_ = *unknown_objs;
   *clusters_ = *tmp_clusters;
   *tracking_cloud_ = *tmp_tracking_cloud;
   pcl_utils::copy_time(finput_, fclusters_);
   pcl_utils::copy_time(finput_, ftable_model_);
   pcl_utils::copy_time(finput_, fsimplified_polygon_);
   pcl_utils::copy_time(finput_, ftracking_cloud_);
+  pcl_utils::copy_time(finput_, funknown_objs_);
+
 
 #ifdef HAVE_VISUAL_DEBUGGING
   if (visthread_) {

@@ -185,6 +185,8 @@ class TabletopObjectsThread
   CloudPtr simplified_polygon_;
   fawkes::RefPtr<Cloud> ftracking_cloud_;
   CloudPtr tracking_cloud_;
+  fawkes::RefPtr<Cloud> funknown_objs_;
+  CloudPtr unknown_objs_;
 
   unsigned int loop_count_;
 
