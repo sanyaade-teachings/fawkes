@@ -1180,25 +1180,35 @@ TabletopObjectsThread::loop()
 #endif
 }
 
-std::vector<pcl::PointIndices>
-TabletopObjectsThread::extract_object_clusters(CloudConstPtr input) {
+std::vector<pcl::PointIndices> TabletopObjectsThread::extract_object_clusters(
+    CloudConstPtr input, pcl::IndicesPtr indices) {
   // Creating the KdTree object for the search method of the extraction
-       pcl::search::KdTree<PointType>::Ptr
-       kdtree_cl(new pcl::search::KdTree<PointType>());
-       kdtree_cl->setInputCloud(input);
+  pcl::search::KdTree<PointType>::Ptr
+  kdtree_cl(new pcl::search::KdTree<PointType>());
+  if (indices) {
+//    logger->log_warn(name(), "extraction: use %u indices", indices->size());
+    kdtree_cl->setInputCloud(input, indices);
+  }
+  else {
+//    logger->log_warn(name(), "extraction: no indices");
+    kdtree_cl->setInputCloud(input);
+  }
+//  logger->log_warn(name(), "extract_object_clusters input cloud: %u", kdtree_cl->getInputCloud()->size());
+  std::vector<pcl::PointIndices> cluster_indices;
+  pcl::EuclideanClusterExtraction<PointType> ec;
+  ec.setClusterTolerance(cfg_cluster_tolerance_);
+  ec.setMinClusterSize(cfg_cluster_min_size_);
+  ec.setMaxClusterSize(cfg_cluster_max_size_);
+  ec.setSearchMethod(kdtree_cl);
+  ec.setInputCloud(input);
+  if (indices) {
+    ec.setIndices(indices);
+  }
+  ec.extract(cluster_indices);
 
-       std::vector<pcl::PointIndices> cluster_indices;
-       pcl::EuclideanClusterExtraction<PointType> ec;
-       ec.setClusterTolerance(cfg_cluster_tolerance_);
-       ec.setMinClusterSize(cfg_cluster_min_size_);
-       ec.setMaxClusterSize(cfg_cluster_max_size_);
-       ec.setSearchMethod(kdtree_cl);
-       ec.setInputCloud(input);
-       ec.extract(cluster_indices);
+//  logger->log_warn(name(), "Found %zu clusters", cluster_indices.size());
 
-       //logger->log_debug(name(), "Found %zu clusters", cluster_indices.size());
-
-       return cluster_indices;
+  return cluster_indices;
 }
 
 void TabletopObjectsThread::reset_obj_ids() {
@@ -1220,9 +1230,13 @@ void TabletopObjectsThread::reset_trackers() {
   }
 }
 
-unsigned int TabletopObjectsThread::add_objects(CloudConstPtr input_cloud, CloudPtr tracking_cloud, ColorCloudPtr tmp_clusters) {
+unsigned int TabletopObjectsThread::add_objects(
+    CloudConstPtr input_cloud,
+    CloudPtr tracking_cloud,
+    ColorCloudPtr tmp_clusters,
+    pcl::IndicesPtr indices) {
   ColorCloudPtr colored_clusters(new ColorCloud());
-  std::vector<pcl::PointIndices> cluster_indices = extract_object_clusters(input_cloud);
+  std::vector<pcl::PointIndices> cluster_indices = extract_object_clusters(input_cloud, indices);
 
   std::vector<pcl::PointIndices>::const_iterator it;
   //unsigned int i = 0;

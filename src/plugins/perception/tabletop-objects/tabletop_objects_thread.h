@@ -116,13 +116,18 @@ class TabletopObjectsThread
       const pcl::PointIndices segmented_indices,
       Cloud &result);
 
-  std::vector<pcl::PointIndices> extract_object_clusters(CloudConstPtr input);
+  std::vector<pcl::PointIndices> extract_object_clusters(
+      CloudConstPtr input,
+      pcl::IndicesPtr indices = pcl::IndicesPtr()); //TODO const?
 
   ColorCloud colorize_cluster(const Cloud &input_cloud, const std::vector<int> &cluster, uint color);
 
   ColorCloud colorize_cluster (const Cloud &input_cloud, uint color);
 
-  unsigned int add_objects(CloudConstPtr input, CloudPtr tracking_cloud, ColorCloudPtr tmp_clusters);
+  unsigned int add_objects(CloudConstPtr input,
+      CloudPtr tracking_cloud,
+      ColorCloudPtr tmp_clusters,
+      pcl::IndicesPtr indices = pcl::IndicesPtr());
 
   void reset_obj_ids();
   void reset_trackers();
