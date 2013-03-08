@@ -132,6 +132,7 @@ TabletopObjectsThread::init()
   cfg_tracking_particlenum_   = config->get_uint(CFG_PREFIX"tracking_particle_number");
   cfg_tracking_resample_likelihood_ = config->get_float(CFG_PREFIX"tracking_resample_likelihood");
   cfg_cluster_min_distance = config->get_float(CFG_PREFIX"cluster_min_distance");
+  cfg_rescan_objs_frequency = config->get_uint(CFG_PREFIX"rescan_objs_frequency");
 
   finput_ = pcl_manager->get_pointcloud<PointType>("openni-pointcloud-xyz");
   input_ = pcl_utils::cloudptr_from_refptr(finput_);
@@ -1128,16 +1129,18 @@ TabletopObjectsThread::loop()
           active_trackers[centroid_i] = false;
       }
     }
-    boost::shared_ptr<std::vector<int>> new_objs_indices(new std::vector<int>);
-    if (find_new_indices(tmp_tracking_cloud, cloud_objs_, new_objs_indices)) {
-      unsigned int new_objs = add_objects(cloud_objs_, tmp_tracking_cloud, colored_clusters, new_objs_indices);
-      if (new_objs) {
-        unknown_objs->resize(new_objs_indices->size());
-        for (std::vector<int>::const_iterator it = new_objs_indices->begin(); it != new_objs_indices->end(); ++it) {
-          unknown_objs->push_back(cloud_objs_->at(*it));
+    if (cfg_rescan_objs_frequency >= 1 && loop_count_ % cfg_rescan_objs_frequency == 0) {
+      boost::shared_ptr<std::vector<int>> new_objs_indices(new std::vector<int>);
+      if (find_new_indices(tmp_tracking_cloud, cloud_objs_, new_objs_indices)) {
+        unsigned int new_objs = add_objects(cloud_objs_, tmp_tracking_cloud, colored_clusters, new_objs_indices);
+        if (new_objs) {
+          unknown_objs->resize(new_objs_indices->size());
+          for (std::vector<int>::const_iterator it = new_objs_indices->begin(); it != new_objs_indices->end(); ++it) {
+            unknown_objs->push_back(cloud_objs_->at(*it));
+          }
         }
+        //      logger->log_debug(name(), "[%u] %u new Objects found.", loop_count_, new_objs);
       }
-//      logger->log_debug(name(), "[%u] %u new Objects found.", loop_count_, new_objs);
     }
     *tmp_clusters += *colored_clusters;
   }

@@ -176,6 +176,7 @@ class TabletopObjectsThread
   unsigned int cfg_tracking_particlenum_;
   float cfg_tracking_resample_likelihood_;
   float cfg_cluster_min_distance;
+  unsigned int cfg_rescan_objs_frequency;
   bool first_run_;
   bool active_trackers[MAX_CENTROIDS];
 

@@ -88,3 +88,7 @@ perception/tabletop-objects:
   # minimal distance between new points and points of existing objects
   cluster_min_distance: 0.08
 
+  # how often should the table be rescanned for new objects?
+  # value of n means the table is rescanned every nth loop
+  rescan_objs_frequency: 10
+
