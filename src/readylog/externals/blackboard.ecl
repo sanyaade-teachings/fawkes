@@ -37,6 +37,9 @@
 :- export bb_send_message/3.
 :- export bb_recv_messages/2.
 
+:- export bb_ensure_connected_remote/1.
+:- export bb_ensure_connected/0.
+
 %% load the external code from the shared object
 :- ( exists("../../../lib") ->
        load("../../../lib/eclipse_externals.so")
@@ -68,5 +71,5 @@ bb_open_interface_writing(Type, Id) :-
 bb_open_interface_reading(Type, Id) :-
         bb_open_interface(r, Type, Id).
 
-bb_ensure_connected(Host) :- bb_is_connected ; bb_connect(r, Host).
-bb_ensure_connected :- bb_is_connected ; bb_connect(l,_)
+bb_ensure_connected_remote(Host) :- bb_is_connected ; bb_connect_remote(Host).
+bb_ensure_connected :- bb_is_connected ; bb_connect.
