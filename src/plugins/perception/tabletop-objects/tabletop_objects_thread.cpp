@@ -306,6 +306,9 @@ TabletopObjectsThread::init()
   ttc_table_to_output_    = tt_->add_class("Table to Output");
   ttc_cluster_objects_    = tt_->add_class("Object Clustering");
   ttc_visualization_      = tt_->add_class("Visualization");
+  ttc_tracking_           = tt_->add_class("Tracking");
+  ttc_cluster_new_objs_   = tt_->add_class("New Objects");
+  ttc_object_removal_     = tt_->add_class("Object Removal");
 #endif
 }
 
@@ -1095,6 +1098,7 @@ TabletopObjectsThread::loop()
 		}
   }
   else {
+    TIMETRACK_START(ttc_tracking_);
     unsigned int cluster_size = 0;
     for (centroid_i = 0; centroid_i < MAX_CENTROIDS; centroid_i++)
     {
@@ -1128,7 +1132,9 @@ TabletopObjectsThread::loop()
         colored_clusters->points.resize(cluster_size);
         *tmp_tracking_cloud += *result_cloud;
         *colored_clusters += colorize_cluster(*result_cloud, centroid_i);
+        TIMETRACK_START(ttc_object_removal_);
         remove_object(cloud_objs_, result_cloud);
+        TIMETRACK_END(ttc_object_removal_);
         highest_obj_id = centroid_i;
         }
         else {
@@ -1138,8 +1144,11 @@ TabletopObjectsThread::loop()
         }
       }
     }
+    TIMETRACK_END(ttc_tracking_);
     if (cfg_rescan_objs_frequency_ >= 1 && loop_count_ % cfg_rescan_objs_frequency_ == 0) {
+      TIMETRACK_START(ttc_cluster_new_objs_);
       unsigned int new_objs = add_objects(cloud_objs_, tmp_tracking_cloud, colored_clusters);
+      TIMETRACK_END(ttc_cluster_new_objs_);
     }
     *tmp_clusters += *colored_clusters;
   }

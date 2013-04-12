@@ -219,6 +219,9 @@ class TabletopObjectsThread
   unsigned int ttc_table_to_output_;
   unsigned int ttc_cluster_objects_;
   unsigned int ttc_visualization_;
+  unsigned int ttc_tracking_;
+  unsigned int ttc_cluster_new_objs_;
+  unsigned int ttc_object_removal_;
 #endif
 
 #ifdef HAVE_VISUAL_DEBUGGING
