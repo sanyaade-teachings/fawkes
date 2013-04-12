@@ -1130,6 +1130,7 @@ TabletopObjectsThread::loop()
         }
         else {
           active_trackers[centroid_i] = false;
+          tracker_[centroid_i]->resetTracking();
           free_obj_ids_.push(centroid_i);
           centroids.erase(centroid_i);
         }
