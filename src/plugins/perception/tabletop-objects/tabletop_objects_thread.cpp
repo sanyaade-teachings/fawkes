@@ -1151,7 +1151,7 @@ TabletopObjectsThread::loop()
     TIMETRACK_END(ttc_tracking_);
     if (cfg_rescan_objs_frequency_ >= 1 && loop_count_ % cfg_rescan_objs_frequency_ == 0) {
       TIMETRACK_START(ttc_cluster_new_objs_);
-      unsigned int new_objs = add_objects(cloud_objs_, tmp_tracking_cloud, colored_clusters);
+      add_objects(cloud_objs_, tmp_tracking_cloud, colored_clusters);
       TIMETRACK_END(ttc_cluster_new_objs_);
     }
     *tmp_clusters += *colored_clusters;
