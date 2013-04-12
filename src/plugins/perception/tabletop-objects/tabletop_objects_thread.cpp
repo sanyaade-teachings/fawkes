@@ -1119,6 +1119,7 @@ TabletopObjectsThread::loop()
           logger->log_debug(name(), "cloud_objs_ is empty, don't track.");
           *result_cloud = *tracker_[centroid_i]->getReferenceCloud();
         }
+        if (result_cloud->size() > 0) {
         pcl::compute3DCentroid<RefPointType>(*result_cloud, centroids[centroid_i]);
         //        logger->log_warn(name(), "centroid %d: %f %f %f", centroid_i, centroids[centroid_i][0], centroids[centroid_i][1], centroids[centroid_i][2]);
 
@@ -1127,25 +1128,18 @@ TabletopObjectsThread::loop()
         colored_clusters->points.resize(cluster_size);
         *tmp_tracking_cloud += *result_cloud;
         *colored_clusters += colorize_cluster(*result_cloud, centroid_i);
-
-        if (result_cloud->size() > 0)
-          highest_obj_id = centroid_i;
-        else
+        remove_object(cloud_objs_, result_cloud);
+        highest_obj_id = centroid_i;
+        }
+        else {
           active_trackers[centroid_i] = false;
+          free_obj_ids_.push(centroid_i);
+          centroids.erase(centroids.begin() + centroid_i);
+        }
       }
     }
-    if (cfg_rescan_objs_frequency >= 1 && loop_count_ % cfg_rescan_objs_frequency == 0) {
-      boost::shared_ptr<std::vector<int>> new_objs_indices(new std::vector<int>);
-      if (find_new_indices(tmp_tracking_cloud, cloud_objs_, new_objs_indices)) {
-        unsigned int new_objs = add_objects(cloud_objs_, tmp_tracking_cloud, colored_clusters, new_objs_indices);
-        if (new_objs) {
-          unknown_objs->resize(new_objs_indices->size());
-          for (std::vector<int>::const_iterator it = new_objs_indices->begin(); it != new_objs_indices->end(); ++it) {
-            unknown_objs->push_back(cloud_objs_->at(*it));
-          }
-        }
-        //      logger->log_debug(name(), "[%u] %u new Objects found.", loop_count_, new_objs);
-      }
+    if (cfg_rescan_objs_frequency_ >= 1 && loop_count_ % cfg_rescan_objs_frequency_ == 0) {
+      unsigned int new_objs = add_objects(cloud_objs_, tmp_tracking_cloud, colored_clusters);
     }
     *tmp_clusters += *colored_clusters;
   }
@@ -1154,6 +1148,8 @@ TabletopObjectsThread::loop()
     if (active_trackers[i]) {
       set_position(pos_ifs_[i], active_trackers[i], centroids[i]);
       highest_obj_id = i;
+    } else {
+      set_position(pos_ifs_[i], false);
     }
   }
   centroids.resize(highest_obj_id + 1);
@@ -1381,6 +1377,35 @@ TabletopObjectsThread::ColorCloud TabletopObjectsThread::colorize_cluster (
     p1.b = cluster_colors[color][2];
   }
   return result;
+}
+
+void TabletopObjectsThread::remove_object(CloudPtr &cloud, CloudConstPtr object) {
+    if (cloud->empty() || object->empty()) return;
+    pcl::KdTreeFLANN<PointType> kdtree;
+    double radius = cfg_cluster_min_distance_;
+    pcl::PointIndicesPtr k_indices(new pcl::PointIndices());
+    std::vector<float> distances;
+    for (Cloud::const_iterator it = object->begin(); it != object->end(); it++) {
+      if (cloud->empty()) break;
+      kdtree.setInputCloud(cloud);
+
+      if (kdtree.radiusSearch(*it, radius, k_indices->indices, distances)) {
+        remove_indices_from_cloud(cloud, k_indices);
+      }
+    }
+}
+
+
+void TabletopObjectsThread::remove_indices_from_cloud(
+    CloudPtr &cloud, pcl::PointIndicesConstPtr indices) {
+  CloudPtr cloud_out(new Cloud());
+  pcl::ExtractIndices<PointType> extract(true);
+  extract.setInputCloud(cloud);
+  extract.setIndices(indices);
+  extract.setNegative(true);
+//  extract.filterDirectly(cloud);
+  extract.filter(*cloud_out);
+  cloud = cloud_out;
 }
 
 void TabletopObjectsThread::extractSegmentCluster (const CloudConstPtr &cloud,

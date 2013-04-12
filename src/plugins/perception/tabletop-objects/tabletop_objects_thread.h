@@ -127,7 +127,9 @@ class TabletopObjectsThread
       CloudPtr tracking_cloud,
       ColorCloudPtr tmp_clusters,
       pcl::IndicesPtr indices = pcl::IndicesPtr());
+  void remove_indices_from_cloud(CloudPtr &cloud, pcl::PointIndicesConstPtr indices);
   int find_new_indices(CloudConstPtr old_cloud, CloudConstPtr new_cloud, pcl::IndicesPtr indices);
+  void remove_object(CloudPtr &cloud, CloudConstPtr object);
 
   void reset_obj_ids();
   void reset_trackers();
