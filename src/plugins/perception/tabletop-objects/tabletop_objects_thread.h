@@ -93,9 +93,8 @@ class TabletopObjectsThread
   typedef ColorCloud::ConstPtr ColorCloudConstPtr;
 
   typedef pcl::tracking::ParticleXYZRPY ParticleT;
-  typedef pcl::tracking::ParticleFilterTracker<RefPointType, ParticleT> ParticleFilter;
-//  typedef pcl::tracking::KLDAdaptiveParticleFilterOMPTracker<RefPointType, ParticleT> TrackerType;
-  typedef pcl::tracking::ParticleFilterOMPTracker<RefPointType, ParticleT> TrackerType;
+  typedef pcl::tracking::KLDAdaptiveParticleFilterOMPTracker<RefPointType, ParticleT> TrackerType;
+//  typedef pcl::tracking::ParticleFilterOMPTracker<RefPointType, ParticleT> TrackerType;
 
  private:
   void set_position(fawkes::Position3DInterface *iface,
@@ -150,7 +149,7 @@ class TabletopObjectsThread
 
   fawkes::SwitchInterface *switch_if_;
 
-  boost::shared_ptr<ParticleFilter> tracker_[MAX_CENTROIDS];
+  boost::shared_ptr<TrackerType> tracker_[MAX_CENTROIDS];
   std::queue<int> free_obj_ids_;
   std::vector<Eigen::Vector4f, Eigen::aligned_allocator<Eigen::Vector4f> > centroids;
 
@@ -175,10 +174,17 @@ class TabletopObjectsThread
   float cfg_tracking_maxdistance_;
   unsigned int cfg_tracking_particlenum_;
   float cfg_tracking_resample_likelihood_;
-  float cfg_cluster_min_distance;
-  unsigned int cfg_rescan_objs_frequency;
+  float cfg_cluster_min_distance_;
+  unsigned int cfg_rescan_objs_frequency_;
+  float cfg_tracking_delta_;
+  float cfg_tracking_eps_;
+  float cfg_tracking_binsize_;
+  unsigned int cfg_tracking_maxparticlenum_;
+  float cfg_tracking_objthreshold_;
+  unsigned int cfg_tracking_thread_nr_;
   bool first_run_;
   bool active_trackers[MAX_CENTROIDS];
+
 
   fawkes::RefPtr<Cloud> ftable_model_;
   CloudPtr table_model_;

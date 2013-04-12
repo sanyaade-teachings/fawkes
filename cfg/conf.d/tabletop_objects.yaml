@@ -79,11 +79,14 @@ perception/tabletop-objects:
   # Tracking: Maximum distance an object may move between two frames
   tracking_maxdistance: 0.01
 
-  # Tracking: number of the particles
-  tracking_particle_number: 100
+  # Tracking: number of particles
+  tracking_particle_number: 30
+
+  # tracking: maximum number of particles
+  tracking_maxparticlenum: 1000
 
   # Tracking: threshold to re-initialize the particles of the tracker
-  tracking_resample_likelihood: 0.00
+  tracking_resample_likelihood: 0.50
 
   # minimal distance between new points and points of existing objects
   cluster_min_distance: 0.08
@@ -91,4 +94,19 @@ perception/tabletop-objects:
   # how often should the table be rescanned for new objects?
   # value of n means the table is rescanned every nth loop
   rescan_objs_frequency: 10
+
+  # tracking: delta of chi-squared distribution
+  tracking_delta: 0.9
+
+  # tracking: epsilon to be used to calc K-L boundary
+  tracking_eps: 0.2
+
+  # tracking: bin size (the bin's (x, y, z, roll, pitch, yaw) values)
+  tracking_binsize: 0.25
+
+  # minimum weight of a tracked object
+  tracking_objthreshold: 0.004
+
+  # number of threads to use for tracking
+  tracking_thread_nr: 2
 

@@ -129,10 +129,16 @@ TabletopObjectsThread::init()
   cfg_cluster_max_size_      = config->get_uint(CFG_PREFIX"cluster_max_size");
   cfg_result_frame_          = config->get_string(CFG_PREFIX"result_frame");
   cfg_tracking_maxdistance_  = config->get_float(CFG_PREFIX"tracking_maxdistance");
-  cfg_tracking_particlenum_   = config->get_uint(CFG_PREFIX"tracking_particle_number");
-  cfg_tracking_resample_likelihood_ = config->get_float(CFG_PREFIX"tracking_resample_likelihood");
-  cfg_cluster_min_distance = config->get_float(CFG_PREFIX"cluster_min_distance");
-  cfg_rescan_objs_frequency = config->get_uint(CFG_PREFIX"rescan_objs_frequency");
+  cfg_tracking_particlenum_  = config->get_uint(CFG_PREFIX"tracking_particle_number");
+  cfg_tracking_resample_likelihood_  = config->get_float(CFG_PREFIX"tracking_resample_likelihood");
+  cfg_cluster_min_distance_  = config->get_float(CFG_PREFIX"cluster_min_distance");
+  cfg_rescan_objs_frequency_ = config->get_uint(CFG_PREFIX"rescan_objs_frequency");
+  cfg_tracking_delta_        = config->get_float(CFG_PREFIX"tracking_delta");
+  cfg_tracking_eps_          = config->get_float(CFG_PREFIX"tracking_eps");
+  cfg_tracking_binsize_      = config->get_float(CFG_PREFIX"tracking_binsize");
+  cfg_tracking_maxparticlenum_  = config->get_uint(CFG_PREFIX"tracking_maxparticlenum");
+  cfg_tracking_objthreshold_  = config->get_float(CFG_PREFIX"tracking_objthreshold");
+  cfg_tracking_thread_nr_  = config->get_uint(CFG_PREFIX"tracking_thread_nr");
 
   finput_ = pcl_manager->get_pointcloud<PointType>("openni-pointcloud-xyz");
   input_ = pcl_utils::cloudptr_from_refptr(finput_);
@@ -224,8 +230,7 @@ TabletopObjectsThread::init()
 
   {
     using namespace pcl::tracking;
-    //TODO check thread_nr value
-    int thread_nr = -1;
+    int thread_nr = cfg_tracking_thread_nr_;
     std::vector<double> default_step_covariance = std::vector<double> (6, 0.015 * 0.015);
     default_step_covariance[3] *= 40.0;
     default_step_covariance[4] *= 40.0;
@@ -234,19 +239,19 @@ TabletopObjectsThread::init()
     std::vector<double> default_initial_mean = std::vector<double> (6, 0.0);
     for (int i = 0; i < MAX_CENTROIDS; i++)
     {
-      boost::shared_ptr<ParticleFilter> tracker
+      boost::shared_ptr<TrackerType> tracker
       (new TrackerType (thread_nr));
-//      tracker->setMaximumParticleNum (500);
-//      tracker->setDelta (0.99);
-//      tracker->setEpsilon (0.2);
-//      ParticleT bin_size;
-//      bin_size.x = 0.1f;
-//      bin_size.y = 0.1f;
-//      bin_size.z = 0.1f;
-//      bin_size.roll = 0.1f;
-//      bin_size.pitch = 0.1f;
-//      bin_size.yaw = 0.1f;
-//      tracker->setBinSize (bin_size);
+      tracker->setMaximumParticleNum (cfg_tracking_maxparticlenum_);
+      tracker->setDelta(cfg_tracking_delta_);
+      tracker->setEpsilon(cfg_tracking_eps_);
+      ParticleT bin_size;
+      bin_size.x = cfg_tracking_binsize_;
+      bin_size.y = cfg_tracking_binsize_;
+      bin_size.z = cfg_tracking_binsize_;
+      bin_size.roll = cfg_tracking_binsize_;
+      bin_size.pitch = cfg_tracking_binsize_;
+      bin_size.yaw = cfg_tracking_binsize_;
+      tracker->setBinSize (bin_size);
       tracker->setTrans (Eigen::Affine3f::Identity ());
       tracker->setStepNoiseCovariance (default_step_covariance);
       tracker->setInitialNoiseCovariance (initial_noise_covariance);
@@ -1333,7 +1338,7 @@ int TabletopObjectsThread::find_new_indices(
   CloudPtr refcloud(new Cloud());
   refcloud->push_back(refpoint);
   kdtree.setInputCloud(old_cloud);
-  double radius = cfg_cluster_min_distance;
+  double radius = cfg_cluster_min_distance_;
   std::vector<int> k_indices;
   std::vector<float> distances;
   int count = 0;
