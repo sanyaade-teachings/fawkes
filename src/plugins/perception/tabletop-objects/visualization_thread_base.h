@@ -29,12 +29,14 @@
 #include <Eigen/Core>
 #include <Eigen/StdVector>
 #include <utils/time/time.h>
+#include <map>
 
 class TabletopVisualizationThreadBase
 {
  public:
   /** Aligned vector of vectors/points. */
   typedef std::vector<Eigen::Vector4f, Eigen::aligned_allocator<Eigen::Vector4f> > V_Vector4f;
+  typedef std::map<int, Eigen::Vector4f, std::less<int>, Eigen::aligned_allocator<Eigen::Vector4f>> M_Vector4f;
   // Eigen::aligned_allocator<Eigen::Vector4f> 
 
   virtual ~TabletopVisualizationThreadBase();
@@ -45,7 +47,7 @@ class TabletopVisualizationThreadBase
                          V_Vector4f &table_hull_vertices,
                          V_Vector4f &table_model_vertices,
                          V_Vector4f &good_table_hull_edges,
-                         V_Vector4f &centroids) throw() = 0;
+                         M_Vector4f &centroids) throw() = 0;
 };
 
 #endif

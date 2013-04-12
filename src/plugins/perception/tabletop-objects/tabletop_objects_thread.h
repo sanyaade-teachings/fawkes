@@ -41,6 +41,8 @@
 #include <pcl/tracking/distance_coherence.h>
 #include <pcl/tracking/hsv_color_coherence.h>
 
+#include <map>
+
 #include "cluster_colors.h"
 
 namespace fawkes {
@@ -152,7 +154,7 @@ class TabletopObjectsThread
 
   boost::shared_ptr<TrackerType> tracker_[MAX_CENTROIDS];
   std::queue<int> free_obj_ids_;
-  std::vector<Eigen::Vector4f, Eigen::aligned_allocator<Eigen::Vector4f> > centroids;
+  std::map<int, Eigen::Vector4f, std::less<int>, Eigen::aligned_allocator<Eigen::Vector4f>> centroids;
 
   float cfg_depth_filter_min_x_;
   float cfg_depth_filter_max_x_;

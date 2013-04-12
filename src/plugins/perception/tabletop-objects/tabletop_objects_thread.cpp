@@ -431,8 +431,6 @@ TabletopObjectsThread::loop()
   }
 
   unsigned int centroid_i = 0;
-  unsigned int highest_obj_id = 0;
-  centroids.resize(MAX_CENTROIDS);
   //cloud_hull_.reset(new Cloud());
 
   TIMETRACK_INTER(ttc_voxelize_, ttc_plane_)
@@ -1129,12 +1127,11 @@ TabletopObjectsThread::loop()
         TIMETRACK_START(ttc_object_removal_);
         remove_object(cloud_objs_, result_cloud);
         TIMETRACK_END(ttc_object_removal_);
-        highest_obj_id = centroid_i;
         }
         else {
           active_trackers[centroid_i] = false;
           free_obj_ids_.push(centroid_i);
-          centroids.erase(centroids.begin() + centroid_i);
+          centroids.erase(centroid_i);
         }
       }
     }
@@ -1150,12 +1147,10 @@ TabletopObjectsThread::loop()
   for (unsigned int i = 0; i < MAX_CENTROIDS; ++i) {
     if (active_trackers[i]) {
       set_position(pos_ifs_[i], active_trackers[i], centroids[i]);
-      highest_obj_id = i;
     } else {
       set_position(pos_ifs_[i], false);
     }
   }
-  centroids.resize(highest_obj_id + 1);
 
   TIMETRACK_INTER(ttc_cluster_objects_, ttc_visualization_)
 
