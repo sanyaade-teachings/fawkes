@@ -210,12 +210,6 @@ TabletopObjectsThread::init()
   pcl_manager->add_pointcloud("tabletop-simplified-polygon", fsimplified_polygon_);
   pcl_utils::set_time(fsimplified_polygon_, fawkes::Time(clock));
 
-  funknown_objs_ = new Cloud();
-  unknown_objs_ = pcl_utils::cloudptr_from_refptr(funknown_objs_);
-  unknown_objs_->header.frame_id = finput_->header.frame_id;
-  pcl_manager->add_pointcloud("tabletop-unknown-objs", funknown_objs_);
-  pcl_utils::set_time(funknown_objs_, fawkes::Time(clock));
-
   grid_.setFilterFieldName("x");
   grid_.setFilterLimits(cfg_depth_filter_min_x_, cfg_depth_filter_max_x_);
   grid_.setLeafSize(cfg_voxel_leaf_size_, cfg_voxel_leaf_size_, cfg_voxel_leaf_size_);
@@ -338,7 +332,6 @@ TabletopObjectsThread::finalize()
   fclusters_.reset();
   ftable_model_.reset();
   fsimplified_polygon_.reset();
-  funknown_objs_.reset();
 }
 
 template <typename PointType>
@@ -1083,9 +1076,6 @@ TabletopObjectsThread::loop()
   CloudPtr tmp_tracking_cloud(new Cloud());
   tmp_tracking_cloud->header.frame_id = input_->header.frame_id;
 
-  CloudPtr unknown_objs(new Cloud());
-  unknown_objs->header.frame_id = input_->header.frame_id;
-
   if (first_run_) {
     reset_obj_ids();
     reset_trackers();
@@ -1169,14 +1159,12 @@ TabletopObjectsThread::loop()
 
   TIMETRACK_INTER(ttc_cluster_objects_, ttc_visualization_)
 
-  *unknown_objs_ = *unknown_objs;
   *clusters_ = *tmp_clusters;
   *tracking_cloud_ = *tmp_tracking_cloud;
   pcl_utils::copy_time(finput_, fclusters_);
   pcl_utils::copy_time(finput_, ftable_model_);
   pcl_utils::copy_time(finput_, fsimplified_polygon_);
   pcl_utils::copy_time(finput_, ftracking_cloud_);
-  pcl_utils::copy_time(finput_, funknown_objs_);
 
 
 #ifdef HAVE_VISUAL_DEBUGGING
