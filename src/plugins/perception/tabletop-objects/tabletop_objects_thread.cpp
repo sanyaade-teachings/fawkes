@@ -1117,8 +1117,12 @@ TabletopObjectsThread::loop()
           tracker_[centroid_i]->compute();
           pcl::console::setVerbosityLevel(verbosity);
           pcl::tracking::ParticleXYZRPY result = tracker_[centroid_i]->getResult ();
+          if (result.weight < cfg_tracking_objthreshold_) {
+            result_cloud->clear();
+          } else {
           Eigen::Affine3f transformation = tracker_[centroid_i]->toEigenMatrix (result);
           pcl::transformPointCloud<RefPointType> (*(tracker_[centroid_i]->getReferenceCloud ()), *result_cloud, transformation);
+          }
         } else {
           logger->log_debug(name(), "cloud_objs_ is empty, don't track.");
           *result_cloud = *tracker_[centroid_i]->getReferenceCloud();
