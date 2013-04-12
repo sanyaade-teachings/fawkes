@@ -1070,7 +1070,6 @@ TabletopObjectsThread::loop()
 
   TIMETRACK_INTER(ttc_table_to_output_, ttc_cluster_objects_)
 
-
   CloudPtr tmp_tracking_cloud(new Cloud());
   tmp_tracking_cloud->header.frame_id = input_->header.frame_id;
 
@@ -1214,14 +1213,11 @@ std::vector<pcl::PointIndices> TabletopObjectsThread::extract_object_clusters(
   pcl::search::KdTree<PointType>::Ptr
   kdtree_cl(new pcl::search::KdTree<PointType>());
   if (indices) {
-//    logger->log_warn(name(), "extraction: use %u indices", indices->size());
     kdtree_cl->setInputCloud(input, indices);
   }
   else {
-//    logger->log_warn(name(), "extraction: no indices");
     kdtree_cl->setInputCloud(input);
   }
-//  logger->log_warn(name(), "extract_object_clusters input cloud: %u", kdtree_cl->getInputCloud()->size());
   std::vector<pcl::PointIndices> cluster_indices;
   pcl::EuclideanClusterExtraction<PointType> ec;
   ec.setClusterTolerance(cfg_cluster_tolerance_);
@@ -1233,16 +1229,10 @@ std::vector<pcl::PointIndices> TabletopObjectsThread::extract_object_clusters(
     ec.setIndices(indices);
   }
   ec.extract(cluster_indices);
-
-//  logger->log_warn(name(), "Found %zu clusters", cluster_indices.size());
-
   return cluster_indices;
 }
 
 void TabletopObjectsThread::reset_obj_ids() {
-//  free_obj_ids_ new std::queue<int>(MAX_CENTROIDS);
-//  for (unsigned int i = 0; i < free_obj_ids_.size(); i++)
-//    free_obj_ids_.pop();
   while (!free_obj_ids_.empty())
     free_obj_ids_.pop();
   for (int i = 0; i < MAX_CENTROIDS; i++) {
