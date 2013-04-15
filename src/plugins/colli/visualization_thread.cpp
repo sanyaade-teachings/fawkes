@@ -16,16 +16,16 @@ ColliVisualizationThread::ColliVisualizationThread()
   feedback_id = -1;
   pose_frame_id = "";
 }
-
-
 //-------------------------------------------------------------------------------------------------------------
 void ColliVisualizationThread::init()
 { 
   m_motor = blackboard->open_for_reading<MotorInterface>("Motor Brutus");
   m_navi = blackboard->open_for_reading<NavigatorInterface>("NavigatorTarget");
+  p_navi = blackboard->open_for_reading<NavigatorInterface>("Pathplan");
   navsub_ = new ros::Subscriber();
   *navsub_ = rosnode->subscribe("move_base_simple/goal", 10,&ColliVisualizationThread::callback,this);
-
+  navsub_amcl_ = new ros::Subscriber();
+  *navsub_amcl_ = rosnode->subscribe("amcl_pose", 10,&ColliVisualizationThread::callback,this);
   navpub_ = new ros::Publisher();
   *navpub_ = rosnode->advertise<nav_msgs::GridCells>("target_rviz", 1);
 
@@ -181,12 +181,11 @@ void ColliVisualizationThread::visualize(const std::string frame_id,vector<HomPo
   modTarget_ = modTarget;
   wakeup();
 }
-
 //---------------------------------------------------------------------------------------------------
 void ColliVisualizationThread::callback( const geometry_msgs::PoseStamped::ConstPtr &msg)
 {
   HomPoint transPoint = transform(robo_pos_);
-
+  
   geometry_msgs::PoseStamped poseMsg = *msg;
   pose_frame_id = poseMsg.header.frame_id;
   nav_msgs::GridCells targ;
@@ -200,21 +199,25 @@ void ColliVisualizationThread::callback( const geometry_msgs::PoseStamped::Const
   ptarfix.z = poseMsg.pose.position.z;
   targ.cells.push_back(ptarfix);
   navpub_->publish(targ);
-  rvizTarget = HomPoint(poseMsg.pose.position.x,poseMsg.pose.position.y,0);
-
+  HomPoint rvizTarget = transform_map_to_base(poseMsg);
   rviz_target_ = rvizTarget;
-  m_navi->read();
-  NavigatorInterface::CartesianGotoMessage *nav_msg = new NavigatorInterface::CartesianGotoMessage();
-  nav_msg->set_x(rvizTarget.x());
-  nav_msg->set_y(rvizTarget.y());
-  m_navi->msgq_enqueue(nav_msg);
-
-  // ** send target point by polar got message  ** //
-  /* float ini_phi = atan2(rvizTarget.y(),rvizTarget.x());
-  float ini_dis = sqrt(pow(rvizTarget.y(),2)+pow(rvizTarget.x(),2));
-  NavigatorInterface::PolarGotoMessage *nav_msg = new NavigatorInterface::PolarGotoMessage(ini_phi,ini_dis,0);
-  m_navi->msgq_enqueue(nav_msg);
-*/
+  m_navi->read(); 
+  p_navi->read();
+  if( p_navi->has_writer() )
+  {
+    NavigatorInterface::CartesianGotoMessage *nav_msg = new NavigatorInterface::CartesianGotoMessage();
+    nav_msg->set_x(poseMsg.pose.position.x);
+    nav_msg->set_y(poseMsg.pose.position.y);
+    p_navi->msgq_enqueue(nav_msg);
+  }
+  else
+  {
+    NavigatorInterface::CartesianGotoMessage *nav_msg = new NavigatorInterface::CartesianGotoMessage();
+    nav_msg->set_x(rvizTarget.x());
+    nav_msg->set_y(rvizTarget.y());
+    m_navi->msgq_enqueue(nav_msg);
+  }
+  
   if( m_navi->drive_mode() == NavigatorInterface::MovingNotAllowed ) 
   {
     NavigatorInterface::SetDriveModeMessage *drive_msg = new NavigatorInterface::SetDriveModeMessage();
@@ -227,7 +230,7 @@ void ColliVisualizationThread::callback( const geometry_msgs::PoseStamped::Const
   m_navi->msgq_enqueue(maxvel_msg);
 
   NavigatorInterface::SetSecurityDistanceMessage *seq_msg = new NavigatorInterface::SetSecurityDistanceMessage(); 
-  seq_msg->set_security_distance(0.2);
+  seq_msg->set_security_distance(0);
   m_navi->msgq_enqueue(seq_msg);
 }
 //---------------------------------------------------------------------------------------------------
@@ -303,6 +306,20 @@ void ColliVisualizationThread::processFeedback(const visualization_msgs::Interac
         break;
     }
     m_navi->msgq_enqueue(seq_msg);
+  }
+  else if( ( feedback_id <= 20 ) && ( feedback_id >= 19 ))
+  {
+    NavigatorInterface::SetEscapingMessage *esc_msg = new NavigatorInterface::SetEscapingMessage();
+    switch( feedback_id )
+    {
+      case 19:
+        esc_msg->set_escaping_enabled(true);
+        break;
+      case 20:
+        esc_msg->set_escaping_enabled(false);
+        break;      
+    }
+    m_navi->msgq_enqueue(esc_msg);
   }
 
 }
@@ -408,6 +425,57 @@ HomPoint ColliVisualizationThread::transform_odom_to_base(HomPoint point)
     res = target_trans;
   } catch (tf::TransformException &e) {
     logger->log_warn(name(),"can't transform from odom");
+    e.print_trace();
+  }
+  return res;
+}
+//-----------------------------------------------------------------------------------
+HomPoint ColliVisualizationThread::transform_base_to_map(HomPoint point)
+{
+  HomPoint res;
+  try {
+    tf::Stamped<tf::Point> target_base(tf::Point(point.x(),point.y(),0.),
+                   fawkes::Time(0, 0), "/base_link");
+    tf::Stamped<tf::Point> maprel_target;
+    tf_listener->transform_point("/map", target_base,maprel_target);
+    HomPoint target_trans(maprel_target.x(),maprel_target.y());
+    res = target_trans;
+  } catch (tf::TransformException &e) {
+    logger->log_warn(name(),"can't transform from base_link to map");
+    e.print_trace();
+  }
+  return res;
+}
+//---------------------------------------------------------------------------------
+HomPoint ColliVisualizationThread::transform_map_to_base(HomPoint point)
+{
+  HomPoint res;
+  try {
+    tf::Stamped<tf::Point> target_map(tf::Point(point.x(),point.y(),0.),
+                   fawkes::Time(0, 0), "/map");
+    tf::Stamped<tf::Point> baserel_target;
+    tf_listener->transform_point("/base_link", target_map,baserel_target);
+    HomPoint target_trans(baserel_target.x(),baserel_target.y());
+    res = target_trans;
+  } catch (tf::TransformException &e) {
+    logger->log_warn(name(),"can't transform from map to base_link");
+    e.print_trace();
+  }
+  return res;
+}
+//---------------------------------------------------------------------------------
+HomPoint ColliVisualizationThread::transform_map_to_base(geometry_msgs::PoseStamped poseMsg)
+{
+  HomPoint res;
+  try {
+    tf::Stamped<tf::Point> target_map(tf::Point(poseMsg.pose.position.x,poseMsg.pose.position.y,0.),
+                   fawkes::Time(0, 0), poseMsg.header.frame_id);
+    tf::Stamped<tf::Point> baserel_target;
+    tf_listener->transform_point("/base_link", target_map,baserel_target);
+    HomPoint target_trans(baserel_target.x(),baserel_target.y());
+    res = target_trans;
+  } catch (tf::TransformException &e) {
+    logger->log_warn(name(),"can't transform from map to base_link");
     e.print_trace();
   }
   return res;
@@ -550,6 +618,24 @@ void ColliVisualizationThread::visualize_colli_params()
     menuesSecDis[i].parent_id = menuSecDis.id;
     dmode.menu_entries.push_back(menuesSecDis[i]);
   }
+
+  visualization_msgs::MenuEntry menuEsc;
+  menuEsc.title = "Escape Enable->";
+  menuEsc.command_type = visualization_msgs::MenuEntry::FEEDBACK;
+  menuEsc.id = 18;
+  menuEsc.parent_id = 0;
+  dmode.menu_entries.push_back(menuEsc);
+  visualization_msgs::MenuEntry menuesEscMode[2];
+  menuesEscMode[0].title = "true";
+  menuesEscMode[0].command_type = visualization_msgs::MenuEntry::FEEDBACK;
+  menuesEscMode[0].id = menuEsc.id + 1;
+  menuesEscMode[0].parent_id = menuEsc.id;
+  dmode.menu_entries.push_back(menuesEscMode[0]);
+  menuesEscMode[1].title = "false";
+  menuesEscMode[1].command_type = visualization_msgs::MenuEntry::FEEDBACK;
+  menuesEscMode[1].id = menuEsc.id + 2;
+  menuesEscMode[1].parent_id = menuEsc.id;
+  dmode.menu_entries.push_back(menuesEscMode[1]);
 
 
   server->insert(dmode);
@@ -709,7 +795,6 @@ void ColliVisualizationThread::visualize_orig_laser_points()
 //------------------------------------------------------------------------------------
 void ColliVisualizationThread::visualize_occ_cells()
 {
-
   nav_msgs::GridCells gcs;
   gcs.header.frame_id = frame_id_;
   gcs.header.stamp = ros::Time::now();
@@ -738,7 +823,6 @@ void ColliVisualizationThread::visualize_near_cells()
   for( size_t i = 0; i < near_cells_.size(); i++ )
   {
     geometry_msgs::Point p;
-    //HomPoint transPoint = transform(near_cells_[i]);
     HomPoint transPoint = transform_robo(near_cells_[i]);
     p.x = transPoint.x();
     p.y = -transPoint.y();
@@ -750,7 +834,6 @@ void ColliVisualizationThread::visualize_near_cells()
 //-------------------------------------------------------------------------------------
 void ColliVisualizationThread::visualize_far_cells()
 {
-
   nav_msgs::GridCells gcs;
   gcs.header.frame_id = frame_id_;
   gcs.header.stamp = ros::Time::now();
@@ -817,7 +900,6 @@ void ColliVisualizationThread::visualize_found_astar_occ()
   for( size_t i = 0; i < astar_found_occ_.size(); i++ )
   {
     geometry_msgs::Point p;
-    //HomPoint transPoint = transform(astar_found_occ_[i]);
     HomPoint transPoint = transform_robo(astar_found_occ_[i]);
     p.x = transPoint.x();
     p.y = -transPoint.y();
@@ -917,7 +999,7 @@ void ColliVisualizationThread::visualize_grid_boundary()
 {
   HomPoint transPoint = transform(robo_pos_);
   float robo_posx = transPoint.x();
-  float robo_posy = transPoint.y();
+  float robo_posy = transPoint.y(); 
   nav_msgs::Path targc1;
   targc1.header.frame_id = frame_id_;
   targc1.header.stamp = ros::Time::now();
@@ -987,5 +1069,4 @@ void ColliVisualizationThread::visualize_grid_boundary()
   pos.pose.orientation = pathOri;
   targc4.poses.push_back(pos);
   rec4pub_->publish(targc4);  // ** between 1-3
-
 }

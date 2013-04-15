@@ -186,7 +186,6 @@ inline CBaseMotorInstruct::CBaseMotorInstruct( MotorInterface * motor, MotorInte
   m_desiredTranslation = m_desiredRotation = 0.0;     
   m_currentTranslation = m_currentRotation = 0.0;     
   m_execTranslation    = m_execRotation    = 0.0;
-  // ** m_OldTimestamp.Stamp();
   m_Frequency = frequency;
   loggerTmp->log_info("BaseMotorInstruct","CBaseMotorInstruct(Constructor): Exiting\n");
 }
@@ -197,7 +196,6 @@ inline CBaseMotorInstruct::CBaseMotorInstruct( MotorInterface * motor, MotorInte
 inline CBaseMotorInstruct::~CBaseMotorInstruct()
 {
   loggerTmp->log_info("BaseMotorInstruct","CBaseMotorInstruct(Destructor): Entering\n");
-  //bb_if->close(motor_if_read);
   loggerTmp->log_info("BaseMotorInstruct","CBaseMotorInstruct(Destructor): Exiting\n");
 }
 
@@ -217,7 +215,6 @@ inline void CBaseMotorInstruct::SetCommand(  )
   // Translation borders
   if ( fabs(m_execTranslation) < 0.05 )
   {
-    //SetDesiredTranslation( 0.0 );
     vx = 0.0;
   }
   else
@@ -226,25 +223,21 @@ inline void CBaseMotorInstruct::SetCommand(  )
     {
       if ( m_execTranslation > 0.0 )
       {
-	//SetDesiredTranslation( 3.0 );
         vx = 3.0;
       }
       else
       {
-	//SetDesiredTranslation( -3.0 );
         vx = -3.0;
       }
     }
     else
     {
-      //SetDesiredTranslation( m_execTranslation );
       vx = m_execTranslation;
     }
   }
   // Rotation borders
   if ( fabs(m_execRotation) < 0.01 )
   {
-    //SetDesiredRotation( 0.0 );
     omega = 0.0;
   }
   else
@@ -253,25 +246,22 @@ inline void CBaseMotorInstruct::SetCommand(  )
     {
       if ( m_execRotation > 0.0 )
       {
-	//SetDesiredRotation( 2*M_PI );
         omega = 2*M_PI;
       }
       else
       {
-	//SetDesiredRotation( -2*M_PI );
         omega = -2*M_PI;
       }
     }
     else
     {
-      //SetDesiredRotation( m_execRotation );
       omega = m_execRotation;
     }
   }
   // Send the commands to the motor. No controlling afterwards done!!!!
   //SendCommand();
    //loggerTmp->log_info("drive realization","vx %f, vy %f, omega %f",vx,vy,omega );
-   if ( motor_if->motor_state() == motor_if->MOTOR_ENABLED )
+  if ( motor_if->motor_state() == motor_if->MOTOR_ENABLED )
    {
      MotorInterface::TransRotMessage *msg = new MotorInterface::TransRotMessage(vx,vy,omega);
      motor_if_cmd->msgq_enqueue(msg);
@@ -295,63 +285,29 @@ inline void CBaseMotorInstruct::Drive( float proposedTrans, float proposedRot )
   // initializing driving values (to be on the sure side of life)
   m_execTranslation = 0.0;
   m_execRotation = 0.0;
-/*
+
   // timediff storie to realize how often one was called
-  Timestamp currentTime;
-  currentTime.Stamp();
-  float timediff = currentTime - m_OldTimestamp;
-  float time_factor = ( (timediff*1000.0) / m_Frequency);
 
-  if (time_factor < 0.5) 
-    {
-      BB_DBG(1) << "CBaseMotorInstruct( Drive ): "
-		<< "Blackboard timing(case 1) strange, time_factor is " 
-		<< time_factor << endl;
-    }
-  else if (time_factor > 2.0)
-    {
-      BB_DBG(1) << "CBaseMotorInstruct( Drive ): "
-	        << "Blackboard timing(case 2) strange, time_factor is " 
-		<< time_factor << endl;    
-    }
-  else
-    {
-      ;
-    }
-
-
-  m_OldTimestamp = currentTime; */
-  
   Time *currentTime = new Time();
   currentTime = &(currentTime->stamp());
-  //float timediff = currentTime - m_OldTimestamp;
-
   float timediff = TimeDiff(currentTime,m_OldTimestamp);
 //  loggerTmp->log_info("CBaseMotorInstruct","timediff is: %f , frequency is: %f \n",timediff,m_Frequency);
   // ** for now, just for test ** //
   float time_factor = ( (timediff*1000.0) / m_Frequency );
 
-/*  if(time_factor < 0.5)
-    {
-      loggerTmp->log_info("CBaseMotorInstruct","CBaseMotorInstruct( Drive ): Blackboard timing(case 1) strange, time_factor is %f\n",time_factor); 
-    }
+  if(time_factor < 0.5)
+    loggerTmp->log_info("CBaseMotorInstruct","CBaseMotorInstruct( Drive ): Blackboard timing(case 1) strange, time_factor is %f\n",time_factor); 
   else if (time_factor > 2.0)
-    {
-      loggerTmp->log_info("CBaseMotorInstruct","CBaseMotorInstruct( Drive ): Blackboard timing(case 2) strange, time_factor is %f\n",time_factor);
-    }
+    loggerTmp->log_info("CBaseMotorInstruct","CBaseMotorInstruct( Drive ): Blackboard timing(case 2) strange, time_factor is %f\n",time_factor);
   else
-    {
-      ;
-    }*/
+    ;
+  m_OldTimestamp = currentTime;
   // getting current performed values
-  //m_currentRotation    = GetMotorDesiredRotation();
-  //m_currentTranslation = GetMotorDesiredTranslation();
   m_currentRotation    = motor_if->omega();
   m_currentTranslation = GetMotorTranslation(motor_if->vx(),motor_if->omega());
   // calculate maximum allowed rotation change between proposed and desired values
   m_desiredRotation = proposedRot;
   // ** TODO for test time_factor ** //
-  time_factor = 1.0;
   m_execRotation    = CalculateRotation( m_currentRotation, m_desiredRotation, time_factor );
   // calculate maximum allowed translation change between proposed and desired values
   m_desiredTranslation = proposedTrans;
@@ -360,13 +316,9 @@ inline void CBaseMotorInstruct::Drive( float proposedTrans, float proposedRot )
   SetCommand( );
 }
 
-
-
 // Does execute a stop command if it is called several times
 inline void CBaseMotorInstruct::ExecuteStop()
 {
-  //m_currentTranslation = GetMotorDesiredTranslation();
-  //m_currentRotation    = GetMotorDesiredRotation();
   m_currentTranslation = GetMotorTranslation(motor_if->vx(),motor_if->omega());;
   m_currentRotation = motor_if->omega();
 

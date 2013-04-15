@@ -184,6 +184,7 @@ public:
   int m_RobocupMode;
 
   float m_MaxCellExt;
+  float m_MaxOldCellExt;
 
   CEllipseMap * ellipse_map;
 

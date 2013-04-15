@@ -203,6 +203,8 @@ void CAStar::get_grid()
 CAStarState * CAStar::Search( )
 {
   register CAStarState * best = 0;
+ /* int best_cost = 10000000;
+  register CAStarState * best_state = 0;*/
   // while the openlist not is empty
   while ( m_pOpenList.size() > 0 )
     {
@@ -218,6 +220,11 @@ CAStarState * CAStar::Search( )
       // check if its a goal.
       if ( IsGoal( best ) )
       { 
+        /*if( best->m_TotalCost < best_cost )
+        {
+          best_cost = best->m_TotalCost;
+          best_state = best;  
+        } */
 	return best;
       }
       else if ( m_AStarStateCount > m_MaxStates - 6 )
@@ -243,6 +250,7 @@ CAStarState * CAStar::Search( )
       // generate all its children
       GenerateChildren( best );
     }
+//  return best_state;
   return 0;
 }
 

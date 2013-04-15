@@ -81,6 +81,9 @@ class ColliVisualizationThread
   HomPoint transform_odom_to_base(HomPoint point);
   HomPoint transform_base_to_odom(HomPoint point);
   HomPoint transform_laser_to_base(HomPoint point);
+  HomPoint transform_base_to_map(HomPoint point);
+  HomPoint transform_map_to_base(HomPoint point);
+  HomPoint transform_map_to_base(geometry_msgs::PoseStamped poseMsg);
   void visualize_target_odom();
   void callback( const geometry_msgs::PoseStamped::ConstPtr &msg);
   void processFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback );
@@ -115,6 +118,7 @@ class ColliVisualizationThread
   ros::Publisher *rec4pub_;
 
   ros::Subscriber *navsub_;
+  ros::Subscriber *navsub_amcl_;
   ros::Publisher  *navpub_;
  
   ros::Publisher *drive_mode_pub_;
@@ -157,6 +161,7 @@ class ColliVisualizationThread
   int feedback_id;
   string pose_frame_id;
   NavigatorInterface *m_navi;
+  NavigatorInterface *p_navi;
   MotorInterface  *m_motor;
 }; 
 
