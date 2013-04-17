@@ -1136,7 +1136,8 @@ TabletopObjectsThread::loop()
       }
     }
     TIMETRACK_END(ttc_tracking_);
-    if (cfg_rescan_objs_frequency_ >= 1 && loop_count_ % cfg_rescan_objs_frequency_ == 0) {
+    if (cfg_rescan_objs_frequency_ >= 1 && loop_count_ % cfg_rescan_objs_frequency_ == 0
+        && cloud_objs_ && !cloud_objs_->points.empty()) {
       TIMETRACK_START(ttc_cluster_new_objs_);
       add_objects(cloud_objs_, tmp_tracking_cloud, colored_clusters);
       TIMETRACK_END(ttc_cluster_new_objs_);
