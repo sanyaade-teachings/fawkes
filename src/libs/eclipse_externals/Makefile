@@ -23,10 +23,14 @@ LDFLAGS += $(ECLIPSE_LDFLAGS)
 LIBS_eclipse_externals = fawkescore fawkesblackboard fawkesinterface fawkesutils eclipse
 OBJS_eclipse_externals = blackboard.o rcsoft_map_graph.o
 
+LIBS_libeclipse_externals = fawkescore fawkesblackboard fawkesinterface fawkesutils eclipse
+OBJS_libeclipse_externals = blackboard.o rcsoft_map_graph.o
+
 OBJS_all = $(OBJS_eclipse_externals)
 
 ifeq ($(HAVE_ECLIPSE),1)
   LIBS_all = $(LIBDIR)/eclipse_externals.so
+  LIBS_all = $(LIBDIR)/libeclipse_externals.so
 else
   WARN_TARGETS += warning_eclipse
 endif
