@@ -29,7 +29,6 @@
 #include <string>
 #include <exception>
 
-namespace fawkes {
 namespace Kinova
 {
 
@@ -109,5 +108,5 @@ class KinovaMonoClass
 };
 
 
-}} // namespace Kinova
+} // namespace Kinova
 #endif

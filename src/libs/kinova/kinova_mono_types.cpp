@@ -29,7 +29,6 @@
 #include <cstdio>
 #include <string>
 
-namespace fawkes {
 namespace Kinova
 {
 
@@ -90,7 +89,7 @@ KinovaMonoAssembly::~KinovaMonoAssembly()
 /** Init the assembly.
  * This procedure needs to be executed once for every assembly before it can be used.
  * @param domain The active mono-domain.
- * @return Returned error. (ERROR_NONE == 0)
+ * @return Possible error. (ERROR_NONE == 0)
  */
 KinovaMonoError_t
 KinovaMonoAssembly::init(MonoDomain* domain)
@@ -123,7 +122,7 @@ KinovaMonoAssembly::init(MonoDomain* domain)
  * This can probably be solved better with templates and maybe std::map. It is not very
  * elegant now, but gets the job done, as this is a first attempt of wrapping the API.
  *
- * @return Returned error. (ERROR_NONE == 0)
+ * @return Possible error. (ERROR_NONE == 0)
  */
 KinovaMonoError_t
 KinovaMonoAssembly::init_classes()
@@ -146,4 +145,4 @@ KinovaMonoClass::get_object()
   return __object;
 }
 
-}} // namespace Kinova
+} // namespace Kinova
