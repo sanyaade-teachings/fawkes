@@ -37,9 +37,9 @@ namespace Kinova { namespace DLL { namespace SafeGate
 /* /================================\
  *         Assembly
  * \================================/*/
- /** Constructor.
-  * @param path The full path to the directory containing the DLL file.
-  */
+/** Constructor.
+ * @param path The full path to the directory containing the DLL file.
+ */
 Assembly::Assembly(const char* path)
   : KinovaMonoAssembly("Kinova.DLL.SafeGate", path)
 {

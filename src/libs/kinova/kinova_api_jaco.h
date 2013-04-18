@@ -76,7 +76,7 @@ class CJacoArm : public KinovaMonoClass
   /// \brief Constructor, taking a plain password.
   CJacoArm(const char* password);
 
-  /// \brief Desctructor.
+  /// \brief Destructor.
   ~CJacoArm();
 
   /// \brief Initializes connection to MonoMethods
