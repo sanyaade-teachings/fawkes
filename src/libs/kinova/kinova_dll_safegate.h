@@ -26,8 +26,6 @@
 
 #include "kinova_mono_types.h"
 
-#include <mono/metadata/object.h>
-
 #include <cstdio>
 
 /* Ugly namespacing, but trying to resemble original C# API as much as possible.
@@ -64,7 +62,7 @@ class CCypherMessage : public KinovaMonoClass
 {
  public:
   CCypherMessage();
-  CCypherMessage(MonoObject* object);
+  CCypherMessage(MyMonoObject* object);
 
   ~CCypherMessage();
 

@@ -24,13 +24,29 @@
 #ifndef KINOVA_MONO_TYPES_H
 #define KINOVA_MONO_TYPES_H
 
-#include <mono/metadata/object.h>
-
 #include <string>
 #include <exception>
 
+// forward declarations. This way the user does not need to care about
+// mono-2 libs/cflags
+typedef struct _MonoDomain MonoDomain;
+typedef struct _MonoAssembly MonoAssembly;
+typedef struct _MonoImage MonoImage;
+typedef struct _MonoClass MonoClass;
+typedef struct _MonoMethod MonoMethod;
+//MonoObject is an unnamed struct -_- see declaration below in Kinova namespace
+
 namespace Kinova
 {
+
+/*As MonoObject is an unnamed struct, this is the only solution of forward declaration.
+ * The cpp file then defines 'struct MyMonoObject : public MonoObject {};'
+ * This requires some casting here and there, but it is for the sake of the user, who
+ * does not need to worry about additional CLFAGS/LDFLAGS for the compiler, which would
+ * be the case if we included <mono/metadata/object.h> here.
+ */
+/** A MonoObject wrapper, to allow forward declaration of an unnamed struct.*/
+struct MyMonoObject;
 
 /** Error types, can give a hint on where to look for the problem. */
 typedef enum
@@ -51,7 +67,7 @@ class KinovaException : public std::exception
 {
  public:
   KinovaException(const char* msg = NULL) throw();
-  KinovaException(MonoObject* object) throw();
+  KinovaException(MyMonoObject* object) throw();
 
   virtual const char* what() const throw();
 
@@ -99,12 +115,12 @@ class KinovaMonoClass
    */
   static void init(MonoDomain* domain, MonoAssembly* assembly, MonoImage* image);
 
-  MonoObject* get_object();
+  MyMonoObject* get_object();
 
  protected:
   static MonoDomain* __domain;  /**< The active mono domain */
   static MonoClass*  __class;   /**< The actual class. Remember to declare static for child class! */
-  MonoObject*        __object;  /**< The actual instance in the mono domain */
+  MyMonoObject*      __object;  /**< The actual instance in the mono domain */
 };
 
 

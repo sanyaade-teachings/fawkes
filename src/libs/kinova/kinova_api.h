@@ -30,8 +30,6 @@
 #include "kinova_dll_safegate.h"
 #include "kinova_api_jaco.h"
 
-#include <mono/metadata/object.h>
-
 #include <list>
 
 namespace Kinova

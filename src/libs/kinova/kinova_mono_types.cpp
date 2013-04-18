@@ -24,6 +24,7 @@
 #include "kinova_mono_types.h"
 
 #include <mono/jit/jit.h>
+#include <mono/metadata/object.h>
 #include <mono/metadata/assembly.h>
 
 #include <cstdio>
@@ -31,6 +32,8 @@
 
 namespace Kinova
 {
+
+struct MyMonoObject : public MonoObject {};
 
 /* /================================\
  *         KinovaException
@@ -46,9 +49,9 @@ KinovaException::KinovaException(const char* msg) throw()
 /** Constructor.
  * @param object The MonoObject holding the exception
  */
-KinovaException::KinovaException(MonoObject* object) throw()
+KinovaException::KinovaException(MyMonoObject* object) throw()
 {
-  __msg = mono_string_to_utf8(mono_object_to_string(object, NULL));
+  __msg = mono_string_to_utf8(mono_object_to_string((MonoObject*)object, NULL));
 }
 
 /** Get exception message.
@@ -139,10 +142,10 @@ KinovaMonoAssembly::init_classes()
 /** Get the actual object in the mono-domain.
  * @return The actual object (MonoObject*) in the mono-domain.
  */
-MonoObject*
+MyMonoObject*
 KinovaMonoClass::get_object()
 {
-  return __object;
+  return (MyMonoObject*)__object;
 }
 
 } // namespace Kinova

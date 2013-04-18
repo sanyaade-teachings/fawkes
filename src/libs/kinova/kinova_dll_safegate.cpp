@@ -78,17 +78,19 @@ MonoClass*   CCypherMessage::__class = NULL;
 /** Constructor. */
 CCypherMessage::CCypherMessage()
 {
-  __object = mono_object_new(__domain, __class);
-  mono_runtime_object_init(__object);
-  if( !__object )
+  MonoObject* object = mono_object_new(__domain, __class);
+  mono_runtime_object_init(object);
+  if( !object )
     printf("ERROR!!!! could not create instance of CCypherMessage \n");
+
+  __object = (MyMonoObject*)object;
 }
 
 /** Constructor.
  * This version might come in handy.
  * @param object A MonoObject pointer to the already existing CCypherMessage object.
  */
-CCypherMessage::CCypherMessage(MonoObject* object)
+CCypherMessage::CCypherMessage(MyMonoObject* object)
 {
   __object = object;
   if( !__object )
@@ -139,9 +141,9 @@ MonoMethod*  Crypto::__m_Encrypt = NULL;
 Crypto::Crypto()
 {
   MonoObject* ex;
-  __object = mono_runtime_invoke(__m_GetInstance, NULL, NULL, &ex);
+  __object = (MyMonoObject*)mono_runtime_invoke(__m_GetInstance, NULL, NULL, &ex);
   if( ex )
-    throw KinovaException(ex);
+    throw KinovaException((MyMonoObject*)ex);
 
   if( !__object )
     printf("ERROR!!!! could not create instance of Crypto \n");
@@ -210,12 +212,12 @@ Crypto::Encrypt(const char* password)
   args[0] = mono_string_new(__domain, password);
   object = mono_runtime_invoke(__m_Encrypt, __object, args, &ex);
   if( ex )
-    throw KinovaException(ex);
+    throw KinovaException((MyMonoObject*)ex);
 
   if( !__object )
     throw KinovaException("Could not get Encrypt object");
 
-  return new CCypherMessage(object);
+  return new CCypherMessage((MyMonoObject*)object);
 }
 
 }}} // namespace Kinova::DLL::SafeGate

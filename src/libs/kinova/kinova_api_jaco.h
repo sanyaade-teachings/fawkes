@@ -26,8 +26,6 @@
 
 #include "kinova_mono_types.h"
 
-#include <mono/metadata/object.h>
-
 #include <cstdio>
 #include <string>
 
@@ -106,7 +104,7 @@ class CJacoArm : public KinovaMonoClass
   static MonoMethod* __m_JacoIsReady;
   static MonoMethod* __m_Finalize;
 
-  static void (*__CloseConnection)(MonoObject* object);
+  static void (*__CloseConnection)(MyMonoObject* object);
   //CJacoConfigurationManager ConfigurationsManager;
   //CJacoControlManager       ControlManager;
   //CJacoDiagnosticManager    DiagnosticManager;

@@ -76,7 +76,7 @@ MonoMethod*  CJacoArm::__m_CloseConnection = NULL;
 MonoMethod*  CJacoArm::__m_GetAPIVersion = NULL;
 MonoMethod*  CJacoArm::__m_JacoIsReady = NULL;
 MonoMethod*  CJacoArm::__m_Finalize = NULL;
-void (*CJacoArm::__CloseConnection)(MonoObject*) = NULL;
+void (*CJacoArm::__CloseConnection)(MyMonoObject*) = NULL;
 
 /** Constructor, taking a CCypherMessage (encrypted password).
  * This is the way the original API intends it to be used.
@@ -112,7 +112,7 @@ CJacoArm::create(Kinova::DLL::SafeGate::CCypherMessage* encPassword)
   args[0] = encPassword->get_object();
   mono_runtime_invoke(__m_ctor, __object, args, &ex);
   if( ex )
-    throw KinovaException(ex);
+    throw KinovaException((MyMonoObject*)ex);
 }
 
 /** Initialize the CJacoArm class and its methods. Needs to be done once.
@@ -145,7 +145,7 @@ CJacoArm::init(MonoDomain* domain, MonoAssembly* assembly, MonoImage* image)
 
   // EXPERIMENTAL; get function pointers to access the MonoMethods. Is supposed to be faster,
   // but I need to figure out how to pass arguments and how to catch exceptions with this.
-  __CloseConnection = (void (*)(MonoObject*))mono_method_get_unmanaged_thunk(__m_CloseConnection);
+  __CloseConnection = (void (*)(MyMonoObject*))mono_method_get_unmanaged_thunk(__m_CloseConnection);
   if( !__CloseConnection )
     return MONO_ERROR_METHOD;
 
@@ -160,7 +160,7 @@ CJacoArm::CloseConnection()
   //__CloseConnection(__object);
   mono_runtime_invoke(__m_CloseConnection, __object, NULL, &ex);
   if( ex )
-    throw KinovaException(ex);
+    throw KinovaException((MyMonoObject*)ex);
 }
 
 /** Gets the API version.
@@ -173,7 +173,7 @@ CJacoArm::GetAPIVersion()
   MonoObject* object;
   object = mono_runtime_invoke(__m_GetAPIVersion, __object, NULL, &ex);
   if( ex )
-    throw KinovaException(ex);
+    throw KinovaException((MyMonoObject*)ex);
 
   return std::string(mono_string_to_utf8(mono_object_to_string(object, NULL)));
 }
@@ -188,7 +188,7 @@ CJacoArm::JacoIsReady()
   MonoObject* object;
   object = mono_runtime_invoke(__m_JacoIsReady, __object, NULL, &ex);
   if( ex )
-    throw KinovaException(ex);
+    throw KinovaException((MyMonoObject*)ex);
 
   // need to unbox the return-value of the invoke, to be able to interpret it.
   MonoBoolean* mb = (MonoBoolean*)mono_object_unbox(object);
@@ -205,7 +205,7 @@ CJacoArm::Finalize()
   MonoObject* ex;
   mono_runtime_invoke(__m_Finalize, __object, NULL, &ex);
   if( ex )
-    throw KinovaException(ex);
+    throw KinovaException((MyMonoObject*)ex);
 }
 //*/
 
