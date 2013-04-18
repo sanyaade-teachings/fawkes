@@ -13,9 +13,9 @@
 #*****************************************************************************
 
 ifneq ($(PKGCONFIG),)
-	HAVE_MONO = $(if $(shell $(PKGCONFIG) --exists 'mono-2'; echo $${?/1/}),1,0)
+  HAVE_MONO = $(if $(shell $(PKGCONFIG) --exists 'mono-2'; echo $${?/1/}),1,0)
   ifeq ($(HAVE_MONO),1)
-		CFLAGS_MONO  = $(shell $(PKGCONFIG) --cflags 'mono-2')
-		LDFLAGS_MONO = $(shell $(PKGCONFIG) --libs 'mono-2')
-	endif
+    CFLAGS_MONO  = $(shell $(PKGCONFIG) --cflags 'mono-2')
+    LDFLAGS_MONO = $(shell $(PKGCONFIG) --libs 'mono-2')
+  endif
 endif
