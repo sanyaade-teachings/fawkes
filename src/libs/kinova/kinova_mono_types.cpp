@@ -33,6 +33,11 @@
 namespace Kinova
 {
 
+/** A MonoObject wrapper, to allow forward declaration of an unnamed struct.
+ * This means, that we need to use MyMonoObject in the headers and our classes,
+ * and cast here and there with (MonoObject*) and (MyMonoObject*) when working
+ * internally with the mono environment.
+ */
 struct MyMonoObject : public MonoObject {};
 
 /* /================================\
