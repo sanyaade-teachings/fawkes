@@ -164,6 +164,7 @@ class ColliVisualizationThread
   NavigatorInterface *p_navi;
   MotorInterface  *m_motor;
   bool ref_obstacle;
+  string naviface_id;
 }; 
 
 #endif

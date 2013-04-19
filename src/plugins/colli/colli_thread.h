@@ -150,7 +150,8 @@ class ColliThread
   bool isRwiRobot;
 
   vector<HomPoint > m_vSolution;
-
+  
+  string naviface_id;
 
   /* ************************************************************************ */
   /* PRIVATE METHODS                                                          */

@@ -29,8 +29,18 @@ void ColliVisualizationThread::init()
     ref_obstacle = config->get_bool("/plugins/colli/RefObstacle");
   }
  
-  m_motor = blackboard->open_for_reading<MotorInterface>("Motor Brutus");
-  m_navi = blackboard->open_for_reading<NavigatorInterface>("NavigatorTarget");
+  if (!config->exists("/plugins/colli/Navigator_interface_id") )
+  {
+    cout << "***** ERROR *****: Could not get: Navigator_interface_id"
+         << " --> ABORTING!" << endl << endl;
+    return;
+  }
+  else
+  {
+    naviface_id = config->get_string("/plugins/colli/Navigator_interface_id");
+  }
+
+  m_navi = blackboard->open_for_reading<NavigatorInterface>(naviface_id.c_str());
   p_navi = blackboard->open_for_reading<NavigatorInterface>("Pathplan");
   navsub_ = new ros::Subscriber();
   *navsub_ = rosnode->subscribe("move_base_simple/goal", 10,&ColliVisualizationThread::callback,this);

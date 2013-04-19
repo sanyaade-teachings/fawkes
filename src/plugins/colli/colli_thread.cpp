@@ -103,6 +103,17 @@ void ColliThread::init()
     //cout << "Colli_ROBOCUP_MODE " << m_RobocupMode << endl;
   }
  
+  if (!config->exists("/plugins/colli/Navigator_interface_id") )
+  {
+    cout << "***** ERROR *****: Could not get: Navigator_interface_id"
+         << " --> ABORTING!" << endl << endl;
+    return;
+  }
+  else
+  {
+    naviface_id = config->get_string("/plugins/colli/Navigator_interface_id");
+  }
+
   /* As default we use a football player AllemaniACs robot */
   if (default_hostname == "carl_rc.informatik.rwth-aachen.de")
     {
@@ -519,7 +530,7 @@ void ColliThread::RegisterAtBlackboard()
   m_pMopoObj = blackboard->open_for_reading<MotorInterface>("Motor Brutus");
   motor_des = blackboard->open_for_writing<MotorInterface>("Motor Caesar");
   m_pLaserScannerObj = blackboard->open_for_reading<Laser360Interface>("Laser");
-  m_pColliTargetObj = blackboard->open_for_reading<NavigatorInterface>("NavigatorTarget");
+  m_pColliTargetObj = blackboard->open_for_reading<NavigatorInterface>(naviface_id.c_str());
   m_pColliDataObj = blackboard->open_for_writing<NavigatorInterface>("Navigator Temp"); 
 
 
