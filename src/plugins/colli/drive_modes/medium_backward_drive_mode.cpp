@@ -71,7 +71,6 @@ CMediumBackwardDriveModule::CMediumBackwardDriveModule( Logger* logger, Configur
   CAbstractDriveMode( logger, config )
 {
   loggerMedBack = logger;
-  //BB_DBG(4) << "CMediumBackwardDriveModule(Constructor): Entering..." << endl;
   loggerMedBack->log_info("CMediumBackwardDriveModule","CMediumBackwardDriveModule(Constructor): Entering...\n");
   m_DriveModeName = ModerateBackward;
 
@@ -112,7 +111,6 @@ CMediumBackwardDriveModule::CMediumBackwardDriveModule( Logger* logger, Configur
     m_MaxRotation = config->get_float("/plugins/colli/CMediumForwardDriveModule/CMediumDriveModule_MAX_ROT");
     //cout << "CMediumDriveModule_MAX_ROT: " << m_MaxRotation << endl;
   }
-  //BB_DBG(4) << "CMediumBackwardDriveModule(Constructor): Exiting..." << endl;
   loggerMedBack->log_info("CMediumBackwardDriveModule","CMediumBackwardDriveModule(Constructor): Exiting...\n");
 }
 
@@ -121,10 +119,8 @@ CMediumBackwardDriveModule::CMediumBackwardDriveModule( Logger* logger, Configur
  */
 CMediumBackwardDriveModule::~CMediumBackwardDriveModule()
 {
-  //BB_DBG(4) << "CMediumBackwardDriveModule(Destructor): Entering..." << endl;
   loggerMedBack->log_info("CMediumBackwardDriveModule","CMediumBackwardDriveModule(Destructor): Entering...\n");
   m_DriveModeName = MovingNotAllowed;
-  //BB_DBG(4) << "CMediumBackwardDriveModule(Destructor): Exiting..." << endl;
   loggerMedBack->log_info("CMediumBackwardDriveModule","CMediumBackwardDriveModule(Destructor): Exiting...\n");
 }
 
@@ -184,7 +180,6 @@ float CMediumBackwardDriveModule::MediumBackward_Translation ( float dist_to_tar
 
   else
     {
-      //BB_DBG(0) << "************ MEDIUM DRIVE MODES:::NOT DEFINED STATE!!!!! EXITING" << endl;
       loggerMedBack->log_error("CMediumBackwardDriveModule","************ MEDIUM DRIVE MODES:::NOT DEFINED STATE!!!!! EXITING\n");
       trans_1 = 0;
     }

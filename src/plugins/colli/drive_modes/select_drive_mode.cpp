@@ -87,7 +87,6 @@ using namespace std;
 CSelectDriveMode::CSelectDriveMode(MotorInterface* motor, Laser* laser, NavigatorInterface* target, Logger* logger, Configuration *config)
 {
   loggerSelect = logger;
-  //BB_DBG(4) << "CSelectDriveMode(Constructor): Entering" << endl;
   loggerSelect->log_info("CSelectDriveMode","CSelectDriveMode(Constructor): Entering\n");
   m_EscapeFlag   = 0;       // no escaping at the beginning
   m_pMotor       = motor;
@@ -95,7 +94,6 @@ CSelectDriveMode::CSelectDriveMode(MotorInterface* motor, Laser* laser, Navigato
   m_pColliTarget = target;
   m_vDriveModeList.clear();
 
-  //BB_DBG(3) << "Creating Drive Mode Objects" << endl;
   loggerSelect->log_info("CSelectDriveMode","Creating Drive Mode Objects\n"); 
 
   // ============================
@@ -152,18 +150,15 @@ CSelectDriveMode::CSelectDriveMode(MotorInterface* motor, Laser* laser, Navigato
   // YOUR CHANGES SHOULD END HERE!
   // =============================
   
-  //BB_DBG(4) << "CSelectDriveMode(Constructor): Exiting" << endl;
   loggerSelect->log_info("CSelectDriveMode","CSelectDriveMode(Constructor): Exiting\n");
 }
 
 
 CSelectDriveMode::~CSelectDriveMode()
 {
-  //BB_DBG(4) << "CSelectDriveMode(Destructor): Entering" << endl;
   loggerSelect->log_info("CSelectDriveMode","CSelectDriveMode(Destructor): Entering\n");
   for ( unsigned int i = 0; i < m_vDriveModeList.size(); i++ )
     delete m_vDriveModeList[i];
-  //BB_DBG(4) << "CSelectDriveMode(Destructor): Exiting" << endl;
   loggerSelect->log_info("CSelectDriveMode","CSelectDriveMode(Destructor): Exiting\n");
 }
 
@@ -265,8 +260,6 @@ void CSelectDriveMode::Update( bool escape )
       if ( m_vDriveModeList[i]->GetDriveModeName() == desiredMode &&
 	   m_pDriveMode != 0 )
 	{
-//	  BB_DBG(0) << "Error while selecting drive mode. There is more than one mode "
-//		    << "with the same name!!!" << endl << "Stopping!" << endl;
           loggerSelect->log_info("CSelectDriveMode", "Error while selecting drive mode. There is more than one mode with the same name!!!\nStopping!\n");
 
 	  m_pDriveMode = 0;
@@ -284,7 +277,6 @@ void CSelectDriveMode::Update( bool escape )
 
   if ( m_pDriveMode == 0 )  // invalid pointer
     {
-      //BB_DBG(0) << "INVALID DRIVE MODE POINTER, stopping!" << endl;
       loggerSelect->log_info("CSelectDriveMode","INVALID DRIVE MODE POINTER, stopping!\n");
       m_ProposedTranslation = 0.0;
       m_ProposedRotation = 0.0;
@@ -292,27 +284,20 @@ void CSelectDriveMode::Update( bool escape )
   else  // valid drive mode!
     {
       // set the values for the drive mode
-// **      m_pDriveMode->SetCurrentRoboPos( m_pMotor->GetCurrentX(), m_pMotor->GetCurrentY(),
-// **				       m_pMotor->GetCurrentOri() );
       m_pDriveMode->SetCurrentRoboPos( m_pMotor->odometry_position_x(), m_pMotor->odometry_position_y(),
                                        GetMotorOri(m_pMotor->odometry_orientation()) );
 
 
-// **      m_pDriveMode->SetCurrentRoboSpeed( m_pMotor->GetMotorDesiredTranslation(),
-// **					 m_pMotor->GetMotorDesiredRotation() );
       m_pDriveMode->SetCurrentRoboSpeed( GetMotorTranslation(m_pMotor->vx(), m_pMotor->omega()),
                                          m_pMotor->omega() );
 
 
-// **      m_pDriveMode->SetCurrentTarget( m_pColliTarget->GetTargetX(), m_pColliTarget->GetTargetY(), 
-// **				      m_pColliTarget->GetTargetOri() );
       m_pDriveMode->SetCurrentTarget( m_pColliTarget->dest_x(), m_pColliTarget->dest_y(),
                                       m_pColliTarget->dest_ori() );
 
 
       m_pDriveMode->SetLocalTarget( m_LocalTargetX, m_LocalTargetY );
       m_pDriveMode->SetLocalTrajec( m_LocalTrajecX, m_LocalTrajecY );
-// **      m_pDriveMode->SetCurrentColliMode( m_pColliTarget->OrientAtTarget(), m_pColliTarget->StopOnTarget() );
       m_pDriveMode->SetCurrentColliMode( m_pColliTarget->dest_ori(), !m_pColliTarget->is_escaping_enabled()  ); // ** NOT SURE
 
       
@@ -324,20 +309,6 @@ void CSelectDriveMode::Update( bool escape )
       m_ProposedRotation    = m_pDriveMode->GetProposedRotation();
 
       // recheck with targetobj maximum settings
-/* **
-      if ( m_pColliTarget->GetMaximumTranslation() != 0.0 )
-	  if ( fabs( m_ProposedTranslation ) > fabs( m_pColliTarget->GetMaximumTranslation() ) )
-	      if ( m_ProposedTranslation > 0.0 )
-		  m_ProposedTranslation = m_pColliTarget->GetMaximumTranslation();
-	      else
-		  m_ProposedTranslation = -m_pColliTarget->GetMaximumTranslation();
-      
-      if ( m_pColliTarget->GetMaximumRotation() != 0.0 )
-	  if ( fabs( m_ProposedRotation ) > fabs( m_pColliTarget->GetMaximumRotation() ) )
-	      if ( m_ProposedRotation > 0.0 )
-		  m_ProposedRotation = m_pColliTarget->GetMaximumRotation();
-	      else
-		  m_ProposedRotation = -m_pColliTarget->GetMaximumRotation(); ** */
       if ( m_pColliTarget->max_velocity() != 0.0 )
       {
           if ( fabs( m_ProposedTranslation ) > fabs( m_pColliTarget->max_velocity() ) )

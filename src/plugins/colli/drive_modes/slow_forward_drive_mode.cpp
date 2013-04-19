@@ -69,7 +69,6 @@ CSlowForwardDriveModule::CSlowForwardDriveModule(Logger* logger, Configuration *
   CAbstractDriveMode(logger, config)
 {
   loggerSlowFor = logger;
-  //BB_DBG(4) << "CSlowForwardDriveModule(Constructor): Entering..." << endl;
   loggerSlowFor->log_info("CSlowForwardDriveModule","CSlowForwardDriveModule(Constructor): Entering...\n");
   m_DriveModeName = SlowForward;
 
@@ -96,7 +95,6 @@ CSlowForwardDriveModule::CSlowForwardDriveModule(Logger* logger, Configuration *
   else
   {
     m_MaxTranslation = config->get_float("/plugins/colli/CSlowForwardDriveModule/CSlowDriveModule_MAX_TRANS");
-  //  cout << "CSlowDriveModule_MAX_TRANS: " << m_MaxTranslation << endl;
   }
 
   if(!config->exists("/plugins/colli/CSlowForwardDriveModule/CSlowDriveModule_MAX_ROT") )
@@ -110,7 +108,6 @@ CSlowForwardDriveModule::CSlowForwardDriveModule(Logger* logger, Configuration *
     m_MaxRotation = config->get_float("/plugins/colli/CSlowForwardDriveModule/CSlowDriveModule_MAX_ROT");
 //    cout << "CSlowDriveModule_MAX_ROT: " << m_MaxRotation << endl;
   }
-  //BB_DBG(4) << "CSlowForwardDriveModule(Constructor): Exiting..." << endl;
   loggerSlowFor->log_info("CSlowForwardDriveModule","CSlowForwardDriveModule(Constructor): Exiting...\n");
 }
 
@@ -119,10 +116,8 @@ CSlowForwardDriveModule::CSlowForwardDriveModule(Logger* logger, Configuration *
  */
 CSlowForwardDriveModule::~CSlowForwardDriveModule()
 {
-  //BB_DBG(4) << "CSlowForwardDriveModule(Destructor): Entering..." << endl;
   loggerSlowFor->log_info("CSlowForwardDriveModule","CSlowForwardDriveModule(Destructor): Entering...\n");
   m_DriveModeName = MovingNotAllowed;
-  //BB_DBG(4) << "CSlowForwardDriveModule(Destructor): Exiting..." << endl;
   loggerSlowFor->log_info("CSlowForwardDriveModule","CSlowForwardDriveModule(Destructor): Exiting...\n");
 }
 
@@ -254,11 +249,8 @@ void CSlowForwardDriveModule::Update()
   m_ProposedTranslation = 0.0;
   m_ProposedRotation    = 0.0;
 
-  //loggerSlowFor->log_info("slow forward","local target is: %f,%f\n",m_LocalTargetX,m_LocalTargetY);
-  //float dist_to_target = sqrt( pow((m_LocalTargetX),2) + pow((m_LocalTargetY),2) );
   float dist_to_target = sqrt( sqr(m_LocalTargetX) + sqr(m_LocalTargetY) );
   float alpha          = atan2( m_LocalTargetY, m_LocalTargetX );
-//  float dist_to_trajec = sqrt( pow((m_LocalTrajecX),2) + pow((m_LocalTrajecY),2) );
   float dist_to_trajec = sqrt( sqr(m_LocalTrajecX) + sqr(m_LocalTrajecY) );
 
   m_ProposedRotation = SlowForward_Curvature( dist_to_target, dist_to_trajec, 

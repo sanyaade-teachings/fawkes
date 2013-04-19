@@ -56,9 +56,6 @@
 
 
 #include <vector>
-//#include <utils/utils.h>
-//#include "../robo-utils/math_util.h"
-
 
 // also defined in og_laser.h
 // should be here afterwards

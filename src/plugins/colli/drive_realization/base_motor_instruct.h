@@ -54,11 +54,6 @@
 #define _COLLI_BASE_MOTORINSTRUCT_H_
 
 
-/*#include <interfaces/mopo_client.h>
-#include <utils/system/timestamp.h>
-#include <data_utils/rob/robo_motorcontrol.h>
-#include <data_utils/rob/robo_laser.h>*/
-
 #include <interfaces/MotorInterface.h>
 #include <logging/logger.h>
 #include <utils/time/time.h>
@@ -84,11 +79,7 @@ class CBaseMotorInstruct
 {
 public:
     
-  ///
-  //CBaseMotorInstruct( bbClients::Mopo_Client* motor, float frequency );
   CBaseMotorInstruct( MotorInterface *motor, MotorInterface * motor_cmd, float frequency ,Logger *logger);
-  ///
-  //virtual ~CBaseMotorInstruct();
   ~CBaseMotorInstruct();
 
   /** Try to realize the proposed values

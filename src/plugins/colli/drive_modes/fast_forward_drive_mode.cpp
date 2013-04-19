@@ -71,7 +71,6 @@ CFastForwardDriveModule::CFastForwardDriveModule( Logger* logger, Configuration 
   CAbstractDriveMode( logger, config )
 {
   loggerFastFor = logger;
-  //BB_DBG(4) << "CFastForwardDriveModule(Constructor): Entering..." << endl;
   loggerFastFor->log_info("CFastForwardDriveModule","CFastForwardDriveModule(Constructor): Entering...\n");
   m_DriveModeName = FastForward;
 /*
@@ -113,7 +112,6 @@ CFastForwardDriveModule::CFastForwardDriveModule( Logger* logger, Configuration 
     m_MaxRotation = config->get_float("/plugins/colli/CFastForwardDriveModule/CFastDriveModule_MAX_ROT");
     //cout << "CFastDriveModule_MAX_ROT: " << m_MaxRotation << endl;
   }
- // BB_DBG(4) << "CFastForwardDriveModule(Constructor): Exiting..." << endl;
   loggerFastFor->log_info("CFastForwardDriveModule","CFastForwardDriveModule(Constructor): Exiting...\n");
 }
 
@@ -122,10 +120,8 @@ CFastForwardDriveModule::CFastForwardDriveModule( Logger* logger, Configuration 
  */
 CFastForwardDriveModule::~CFastForwardDriveModule()
 {
-  //BB_DBG(4) << "CFastForwardDriveModule(Destructor): Entering..." << endl;
   loggerFastFor->log_info("CFastForwardDriveModule","CFastForwardDriveModule(Destructor): Entering...\n");
   m_DriveModeName = MovingNotAllowed;
-  //BB_DBG(4) << "CFastForwardDriveModule(Destructor): Exiting..." << endl;
   loggerFastFor->log_info("CFastForwardDriveModule","CFastForwardDriveModule(Destructor): Exiting...\n");
 }
 
@@ -192,7 +188,6 @@ float CFastForwardDriveModule::FastForward_Translation ( float dist_to_target, f
     }
   else
     {
-      //BB_DBG(0) << "************ FAST DRIVE MODES:::NOT DEFINED STATE!!!!! STOPPING" << endl;
       loggerFastFor->log_error("CFastForwardDriveModule","************ FAST DRIVE MODES:::NOT DEFINED STATE!!!!! STOPPING\n");
       trans_1 = 0;
     }
@@ -273,10 +268,8 @@ void CFastForwardDriveModule::Update()
   m_ProposedTranslation = 0.0;
   m_ProposedRotation    = 0.0;
 
-  //float dist_to_target  = sqrt(  pow((m_LocalTargetX),2) + pow((m_LocalTargetY),2) );
   float dist_to_target  = sqrt(  sqr(m_LocalTargetX) + sqr(m_LocalTargetY) );
   float alpha  = atan2( m_LocalTargetY, m_LocalTargetX );
-//  float dist_to_trajec  = sqrt(  pow((m_LocalTrajecX),2) + pow((m_LocalTrajecY),2) );
   float dist_to_trajec  = sqrt(  sqr(m_LocalTrajecX) + sqr(m_LocalTrajecY) );
 
   m_ProposedRotation = FastForward_Curvature( dist_to_target, dist_to_trajec, 

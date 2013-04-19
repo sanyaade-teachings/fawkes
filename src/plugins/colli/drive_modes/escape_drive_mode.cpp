@@ -57,8 +57,6 @@
 #define _COLLI_ESCAPE_DRIVE_MODE_CPP_
 
 
-//#include <utils/utils.h>
-//#include <utils/configfile/configfile.h>
 #include "escape_drive_mode.h"
 
 
@@ -71,7 +69,6 @@ CEscapeDriveModule::CEscapeDriveModule( Logger* logger, Configuration *config, L
   CAbstractDriveMode(logger, config)
 {
   loggerEscape = logger;
-  //BB_DBG(4) << "CEscapeDriveModule(Constructor): Entering..." << endl;
   loggerEscape->log_info("CEscapeDriveModule","CEscapeDriveModule(Constructor): Entering...\n");
   m_DriveModeName = ESCAPE;
   m_pLaser = laser;
@@ -91,7 +88,6 @@ CEscapeDriveModule::CEscapeDriveModule( Logger* logger, Configuration *config, L
     }
 */
 //  confFileName = "../cfg/navigation/robot_shape.cfg";
- // m_pRoboShape = new CRoboShape_Colli( (char *)confFileName.c_str(), 2 );
   m_pRoboShape = new CRoboShape_Colli( logger, config, 2) ; 
   if(!config->exists("/plugins/colli/CEscapeDriveModule/EscapeForwardDriveModule_MAX_TRANS") )
   {
@@ -111,7 +107,6 @@ CEscapeDriveModule::CEscapeDriveModule( Logger* logger, Configuration *config, L
     return;
   }
 
-  //BB_DBG(4) << "CEscapeDriveModule(Constructor): Exiting..." << endl;
   loggerEscape->log_info("CEscapeDriveModule","CEscapeDriveModule(Constructor): Exiting...\n");
 }
 
@@ -120,8 +115,6 @@ CEscapeDriveModule::CEscapeDriveModule( Logger* logger, Configuration *config, L
  */
 CEscapeDriveModule::~CEscapeDriveModule()
 {
-  //BB_DBG(4) << "CEscapeDriveModule(Destructor): Entering..." << endl;
-  //BB_DBG(4) << "CEscapeDriveModule(Destructor): Exiting..." << endl;
   loggerEscape->log_info("CEscapeDriveModule","CEscapeDriveModule(Destructor): Entering...\n");
   loggerEscape->log_info("CEscapeDriveModule","CEscapeDriveModule(Destructor): Exiting...\n");
 }
@@ -151,7 +144,6 @@ CEscapeDriveModule::~CEscapeDriveModule()
 void CEscapeDriveModule::Update()
 {
   // This is only called, if we recently stopped...
-  //BB_DBG(0) << "CEscapeDriveModule( Update ): Calculating ESCAPING..." << endl;
   loggerEscape->log_info("EscapeDriveModule","CEscapeDriveModule( Update ): Calculating ESCAPING...\n"); 
   m_ProposedTranslation = 0.0;
   m_ProposedRotation    = 0.0;
@@ -169,23 +161,17 @@ void CEscapeDriveModule::Update()
   bool turnRightAllowed = TurnRightAllowed();
 
   if (dangerFront)
-    //BB_DBG(1) << "DANGER IN FRONT" << endl;
     loggerEscape->log_error("CEscapeDriveModule","DANGER IN FRONT\n");
 
   if (dangerBack)
-    //BB_DBG(1) << "DANGER IN BACK" << endl;
     loggerEscape->log_error("CEscapeDriveModule","DANGER IN BACK\n");
   if (dangerLeft)
-    //BB_DBG(1) << "DANGER IN LEFT" << endl;
     loggerEscape->log_error("CEscapeDriveModule","DANGER IN LEFT\n");
   if (dangerRight)
-    //BB_DBG(1) << "DANGER IN RIGHT" << endl;
     loggerEscape->log_error("CEscapeDriveModule","DANGER IN RIGHT\n");
   if (!turnLeftAllowed)
-    //BB_DBG(1) << "DANGER IF TURNING LEFT!!!" << endl;
     loggerEscape->log_error("CEscapeDriveModule","DANGER IN TURNING LEFT!!!\n");
   if (!turnRightAllowed)
-    //BB_DBG(1) << "DANGER IF TURNING RIGHT!!!" << endl;
     loggerEscape->log_error("CEscapeDriveModule","DANGER IN TURNING RIGHT !!!\n");
 
   if ( dangerFront && dangerBack && turnRightAllowed )

@@ -71,7 +71,6 @@ CFastBackwardDriveModule::CFastBackwardDriveModule( Logger* logger, Configuratio
   CAbstractDriveMode( logger, config )
 {
   loggerFastBack = logger;
-  //BB_DBG(4) << "CFastBackwardDriveModule(Constructor): Entering..." << endl;
   loggerFastBack->log_info("CFastBackwardDriveModule","CFastBackwardDriveModule(Constructor): Entering...\n");
  
   m_DriveModeName = FastBackward;
@@ -114,7 +113,6 @@ CFastBackwardDriveModule::CFastBackwardDriveModule( Logger* logger, Configuratio
     m_MaxRotation = config->get_float("/plugins/colli/CFastForwardDriveModule/CFastDriveModule_MAX_ROT");
     //cout << "CFastDriveModule_MAX_ROT: " << m_MaxRotation << endl;
   }
-  //BB_DBG(4) << "CFastBackwardDriveModule(Constructor): Exiting..." << endl;
   loggerFastBack->log_info("CFastBackwardDriveModule","CFastBackwardDriveModule(Constructor): Exiting...\n");
 }
 
@@ -123,10 +121,8 @@ CFastBackwardDriveModule::CFastBackwardDriveModule( Logger* logger, Configuratio
  */
 CFastBackwardDriveModule::~CFastBackwardDriveModule()
 {
-  //BB_DBG(4) << "CFastBackwardDriveModule(Destructor): Entering..." << endl;
   loggerFastBack->log_info("CFastBackwardDriveModule","CFastBackwardDriveModule(Destructor): Entering...\n");
   m_DriveModeName = MovingNotAllowed;
-  //BB_DBG(4) << "CFastBackwardDriveModule(Destructor): Exiting..." << endl;
   loggerFastBack->log_info("CFastBackwardDriveModule","CFastBackwardDriveModule(Destructor): Exiting...\n");
 }
 
@@ -273,10 +269,8 @@ void CFastBackwardDriveModule::Update()
   m_ProposedTranslation = 0.0;
   m_ProposedRotation    = 0.0;
 
- // float dist_to_target = sqrt( pow((m_LocalTargetX),2) + pow((m_LocalTargetY),2) );
   float dist_to_target = sqrt( sqr(m_LocalTargetX) + sqr(m_LocalTargetY) );
   float alpha  = normalize_mirror_rad(atan2( m_LocalTargetY, m_LocalTargetX ) + M_PI);
-  //float dist_to_trajec = sqrt( pow((m_LocalTrajecX),2) + pow((m_LocalTrajecY),2) );
   float dist_to_trajec = sqrt( sqr(m_LocalTrajecX) + sqr(m_LocalTrajecY) );
 
 

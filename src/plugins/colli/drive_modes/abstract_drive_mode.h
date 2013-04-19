@@ -61,9 +61,6 @@
 #include <config/config.h>
 
 #include <cmath>
-//#include <interfaces/colli_target_client.h>
-//#include <utils/utils.h>
-//#include <utils/configfile/configfile.h>
 #include <string>
 #include <stdio.h>
 #include <stdlib.h>
@@ -290,15 +287,12 @@ inline CAbstractDriveMode::CAbstractDriveMode(Logger *logger, Configuration *con
     }
   //  cout << "CQuadraticMotorInstruct_BASIC_ROT_DEC: " << m_cMaxRotDec << endl;
   } 
-  //BB_DBG(4) << "CAbstractDriveMode(Constructor): Exiting..." << std::endl;
   loggerDrive->log_info("CAbstractDriveMode","CAbstractDriveMode(Constructor): Exiting...\n");
 }
 
 
 inline CAbstractDriveMode::~CAbstractDriveMode()
 {
-  //BB_DBG(4) << "CAbstractDriveMode(Destructor): Entering..." << std::endl;
-  //BB_DBG(4) << "CAbstractDriveMode(Destructor): Exiting..." << std::endl;
   loggerDrive->log_info("CAbstractDriveMode","CAbstractDriveMode(Destructor): Entering...\n");
   loggerDrive->log_info("CAbstractDriveMode","CAbstractDriveMode(Destructor): Exiting...\n");
 }

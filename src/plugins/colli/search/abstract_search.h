@@ -59,7 +59,6 @@
 
 #include <logging/logger.h>
 
-//#include <utils/geometry/point.h>
 #include "og_laser.h"
 #include <utils/math/types.h>
 #include <geometry/hom_point.h>
@@ -95,13 +94,11 @@ public:
   /** return pointer to the local target. do not modify afterwards 
    *  precondition: Update has to be called before this is ok here
    */
-  //const Point& GetLocalTarget();
   const HomPoint& GetLocalTarget();
 
   /** return pointer to the local trajectory point. do not modify afterwards
    *  precondition: Update has to be called before this is ok here
    */
-  //const Point& GetLocalTrajec();
   const HomPoint& GetLocalTrajec();
 
   inline void update_occ(CLaserOccupancyGrid * occGrid);
@@ -112,7 +109,6 @@ protected:
   CLaserOccupancyGrid * m_pOccGrid;
 
   // the calculated information where to drive to
-  //Point m_LocalTarget, m_LocalTrajectory;
   HomPoint m_LocalTarget, m_LocalTrajectory;
 };
 
@@ -121,10 +117,8 @@ protected:
 
 inline CAbstractSearch::CAbstractSearch( Logger* logger, CLaserOccupancyGrid * occGrid )
 {
-  //BB_DBG(4) << "CAbstractSearch(Constructor): Entering" << std::endl;
   logger->log_info("CAbstractSearch","CAbstractSearch(Constructor): Entering\n");
   m_pOccGrid = occGrid;
-  //BB_DBG(4) << "CAbstractSearch(Constructor): Exiting" << std::endl;
   logger->log_info("CAbstractSearch","CAbstractSearch(Constructor): Exiting\n");
 }
 

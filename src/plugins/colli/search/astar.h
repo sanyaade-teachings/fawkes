@@ -69,7 +69,6 @@
 #include <geometry/hom_point.h>
 #include <logging/logger.h>
 #include <config/config.h>
-//#include <utils/geometry/point.h>
 
 using namespace fawkes;
 using namespace std;

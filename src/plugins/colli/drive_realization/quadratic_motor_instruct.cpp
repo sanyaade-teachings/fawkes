@@ -61,9 +61,6 @@
 
 
 #include <string>
-//#include <utils/configfile/configfile.h>
-
-//#include "drive_realization/quadratic_motor_instruct.h"
 #include "quadratic_motor_instruct.h"
 
 using namespace std;
@@ -233,14 +230,12 @@ float CQuadraticMotorInstruct::CalculateRotation( float currentRotation,
 	{
 	  execRotation = currentRotation - basic_rot_dec -
            ((sqr( fabs(currentRotation) + 1.0 ) * basic_rot_dec) / 8.0);
-	   // ((pow(( fabs(currentRotation) + 1.0 ),2) * basic_rot_dec) / 8.0);
 	  execRotation = max( execRotation, desiredRotation );
 	}
       else if (currentRotation < 0.0) // increase left rot
 	{
 	  execRotation = currentRotation - basic_rot_acc -
             ((sqr( fabs(currentRotation) + 1.0 ) * basic_rot_acc) / 8.0);
-	    //((pow(( fabs(currentRotation) + 1.0 ),2) * basic_rot_acc) / 8.0);
 	  execRotation = max( execRotation, desiredRotation );
 	}
       else // currentRotation == 0;
@@ -254,14 +249,12 @@ float CQuadraticMotorInstruct::CalculateRotation( float currentRotation,
 	{
 	  execRotation = currentRotation + basic_rot_acc +
             ((sqr( fabs(currentRotation) + 1.0 ) * basic_rot_acc) / 8.0);
-	   // ((pow(( fabs(currentRotation) + 1.0 ),2) * basic_rot_acc) / 8.0);
 	  execRotation = min( execRotation, desiredRotation );
 	}
       else if (currentRotation < 0.0) // decrease left rot
 	{
 	  execRotation = currentRotation + basic_rot_dec +
              ((sqr( fabs(currentRotation) + 1.0 ) * basic_rot_dec) / 8.0);
-	    //((pow(( fabs(currentRotation) + 1.0 ),2) * basic_rot_dec) / 8.0);
 	  execRotation = min( execRotation, desiredRotation );
 	}
       else // currentRotation == 0

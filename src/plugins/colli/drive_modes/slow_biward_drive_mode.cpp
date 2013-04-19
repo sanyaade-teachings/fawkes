@@ -57,7 +57,6 @@
 #define _COLLI_SLOW_BIWARD_DRIVE_MODE_CPP_
 
 
-//#include <utils/configfile/configfile.h>
 #include "slow_biward_drive_mode.h"
 
 
@@ -69,7 +68,6 @@ CSlowBiwardDriveModule::CSlowBiwardDriveModule( Logger* logger, Configuration *c
   CAbstractDriveMode( logger, config )
 {
   loggerSlowBi = logger;
-  //BB_DBG(4) << "CSlowBiwardDriveModule(Constructor): Entering..." << std::endl;
   loggerSlowBi->log_info("CSlowBiwardDriveModule","CSlowBiwardDriveModule(Constructor): Entering...\n");
   m_DriveModeName = SlowAllowBackward;
   m_pSlowForwardDriveModule  = slow_forward;
@@ -101,7 +99,6 @@ CSlowBiwardDriveModule::CSlowBiwardDriveModule( Logger* logger, Configuration *c
   else
   {
     m_MaxTranslation = config->get_float("/plugins/colli/CSlowForwardDriveModule/CSlowDriveModule_MAX_TRANS");
- //   cout << "CSlowDriveModule_MAX_TRANS: " << m_MaxTranslation << endl;
   }
 
   if(!config->exists("/plugins/colli/CSlowForwardDriveModule/CSlowDriveModule_MAX_ROT") )
@@ -115,7 +112,6 @@ CSlowBiwardDriveModule::CSlowBiwardDriveModule( Logger* logger, Configuration *c
     m_MaxRotation = config->get_float("/plugins/colli/CSlowForwardDriveModule/CSlowDriveModule_MAX_ROT");
    // cout << "CSlowDriveModule_MAX_ROT: " << m_MaxRotation << endl;
   }
-  //BB_DBG(4) << "CSlowBiwardDriveModule(Constructor): Exiting..." << std::endl;
   loggerSlowBi->log_info("CSlowBiwardDriveModule","CSlowBiwardDriveModule(Constructor): Exiting...\n");
 }
 
@@ -124,8 +120,6 @@ CSlowBiwardDriveModule::CSlowBiwardDriveModule( Logger* logger, Configuration *c
  */
 CSlowBiwardDriveModule::~CSlowBiwardDriveModule()
 {
-  //BB_DBG(4) << "CSlowBiwardDriveModule(Destructor): Entering..." << std::endl;
-  //BB_DBG(4) << "CSlowBiwardDriveModule(Destructor): Exiting..." << std::endl;
   loggerSlowBi->log_info("CSlowBiwardDriveModule", "CSlowBiwardDriveModule(Destructor): Entering...\n");
   loggerSlowBi->log_info("CSlowBiwardDriveModule", "CSlowBiwardDriveModule(Destructor): Exiting...\n");
 }
@@ -193,7 +187,6 @@ void CSlowBiwardDriveModule::Update()
     }
   else
     {
-      //BB_DBG(1) << "Undefined state" << endl;
       loggerSlowBi->log_error("CSlowBiwardDriveModule", "Undefined state\n");
       m_CountForward = 0;
     }

@@ -8,7 +8,6 @@ ColliThread::ColliThread()
 {
  #ifdef HAVE_VISUAL_DEBUGGING
   visthread_ = NULL;
-//  navthread_ = NULL;
  #endif
 
 }
@@ -103,7 +102,7 @@ void ColliThread::init()
     m_RobocupMode = config->get_int("/plugins/colli/Colli_ROBOCUP_MODE");
     //cout << "Colli_ROBOCUP_MODE " << m_RobocupMode << endl;
   }
-  
+ 
   /* As default we use a football player AllemaniACs robot */
   if (default_hostname == "carl_rc.informatik.rwth-aachen.de")
     {
@@ -126,7 +125,6 @@ void ColliThread::init()
   RegisterAtBlackboard();
   InitializeModules();
 
-//  SetTime( m_ColliFrequency );
 
   m_oldTargetX   = m_pColliTargetObj->dest_x();
   m_oldTargetY   = m_pColliTargetObj->dest_y();
@@ -334,10 +332,7 @@ void ColliThread::loop()
   if ( m_pColliTargetObj->flags() == (int)(OVERRIDE) )
     {
       std::cout << "BEING OVERRIDDEN!" << endl << endl;
-      //m_pColliDataObj->SetFinal( false );
       m_pColliDataObj->set_final( false );
-     // m_pColliDataObj->UpdateBB();
-      //BBOperate();
       m_pColliDataObj->write();
       escape_count = 0;
       return;
@@ -423,7 +418,6 @@ void ColliThread::loop()
             }
 
           // ueber denken und testen
-          //if (m_pColliTargetObj->EscapeAllowed() == true)
           if(m_pColliTargetObj->is_escaping_enabled () == true)
             {
              // SJTODO: ERST wenn ich gestoppt habe, escape mode anwerfen!!!
@@ -753,7 +747,7 @@ void ColliThread::UpdateColliStateMachine()
 void ColliThread::UpdateOwnModules()
 {
   float motor_distance = 19.4;
-
+  
   if ( m_RobocupMode == 1 )  // Robocup mode
     {
       // set the cell size according to the current speed

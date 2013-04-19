@@ -59,7 +59,6 @@
 #ifndef _COLLI_QUADRATIC_MOTORINSTRUCT_H_
 #define _COLLI_QUADRATIC_MOTORINSTRUCT_H_
 
-//#include "drive_realization/base_motor_instruct.h"
 #include "base_motor_instruct.h"
 
 #include <config/config.h>
@@ -70,15 +69,11 @@
  *    from the current values by a linear function.
  */
 class CQuadraticMotorInstruct: public CBaseMotorInstruct
-//class CQuadraticMotorInstruct
 {
 public:
   
-  ///
   CQuadraticMotorInstruct( MotorInterface* motor, MotorInterface* motor_cmd,float frequency, Logger *logger, Configuration *config );
   
-  ///
- // virtual ~CQuadraticMotorInstruct();
  ~CQuadraticMotorInstruct();
   
   

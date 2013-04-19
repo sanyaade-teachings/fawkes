@@ -59,7 +59,6 @@
 
 
 #include "og_laser.h"
-//#include <utils/configfile/configfile.h>
 
 
 using namespace std;
@@ -69,6 +68,7 @@ using namespace fawkes;
 CLaserOccupancyGrid::CLaserOccupancyGrid( Logger* logger, Configuration *config, Laser * laser, int width, int height,int cell_width, int cell_height ):
 OccupancyGrid( width, height, cell_width, cell_height )
 {
+  ref_obstacle = false;
   /*m_Height = height;
   m_Width = width;
   m_CellWidth = cell_width;
@@ -187,6 +187,15 @@ OccupancyGrid( width, height, cell_width, cell_height )
   {
     m_MaxOldCellExt = config->get_float("/plugins/colli/ColliMaxOldCellExtension");
   }
+  if(!config->exists("/plugins/colli/RefObstacle"))
+  {
+      cout << "Could not find: " << "RefObstacle" << endl;
+  }
+  else
+  {
+    ref_obstacle = config->get_bool("/plugins/colli/RefObstacle");
+  }
+  
 
   loggerGrid->log_info("CLaserOccupancyGrid","Generating trigonometry table\n");
   m_pTrigTable = new TrigTable( m_TrigTableResolution );
@@ -358,6 +367,16 @@ void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
 	point = HomPoint(m_pLaser->GetReadingPosX(i), m_pLaser->GetReadingPosY(i)); 
 	p_x = point.x();
         p_y = point.y();
+        if( ref_obstacle )
+        {   
+          float angle    = normalize_rad( m_pLaser->GetRadiansForReading( i ) );
+          float sub    = m_pRoboShape->GetRobotLengthforRad( angle );
+          float l = m_pLaser->GetReadingLength( i );
+          float r = l - sub;
+          p_x = r * cos(angle);
+          p_y = r * sin(angle);
+        }
+        // ** stuff for testing ** //
 	if ( !((p_x == 0.0) && (p_y == 0.0)) && 
             sqr(p_x-oldp_x)+sqr(p_y-oldp_y) > sqr( m_EllipseDistance ) )
 	  {
@@ -371,13 +390,14 @@ void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
 	      {
 		//float dec = max( (sqrt(sqr(p_x)+sqr(p_y))/3.0-1.0), 0.0 );
 		//float dec = max((m_pLaser->GetReadingLength(i)/2.0)-1.0, 0.0 );
-		float dec = 0.0;
+                float dec = 0.0;
 		    
 		float height = 0.0;
+                float rad = normalize_rad( m_pLaser->GetRadiansForReading( i ) );
 		height = m_pRoboShape->GetRobotLengthforRad( deg2rad( 90. ) ); 
 		height = max( 4.0, ((height + inc - dec)*100.0)/(float)m_CellHeight );
-                //height = min(m_MaxCellExt,height);
-		float rad = normalize_rad( m_pLaser->GetRadiansForReading( i ) );
+                if( !ref_obstacle )
+                  height = min(m_MaxCellExt,height);
 		float length = 0.0;
 		length = m_pRoboShape->GetRobotLengthforRad( rad );
                 
@@ -386,8 +406,9 @@ void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
 		else
 		  length = m_pRoboShape->GetRobotLengthforRad( rad );
 
-		  length = max( 4.0, ((length + inc - dec)*100.0)/(float)m_CellWidth );
-                //  length = min(m_MaxCellExt,length);
+		length = max( 4.0, ((length + inc - dec)*100.0)/(float)m_CellWidth );
+                if( !ref_obstacle)
+                  length = min(m_MaxCellExt,length);
 		   if ( !m_pLaser->IsPipe( rad ) )
 		   {
 		    integrateObstacle( Ellipse( HomPoint( posX, posY ), (int)height, (int)length, 0.0 ) );

@@ -51,17 +51,13 @@
 #ifndef _LASERL_H_
 #define _LASERL_H_
 
-//#include <interfaces/laser_client.h>
 #include <interfaces/Laser360Interface.h>
 #include <interfaces/Laser720Interface.h>
 #include "robo_laserpoint.h"
 #include <utils/time/time.h>
-//#include <utils/config_reader/config_reader.h>
 
 #include <string.h>
 #include <string>
-//#include<ros/ros.h>
-//#include <geometry_msgs/PointStamped.h>
 #include <tf/transform_listener.h>
 using namespace fawkes;
 using namespace std;

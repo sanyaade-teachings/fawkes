@@ -57,8 +57,6 @@
 #define _COLLI_FAST_BIWARD_DRIVE_MODE_CPP_
 
 
-//#include <utils/utils.h>
-//#include <utils/configfile/configfile.h>
 #include "fast_biward_drive_mode.h"
 
 
@@ -72,7 +70,6 @@ CFastBiwardDriveModule::CFastBiwardDriveModule( Logger* logger, Configuration *c
   CAbstractDriveMode( logger, config )
 {
   loggerFastBi = logger;
-  //BB_DBG(4) << "CFastBiwardDriveModule(Constructor): Entering..." << endl;
   loggerFastBi->log_info("CFastBiwardDriveModule","CFastBiwardDriveModule(Constructor): Entering...\n");
   m_DriveModeName = FastAllowBackward;
   m_pFastForwardDriveModule  = forward_module;
@@ -117,7 +114,6 @@ CFastBiwardDriveModule::CFastBiwardDriveModule( Logger* logger, Configuration *c
     m_MaxRotation = config->get_float("/plugins/colli/CFastForwardDriveModule/CFastDriveModule_MAX_ROT");
    // cout << "CFastDriveModule_MAX_ROT: " << m_MaxRotation << endl;
   }
-  //BB_DBG(4) << "CFastBiwardDriveModule(Constructor): Exiting..." << endl;
   loggerFastBi->log_info("CFastBiwardDriveModule","CFastBiwardDriveModule(Constructor): Exiting...");
 }
 
@@ -126,10 +122,8 @@ CFastBiwardDriveModule::CFastBiwardDriveModule( Logger* logger, Configuration *c
  */
 CFastBiwardDriveModule::~CFastBiwardDriveModule()
 {
-  //BB_DBG(4) << "CFastBiwardDriveModule(Destructor): Entering..." << endl;
   loggerFastBi->log_info("CFastBiwardDriveModule","CFastBiwardDriveModule(Destructor): Entering...\n");
   m_DriveModeName = MovingNotAllowed;
-  //BB_DBG(4) << "CFastBiwardDriveModule(Destructor): Exiting..." << endl;
   loggerFastBi->log_info("CFastBiwardDriveModule","CFastBiwardDriveModule(Destructor): Exiting...\n");
 }
 

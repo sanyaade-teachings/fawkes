@@ -57,8 +57,6 @@
 #define _COLLI_SLOW_BACKWARD_DRIVE_MODE_CPP_
 
 
-//#include <utils/utils.h>
-//#include <utils/configfile/configfile.h>
 #include "slow_backward_drive_mode.h"
 
 
@@ -68,7 +66,6 @@ CSlowBackwardDriveModule::CSlowBackwardDriveModule(Logger* logger, Configuration
   CAbstractDriveMode( logger, config )
 {
   loggerSlowBack = logger;
-  //BB_DBG(4) << "CSlowBackwardDriveModule(Constructor): Entering..." << std::endl;
   loggerSlowBack->log_info("CSlowBackwardDriveModule","CSlowBackwardDriveModule(Constructor): Entering...\n");
   m_DriveModeName = SlowBackward;
 /*
@@ -110,7 +107,6 @@ CSlowBackwardDriveModule::CSlowBackwardDriveModule(Logger* logger, Configuration
     m_MaxRotation = config->get_float("/plugins/colli/CSlowForwardDriveModule/CSlowDriveModule_MAX_ROT");
 //    cout << "CSlowDriveModule_MAX_ROT: " << m_MaxRotation << endl;
   }
-  //BB_DBG(4) << "CSlowBackwardDriveModule(Constructor): Exiting" << std::endl;
   loggerSlowBack->log_info("CSlowBackwardDriveModule","CSlowBackwardDriveModule(Constructor): Exiting\n");
 }
 
@@ -119,10 +115,8 @@ CSlowBackwardDriveModule::CSlowBackwardDriveModule(Logger* logger, Configuration
  */
 CSlowBackwardDriveModule::~CSlowBackwardDriveModule() 
 {
-  //BB_DBG(4) << "CSlowBackwardDriveModule(Destructor): Entering..." << std::endl;
   loggerSlowBack->log_info("CSlowBackwardDriveModule","CSlowBackwardDriveModule(Destructor): Entering...\n");
   m_DriveModeName = MovingNotAllowed;
-  //BB_DBG(4) << "CSlowBackwardDriveModule(Destructor): Exiting" << std::endl;
   loggerSlowBack->log_info("CSlowBackwardDriveModule","CSlowBackwardDriveModule(Destructor): Exiting\n");
 }
 
@@ -245,10 +239,8 @@ void CSlowBackwardDriveModule::Update()
   m_ProposedTranslation = 0.0;
   m_ProposedRotation    = 0.0;
   
-  //float dist_to_target = sqrt( pow((m_LocalTargetX),2) + pow((m_LocalTargetY),2) );
   float dist_to_target = sqrt( sqr(m_LocalTargetX) + sqr(m_LocalTargetY) );
   float alpha          = normalize_mirror_rad(atan2( m_LocalTargetY, m_LocalTargetX ) + M_PI);
-  //float dist_to_trajec = sqrt( pow((m_LocalTrajecX),2) + pow((m_LocalTrajecY),2) );
   float dist_to_trajec = sqrt( sqr(m_LocalTrajecX) + sqr(m_LocalTrajecY) );
 
   m_ProposedRotation = SlowBackward_Curvature( dist_to_target, dist_to_trajec, 
@@ -286,7 +278,7 @@ void CSlowBackwardDriveModule::Update()
 	m_ProposedRotation = -m_MaxRotation;
 
       
-      if ( m_StopAtTarget == false && dist_to_target < 1.0 )
+      if ( (m_StopAtTarget == false) && (dist_to_target < 1.0) )
 	{
 	  // Reduziere die rotationsgeschwindigkeiten, damit keine wilden lenkmanoever kommen
 	  if ( m_ProposedRotation > 0.5 )

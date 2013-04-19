@@ -47,7 +47,6 @@
 #include <cmath>
 #include <cstdio>
 #include <iostream>
-//#include <utils/utils.h>
 #include "robo_laser.h"
 
 const float Laser::LASER_X_OFFSET = 0.21;
@@ -55,8 +54,6 @@ const float Laser::LASER_X_OFFSET = 0.21;
 // Initialize the Laser by giving the Laser_Client to it, and 
 // calculating the number of readings we get ( the size of the pos array )
 // and initialize it directly
-//Laser::Laser( Laser360Interface * laser,
-//	      string remoteHostname )
 Laser::Laser( Laser360Interface * laser,
 	      string remoteHostname )
 {
@@ -65,10 +62,7 @@ Laser::Laser( Laser360Interface * laser,
   oldtime = new Time();
   m_pLaserScannerObj = laser;
 
- // m_NumberOfReadings = m_pLaserScannerObj->GetNumberOfValues();
- // m_NumberOfReadings = (int) ( sizeof(m_pLaserScannerObj->distances())/sizeof(float) );
   m_NumberOfReadings = m_pLaserScannerObj->maxlenof_distances();
-  //m_Resolution = m_pLaserScannerObj->GetResolution();
 
   if ( m_NumberOfReadings < 1 )
     {
@@ -136,14 +130,9 @@ inline float number2rad( int nr, int numberOfReadings = 360) {
 int Laser::UpdateLaser( )
 {
   m_pLaserScannerObj->read();
-  //oldtime->SetSec ( newtime->GetSec () );
-  //oldtime->SetuSec( newtime->GetuSec() );
   oldtime->set_time( newtime->get_sec(), newtime->get_usec());
-  //newtime->Stamp();
   newtime = &(newtime->stamp());
   
-  //m_NumberOfReadings = m_pLaserScannerObj->GetNumberOfValues();
-  //m_NumberOfReadings = (int) ( sizeof(m_pLaserScannerObj->distances())/sizeof(float) );
   m_NumberOfReadings = m_pLaserScannerObj->maxlenof_distances();
   // get all readings
   CalculateReadings();
@@ -159,9 +148,7 @@ void Laser::CalculateReadings()
   for ( int i = 0; i < m_NumberOfReadings; i++ )
     {
 	m_pReadings->SetRadians(i, number2rad( i, m_NumberOfReadings ) );
-	//m_pReadings->SetLength(i, max( m_pLaserScannerObj->GetDistNr( i ) - 0.02, 0.0 ) );
-        m_pReadings->SetLength(i, max( m_pLaserScannerObj->distances(i) - 0.02, 0.0 ) );
-       // m_pReadings->SetLength(i, max( m_pLaserScannerObj->distances(i) - 0.21, 0.0 ) );
+        m_pReadings->SetLength(i, m_pLaserScannerObj->distances(i));
     }
 }
 
@@ -186,8 +173,12 @@ void Laser::transform(tf::TransformListener *tf_listener)
     }catch(...){
       cout << "can't transform to the base link" << endl;
     }
+    
     m_pReadings->SetPosX(i,base_point.x());
-    m_pReadings->SetPosY(i,-base_point.y()); 
+    m_pReadings->SetPosY(i,-base_point.y());
+    
+    float angle = normalize_rad(atan2(-base_point.y(),base_point.x()));
+    m_pReadings->SetRadians(i,angle );
   }
   
 }

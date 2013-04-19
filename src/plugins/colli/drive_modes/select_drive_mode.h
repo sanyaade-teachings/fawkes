@@ -63,8 +63,6 @@
 #include <logging/logger.h>
 
 #include <vector>
-//#include <interfaces/colli_target_client.h>
-//#include <data_utils/rob/robo_motorcontrol.h>
 #include "../robo-utils/rob/robo_laser.h"
 #include "abstract_drive_mode.h"
 
@@ -77,10 +75,6 @@ class CSelectDriveMode
 public:
   
   /// laser + target wird hier gebraucht
- /* CSelectDriveMode( MotorControl* motor,
-		    Laser* laser,
-		    bbClients::Colli_Target_Client* target );
-*/
   CSelectDriveMode(MotorInterface* motor, Laser* laser, NavigatorInterface* target, Logger* logger, Configuration *config );
 
 
@@ -118,12 +112,6 @@ public:
   float GetMotorOri(float odom_ori);
 private:
 
-/*
-  // local pointers to bb client objects
-  bbClients::Colli_Target_Client*  m_pColliTarget; 
-  MotorControl*                    m_pMotor;       // USE ONLY AS GETTER!!!
-  Laser*                           m_pLaser;
-  */
   NavigatorInterface* m_pColliTarget;
   MotorInterface*     m_pMotor;
   Laser*  m_pLaser;

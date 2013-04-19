@@ -150,7 +150,6 @@ private:
   CAStar * m_pAStar;                // the A* search algorithm
   std::vector< HomPoint > m_vPlan;    // the local representation of the plan
 
-  //Point m_RoboPosition, m_TargetPosition;
   HomPoint m_RoboPosition, m_TargetPosition;
   bool m_UpdatedSuccessful;
 

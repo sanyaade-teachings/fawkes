@@ -18,7 +18,17 @@ ColliVisualizationThread::ColliVisualizationThread()
 }
 //-------------------------------------------------------------------------------------------------------------
 void ColliVisualizationThread::init()
-{ 
+{
+  ref_obstacle = false;
+  if(!config->exists("/plugins/colli/RefObstacle"))
+  {
+      cout << "Could not find: " << "RefObstacle" << endl;
+  }
+  else
+  {
+    ref_obstacle = config->get_bool("/plugins/colli/RefObstacle");
+  }
+ 
   m_motor = blackboard->open_for_reading<MotorInterface>("Motor Brutus");
   m_navi = blackboard->open_for_reading<NavigatorInterface>("NavigatorTarget");
   p_navi = blackboard->open_for_reading<NavigatorInterface>("Pathplan");
@@ -101,6 +111,7 @@ void ColliVisualizationThread::init()
   server = new interactive_markers::InteractiveMarkerServer("colli_params_marker");
   drive_mode_sub_ = new ros::Subscriber();
   *drive_mode_sub_ = rosnode->subscribe("colli_params_marker/feedback", 100,&ColliVisualizationThread::processFeedback,this);
+  visualize_colli_params();
 }
 //-----------------------------------------------------------------------------------------------------------
 void ColliVisualizationThread::finalize()
@@ -230,7 +241,10 @@ void ColliVisualizationThread::callback( const geometry_msgs::PoseStamped::Const
   m_navi->msgq_enqueue(maxvel_msg);
 
   NavigatorInterface::SetSecurityDistanceMessage *seq_msg = new NavigatorInterface::SetSecurityDistanceMessage(); 
-  seq_msg->set_security_distance(0);
+  if( ref_obstacle )
+    seq_msg->set_security_distance(0);
+  else
+    seq_msg->set_security_distance(0.2);
   m_navi->msgq_enqueue(seq_msg);
 }
 //---------------------------------------------------------------------------------------------------
@@ -293,7 +307,7 @@ void ColliVisualizationThread::processFeedback(const visualization_msgs::Interac
     }
     m_navi->msgq_enqueue(maxvel_msg);
   }
-  else if(( feedback_id <= 17 ) && ( feedback_id >= 16 ))
+  else if(( feedback_id <= 18 ) && ( feedback_id >= 16 ))
   {
     NavigatorInterface::SetSecurityDistanceMessage *seq_msg = new NavigatorInterface::SetSecurityDistanceMessage();
     switch( feedback_id )
@@ -302,20 +316,23 @@ void ColliVisualizationThread::processFeedback(const visualization_msgs::Interac
         seq_msg->set_security_distance(0.0);
         break;
       case 17:
+        seq_msg->set_security_distance(0.1);
+        break;
+      case 18:
         seq_msg->set_security_distance(0.2);
         break;
     }
     m_navi->msgq_enqueue(seq_msg);
   }
-  else if( ( feedback_id <= 20 ) && ( feedback_id >= 19 ))
+  else if( ( feedback_id <= 21 ) && ( feedback_id >= 20 ))
   {
     NavigatorInterface::SetEscapingMessage *esc_msg = new NavigatorInterface::SetEscapingMessage();
     switch( feedback_id )
     {
-      case 19:
+      case 20:
         esc_msg->set_escaping_enabled(true);
         break;
-      case 20:
+      case 21:
         esc_msg->set_escaping_enabled(false);
         break;      
     }
@@ -389,7 +406,6 @@ void ColliVisualizationThread::loop()
   visualize_found_astar_occ();
   visualize_free_cells();
   visualize_seen_states();
-  visualize_colli_params();
   visualize_modified_target();
 }
 //------------------------------------------------------------------------------
@@ -605,11 +621,11 @@ void ColliVisualizationThread::visualize_colli_params()
   menuSecDis.parent_id = 0;
   dmode.menu_entries.push_back(menuSecDis);
 
-  visualization_msgs::MenuEntry menuesSecDis[2];
+  visualization_msgs::MenuEntry menuesSecDis[3];
   float min_dis = 0.0;
-  for( size_t i = 0; i < 2; i++ )
+  for( size_t i = 0; i < 3; i++ )
   {
-    float cur_dis = min_dis + ((float) i )* (0.2);
+    float cur_dis = min_dis + ((float) i )* (0.1);
     stringstream ss;
     ss << cur_dis;
     menuesSecDis[i].title = ss.str();
@@ -622,7 +638,7 @@ void ColliVisualizationThread::visualize_colli_params()
   visualization_msgs::MenuEntry menuEsc;
   menuEsc.title = "Escape Enable->";
   menuEsc.command_type = visualization_msgs::MenuEntry::FEEDBACK;
-  menuEsc.id = 18;
+  menuEsc.id = 19;
   menuEsc.parent_id = 0;
   dmode.menu_entries.push_back(menuEsc);
   visualization_msgs::MenuEntry menuesEscMode[2];

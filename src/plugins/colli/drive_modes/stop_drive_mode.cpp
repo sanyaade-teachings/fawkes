@@ -70,10 +70,8 @@ CStopDriveModule::CStopDriveModule(Logger* logger,Configuration *config) :
   CAbstractDriveMode(logger,config)
 {
   loggerStop = logger;
-  //BB_DBG(4) << "CStopDriveModule(Constructor): Entering..." << endl;
   loggerStop->log_info("CStopDriveModule","CStopDriveModule(Constructor): Entering...\n");
   m_DriveModeName = MovingNotAllowed;
-  //BB_DBG(4) << "CStopDriveModule(Constructor): Exiting..." << endl;
   loggerStop->log_info("CStopDriveModule","CStopDriveModule(Constructor): Exiting...\n");
 }
 
@@ -82,8 +80,6 @@ CStopDriveModule::CStopDriveModule(Logger* logger,Configuration *config) :
  */
 CStopDriveModule::~CStopDriveModule()
 {
-  //BB_DBG(4) << "CStopDriveModule(Destructor): Entering..." << endl;
-  //BB_DBG(4) << "CStopDriveModule(Destructor): Exiting..." << endl;
   loggerStop->log_info("CStopDriveModule","CStopDriveModule(Destructor): Entering...\n");
   loggerStop->log_info("CStopDriveModule","CStopDriveModule(Destructor): Exiting...\n"); 
 }

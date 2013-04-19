@@ -57,8 +57,6 @@
 #define _COLLI_MEDIUM_BIWARD_DRIVE_MODE_CPP_
 
 
-//#include <utils/utils.h>
-//#include <utils/configfile/configfile.h>
 #include "medium_biward_drive_mode.h"
 
 
@@ -72,7 +70,6 @@ CMediumBiwardDriveModule::CMediumBiwardDriveModule( Logger* logger, Configuratio
   CAbstractDriveMode( logger, config )
 {
   loggerMedBi = logger;
-  //BB_DBG(4) << "CMediumBiwardDriveModule(Constructor): Entering..." << endl;
   loggerMedBi->log_info("CMediumBiwardDriveModule","CMediumBiwardDriveModule(Constructor): Entering...\n");
   m_DriveModeName = ModerateAllowBackward;
   m_pMediumForwardDriveModule  = forward_module;
@@ -116,7 +113,6 @@ CMediumBiwardDriveModule::CMediumBiwardDriveModule( Logger* logger, Configuratio
     m_MaxRotation = config->get_float("/plugins/colli/CMediumForwardDriveModule/CMediumDriveModule_MAX_ROT");
    // cout << "CMediumDriveModule_MAX_ROT: " << m_MaxRotation << endl;
   }
-  //BB_DBG(4) << "CMediumBiwardDriveModule(Constructor): Exiting..." << endl;
   loggerMedBi->log_info("CMediumBiwardDriveModule","CMediumBiwardDriveModule(Constructor): Exiting...\n");
 }
 
@@ -125,10 +121,8 @@ CMediumBiwardDriveModule::CMediumBiwardDriveModule( Logger* logger, Configuratio
  */
 CMediumBiwardDriveModule::~CMediumBiwardDriveModule()
 {
-  //BB_DBG(4) << "CMediumBiwardDriveModule(Destructor): Entering..." << endl;
   loggerMedBi->log_info("CMediumBiwardDriveModule","CMediumBiwardDriveModule(Destructor): Entering...\n");
   m_DriveModeName = MovingNotAllowed;
-  //BB_DBG(4) << "CMediumBiwardDriveModule(Destructor): Exiting..." << endl;
   loggerMedBi->log_info("CMediumBiwardDriveModule","CMediumBiwardDriveModule(Destructor): Exiting...\n");
 }
 
@@ -194,7 +188,6 @@ void CMediumBiwardDriveModule::Update()
     }
   else
     {
-      //BB_DBG(1) << "Undefined state" << endl;
       loggerMedBi->log_error("CMediumBiwardDriveModule","Undefined state\n");
       m_CountForward = 0;
     }

@@ -1,10 +1,8 @@
 //#ifndef ELLIPSE_H
 //#define ELLIPSE_H
 
-//#include <utils/geometry/point.h>
 #include <utils/math/types.h>
 #include <utils/math/angle.h>
-//#include <geometry/hom_coord.h>
 #include <geometry/hom_point.h>
 
 class Ellipse
@@ -107,16 +105,12 @@ inline const HomPoint Ellipse::GetBorderPoint( float angle ) const
   float yh = m_Height / 2.0;
   float x,y;
 
-//  angle = normalizedAngleRad(angle - m_Angle);
   angle = normalize_rad(angle - m_Angle);
   
   x = cos(angle) * xw + m_Center.x();
   y = sin(angle) * yh + m_Center.y();
  
-  //return Point(x,y).GetRotate( m_Angle,
-//			       m_Center );
   HomPoint p(x - m_Center.x(), y - m_Center.y());
-  //p.x = x - m_Center.x; p.y = y - m_Center.y;
   float x_tmp = x * cos(m_Angle) - y * sin(m_Angle);
   p.y() = p.x() * sin(m_Angle) + p.y() * cos(m_Angle);
   p.x() = x_tmp;
@@ -139,7 +133,6 @@ inline const float Ellipse::GetAngleTo( const HomPoint  p1 ,const HomPoint  p2) 
 
 inline const bool Ellipse::IsInside( const HomPoint & p ) const 
 {
- // return (m_Center.GetSquaredDistanceTo(p) <= m_Center.GetSquaredDistanceTo(GetBorderPoint(m_Center.GetAngleTo(p))));
   return (GetSquaredDistanceTo(m_Center,p) <= GetSquaredDistanceTo(m_Center,GetBorderPoint(GetAngleTo(m_Center,p))));
 }
 

@@ -189,7 +189,7 @@ public:
   CEllipseMap * ellipse_map;
 
   Logger* loggerGrid;
-
+  bool ref_obstacle;
 //  int m_CellWidth,m_CellHeight;
 //  int m_Width,m_Height;
 

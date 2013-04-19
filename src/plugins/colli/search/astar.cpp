@@ -439,8 +439,6 @@ void CAStar::GetSolutionSequence( CAStarState * node, vector< HomPoint > &soluti
       state = state->m_pFather;
     }
     loggerASS->log_info("ASTAR","AStar(GetSolutionSequence): Solutionsize= %d Used states= %d\n",solution.size(),m_AStarStateCount);
-  // BB_DBG(3) << "AStar(GetSolutionSequence): Solutionsize=" << solution.size() 
-  //   	       << " Used states=" << m_AStarStateCount << endl;
 }
 
 
