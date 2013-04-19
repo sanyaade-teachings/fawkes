@@ -66,7 +66,7 @@ class Assembly : public KinovaMonoAssembly
  * Again, we could save ourselves some code here by using class templates
  * for KinovaMonoClass. Will be done in futer versions.
  */
-class CJacoArm : public KinovaMonoClass
+class CJacoArm : public KinovaMonoClass<CJacoArm>
 {
  public:
   /// \brief Constructor, taking a CCypherMessage (encrypted password).
@@ -78,7 +78,8 @@ class CJacoArm : public KinovaMonoClass
   ~CJacoArm();
 
   /// \brief Initializes connection to MonoMethods
-  static KinovaMonoError_t init(MonoDomain* domain, MonoAssembly* assembly, MonoImage* image);
+  //static KinovaMonoError_t init(MonoDomain* domain, MonoAssembly* assembly, MonoImage* image);
+  static KinovaMonoError_t init(MonoImage* image, const char* class_namespace);
 
   /// \brief Closes the USB Connection.
   void CloseConnection();
@@ -96,8 +97,6 @@ class CJacoArm : public KinovaMonoClass
 
  private:
   void create(Kinova::DLL::SafeGate::CCypherMessage* encPassword);
-  static MonoDomain* __domain;
-  static MonoClass*  __class;
   static MonoMethod* __m_ctor;
   static MonoMethod* __m_CloseConnection;
   static MonoMethod* __m_GetAPIVersion;

@@ -85,14 +85,20 @@ class KinovaMonoAssembly
 
   virtual KinovaMonoError_t init(MonoDomain* d);
 
+  MonoDomain*   get_domain() const;
+  MonoAssembly* get_assembly() const;
+  MonoImage*    get_image() const;
+  const char*   get_name() const;
+  const char*   get_path() const;
+
  protected:
   virtual KinovaMonoError_t init_classes();
   MonoDomain*   __domain;    /**< The active mono domain */
   MonoAssembly* __assembly;  /**< The actual mono assembly */
   MonoImage*    __image;     /**< The mono image of the assembly */
+  const char*   __name;  /**< Name of the assembly. Should be the DLL-filename without suffix. */
 
  private:
-  const char*   __name;  /**< Name of the assembly. Should be the DLL-filename without suffix. */
   std::string   __path;  /**< Path to the assembly file */
 
   bool          __initialized; /**< Tracking if assembly was initialized */
@@ -103,17 +109,14 @@ class KinovaMonoAssembly
  * Each provided class should be a child of this one.
  *
  * Probably better if declared as a template. This is just a first attempt though.*/
+template <typename T>
 class KinovaMonoClass
 {
  public:
   virtual ~KinovaMonoClass() {}
 
-  /** Initialize the class. Needs to be done once per original API class.
-   * @param domain The active mono-domain.
-   * @param assembly The assembly this class belongs to.
-   * @param image The image of the assembly.
-   */
-  static void init(MonoDomain* domain, MonoAssembly* assembly, MonoImage* image);
+  static KinovaMonoError_t init(KinovaMonoAssembly* assembly);
+  static KinovaMonoError_t init(MonoDomain* domain, MonoAssembly* assembly, MonoImage* image, const char* class_namespace);
 
   MyMonoObject* get_object();
 
@@ -122,6 +125,50 @@ class KinovaMonoClass
   static MonoClass*  __class;   /**< The actual class. Remember to declare static for child class! */
   MyMonoObject*      __object;  /**< The actual instance in the mono domain */
 };
+
+// initialize static members
+template <typename T> MonoDomain* KinovaMonoClass<T>::__domain( NULL );
+template <typename T> MonoClass*  KinovaMonoClass<T>::__class( NULL );
+
+
+/** Get the actual object in the mono-domain.
+ * @return The actual object (MonoObject*) in the mono-domain.
+ */
+template <typename T>
+MyMonoObject*
+KinovaMonoClass<T>::get_object()
+{
+  return (MyMonoObject*)__object;
+}
+
+template <typename T>
+KinovaMonoError_t
+KinovaMonoClass<T>::init(KinovaMonoAssembly* assembly)
+{
+  return init(assembly->get_domain(),
+              assembly->get_assembly(),
+              assembly->get_image(),
+              assembly->get_name());
+}
+
+/** Initialize the class. Needs to be done once per original API class.
+ * @param domain The active mono-domain.
+ * @param assembly The assembly this class belongs to.
+ * @param image The image of the assembly.
+ * @param class_namespace The namespace which the class belongs to.
+ * @return Possible error. (ERROR_NONE == 0)
+ */
+template <typename T>
+KinovaMonoError_t
+KinovaMonoClass<T>::init(MonoDomain* domain, MonoAssembly* assembly, MonoImage* image, const char* class_namespace)
+{
+  // set domain that we are working in
+  __domain = domain;
+  if( !__domain )
+    return MONO_ERROR_DOMAIN;
+
+  return T::init(image, class_namespace);
+}
 
 
 } // namespace Kinova

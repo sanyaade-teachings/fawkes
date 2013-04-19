@@ -55,13 +55,14 @@ Assembly::init_classes()
 {
   printf("init_classes(), child class \n");
 
-  KinovaMonoError_t error;
+  //*
+  KinovaMonoError_t error = MONO_ERROR_NONE;
 
-  error = Crypto::init(__domain, __assembly, __image);
+  error = KinovaMonoClass<Crypto>::init(this);
   if( error ) { return error; }
-  error = CCypherMessage::init(__domain, __assembly, __image);
+  error = KinovaMonoClass<CCypherMessage>::init(this);
   if( error ) { return error; }
-
+  //*/
 
   return MONO_ERROR_NONE;
 }
@@ -72,9 +73,6 @@ Assembly::init_classes()
 /* /================================\
  *         CCypherMessage
  * \================================/*/
-MonoDomain*  CCypherMessage::__domain = NULL;
-MonoClass*   CCypherMessage::__class = NULL;
-
 /** Constructor. */
 CCypherMessage::CCypherMessage()
 {
@@ -108,16 +106,12 @@ CCypherMessage::~CCypherMessage()
  * @param image The image of the assembly.
  * @return Possible error. (ERROR_NONE == 0)
  */
+//*
 KinovaMonoError_t
-CCypherMessage::init(MonoDomain* domain, MonoAssembly* assembly, MonoImage* image)
+CCypherMessage::init(MonoImage* image, const char* class_namespace)
 {
-  // set domain that we are working in
-  __domain = domain;
-  if( !__domain )
-    return MONO_ERROR_DOMAIN;
-
   // get mono class for this class
-  __class = mono_class_from_name(image, "Kinova.DLL.SafeGate", "CCypherMessage");
+  __class = mono_class_from_name(image, class_namespace, "CCypherMessage");
   if( !__class )
     return MONO_ERROR_CLASS;
 
@@ -132,8 +126,6 @@ CCypherMessage::init(MonoDomain* domain, MonoAssembly* assembly, MonoImage* imag
  * \================================/*/
 // init static members
 Crypto*      Crypto::__instance = NULL;
-MonoDomain*  Crypto::__domain = NULL;
-MonoClass*   Crypto::__class = NULL;
 MonoMethod*  Crypto::__m_GetInstance = NULL;
 MonoMethod*  Crypto::__m_Encrypt = NULL;
 
@@ -163,27 +155,24 @@ Crypto::~Crypto()
  * @param image The image of the assembly.
  * @return Possible error. (ERROR_NONE == 0)
  */
+//*
 KinovaMonoError_t
-Crypto::init(MonoDomain* domain, MonoAssembly* assembly, MonoImage* image)
+Crypto::init(MonoImage* image, const char* class_namespace)
 {
-  // set domain that we are working in
-  __domain = domain;
-  if( !__domain )
-    return MONO_ERROR_DOMAIN;
-
   // get mono class for this class
-  __class = mono_class_from_name(image, "Kinova.DLL.SafeGate", "Crypto");
+  __class = mono_class_from_name(image, class_namespace, "Crypto");
   if( !__class )
     return MONO_ERROR_CLASS;
 
   // get the methods of the class
-  __m_GetInstance = mono_class_get_method_from_name(__class, "GetInstance", 0 /*number of params*/);
-  __m_Encrypt = mono_class_get_method_from_name(__class, "Encrypt", 1 /*number of params*/);
+  __m_GetInstance = mono_class_get_method_from_name(__class, "GetInstance", 0);
+  __m_Encrypt = mono_class_get_method_from_name(__class, "Encrypt", 1);
   if( !__m_GetInstance || !__m_Encrypt )
     return MONO_ERROR_METHOD;
 
   return MONO_ERROR_NONE;
 }
+//*/
 
 /** Get the single existing instance of this class.
  * @return Pointer to the singleton instance.

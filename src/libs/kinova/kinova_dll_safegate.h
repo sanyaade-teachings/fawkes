@@ -58,20 +58,14 @@ class Assembly : public KinovaMonoAssembly
  * Again, we could save ourselves some code here by using class templates
  * for KinovaMonoClass. Will be done in futer versions.
  */
-class CCypherMessage : public KinovaMonoClass
+class CCypherMessage : public KinovaMonoClass<CCypherMessage>
 {
  public:
   CCypherMessage();
   CCypherMessage(MyMonoObject* object);
-
   ~CCypherMessage();
 
-  /// \brief Initializes the class and its methods
-  static KinovaMonoError_t init(MonoDomain* domain, MonoAssembly* assembly, MonoImage* image);
-
- private:
-  static MonoDomain* __domain;
-  static MonoClass*  __class;
+  static KinovaMonoError_t init(MonoImage* image, const char* class_namespace);
 }; // class CCypherMessage
 
 
@@ -85,21 +79,17 @@ class CCypherMessage : public KinovaMonoClass
  * Again, we could save ourselves some code here by using class templates
  * for KinovaMonoClass. Will be done in futer versions.
  */
-class Crypto : public KinovaMonoClass
+class Crypto : public KinovaMonoClass<Crypto>
 {
  public:
-  /// \brief Initializes the class and its methods
-  static KinovaMonoError_t init(MonoDomain* domain, MonoAssembly* assembly, MonoImage* image);
-
   static Crypto* GetInstance();
   CCypherMessage* Encrypt(const char* password);
 
+  static KinovaMonoError_t init(MonoImage* image, const char* class_namespace);
  private:
   Crypto();
   //~Crypto();
   static Crypto*     __instance;
-  static MonoDomain* __domain;
-  static MonoClass*  __class;
   static MonoMethod* __m_GetInstance;
   static MonoMethod* __m_Encrypt;
 }; // class Crypto

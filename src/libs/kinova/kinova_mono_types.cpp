@@ -22,6 +22,7 @@
  */
 
 #include "kinova_mono_types.h"
+//#include "kinova_dll_safegate.h"
 
 #include <mono/jit/jit.h>
 #include <mono/metadata/object.h>
@@ -94,6 +95,31 @@ KinovaMonoAssembly::~KinovaMonoAssembly()
 {
 }
 
+const char*
+KinovaMonoAssembly::get_name() const
+{
+  return __name;
+}
+
+MonoDomain*
+KinovaMonoAssembly::get_domain() const
+{
+  return __domain;
+}
+
+MonoAssembly*
+KinovaMonoAssembly::get_assembly() const
+{
+  return __assembly;
+}
+
+MonoImage*
+KinovaMonoAssembly::get_image() const
+{
+  return __image;
+}
+
+
 /** Init the assembly.
  * This procedure needs to be executed once for every assembly before it can be used.
  * @param domain The active mono-domain.
@@ -102,7 +128,8 @@ KinovaMonoAssembly::~KinovaMonoAssembly()
 KinovaMonoError_t
 KinovaMonoAssembly::init(MonoDomain* domain)
 {
-  __initialized = false;
+  if( __initialized )
+    return MONO_ERROR_NONE;
 
   if(!domain)
     return MONO_ERROR_DOMAIN;
@@ -117,9 +144,13 @@ KinovaMonoAssembly::init(MonoDomain* domain)
   if(!__image)
     return MONO_ERROR_IMAGE;
 
-  __initialized = true;
+  KinovaMonoError_t error = init_classes();
+  if( !error )
+    __initialized = true;
 
-  return init_classes();
+  return error;
+
+  //return init_classes();
   //return MONO_ERROR_NONE;
 }
 
@@ -137,20 +168,6 @@ KinovaMonoAssembly::init_classes()
 {
   printf("init_classes(), parent class \n");
   return MONO_ERROR_NONE;
-}
-
-
-
-/* /================================\
- *         KinovaMonoClass
- * \================================/*/
-/** Get the actual object in the mono-domain.
- * @return The actual object (MonoObject*) in the mono-domain.
- */
-MyMonoObject*
-KinovaMonoClass::get_object()
-{
-  return (MyMonoObject*)__object;
 }
 
 } // namespace Kinova

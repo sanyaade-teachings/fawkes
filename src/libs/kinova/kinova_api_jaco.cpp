@@ -57,7 +57,7 @@ Assembly::init_classes()
 
   KinovaMonoError_t error;
 
-  error = CJacoArm::init(__domain, __assembly, __image);
+  error = KinovaMonoClass<CJacoArm>::init(__domain, __assembly, __image, get_name());
   if( error ) { return error; }
 
   return MONO_ERROR_NONE;
@@ -69,8 +69,6 @@ Assembly::init_classes()
 /* /================================\
  *         Class CJacoArm
  * \================================/*/
-MonoDomain*  CJacoArm::__domain = NULL;
-MonoClass*   CJacoArm::__class = NULL;
 MonoMethod*  CJacoArm::__m_ctor = NULL;
 MonoMethod*  CJacoArm::__m_CloseConnection = NULL;
 MonoMethod*  CJacoArm::__m_GetAPIVersion = NULL;
@@ -122,15 +120,10 @@ CJacoArm::create(Kinova::DLL::SafeGate::CCypherMessage* encPassword)
  * @return Possible error. (ERROR_NONE == 0)
  */
 KinovaMonoError_t
-CJacoArm::init(MonoDomain* domain, MonoAssembly* assembly, MonoImage* image)
+CJacoArm::init(MonoImage* image, const char* class_namespace)
 {
-  // set domain that we are working in
-  __domain = domain;
-  if( !__domain )
-    return MONO_ERROR_DOMAIN;
-
   // get mono class for this class
-  __class = mono_class_from_name(image, "Kinova.API.Jaco", "CJacoArm");
+  __class = mono_class_from_name(image, class_namespace, "CJacoArm");
   if( !__class )
     return MONO_ERROR_CLASS;
 
