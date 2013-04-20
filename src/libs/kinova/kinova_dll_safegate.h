@@ -45,9 +45,6 @@ class Assembly : public KinovaMonoAssembly
  public:
   Assembly(const char* path="");
   virtual ~Assembly();
-
- private:
-  KinovaMonoError_t init_classes();
 };
 
 

@@ -25,6 +25,7 @@
 #define KINOVA_MONO_TYPES_H
 
 #include <string>
+#include <list>
 #include <exception>
 
 // forward declarations. This way the user does not need to care about
@@ -61,6 +62,10 @@ typedef enum
 } KinovaMonoError_t;
 
 
+class KinovaMonoAssembly;
+typedef KinovaMonoError_t (*init_func)(KinovaMonoAssembly*);
+
+
 /** Default exception for Kinova API. We cannot distinguish the extensions
  * caught by the mono-framework yet. */
 class KinovaException : public std::exception
@@ -74,6 +79,7 @@ class KinovaException : public std::exception
  private:
   const char* __msg;
 };
+
 
 
 /** Representing a MonoAssembly */
@@ -92,17 +98,17 @@ class KinovaMonoAssembly
   const char*   get_path() const;
 
  protected:
-  virtual KinovaMonoError_t init_classes();
   MonoDomain*   __domain;    /**< The active mono domain */
   MonoAssembly* __assembly;  /**< The actual mono assembly */
   MonoImage*    __image;     /**< The mono image of the assembly */
-  const char*   __name;  /**< Name of the assembly. Should be the DLL-filename without suffix. */
+  const char*   __name;      /**< Name of the assembly. Should be the DLL-filename without suffix. */
+  std::list<init_func> __inits;  /**< List of the classes' static init functions. */
 
  private:
   std::string   __path;  /**< Path to the assembly file */
-
   bool          __initialized; /**< Tracking if assembly was initialized */
 };
+
 
 
 /** Representing a Class.
@@ -116,7 +122,7 @@ class KinovaMonoClass
   virtual ~KinovaMonoClass() {}
 
   static KinovaMonoError_t init(KinovaMonoAssembly* assembly);
-  static KinovaMonoError_t init(MonoDomain* domain, MonoAssembly* assembly, MonoImage* image, const char* class_namespace);
+  static KinovaMonoError_t init(MonoDomain* domain, MonoImage* image, const char* class_namespace);
 
   MyMonoObject* get_object();
 
@@ -146,7 +152,6 @@ KinovaMonoError_t
 KinovaMonoClass<T>::init(KinovaMonoAssembly* assembly)
 {
   return init(assembly->get_domain(),
-              assembly->get_assembly(),
               assembly->get_image(),
               assembly->get_name());
 }
@@ -160,7 +165,7 @@ KinovaMonoClass<T>::init(KinovaMonoAssembly* assembly)
  */
 template <typename T>
 KinovaMonoError_t
-KinovaMonoClass<T>::init(MonoDomain* domain, MonoAssembly* assembly, MonoImage* image, const char* class_namespace)
+KinovaMonoClass<T>::init(MonoDomain* domain, MonoImage* image, const char* class_namespace)
 {
   // set domain that we are working in
   __domain = domain;

@@ -53,9 +53,6 @@ class Assembly : public KinovaMonoAssembly
 
   /// \brief Desctructor.
   virtual ~Assembly();
-
- private:
-  KinovaMonoError_t init_classes();
 };
 
 

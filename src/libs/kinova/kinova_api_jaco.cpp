@@ -44,26 +44,12 @@ namespace Kinova { namespace API { namespace Jaco
 Assembly::Assembly(const char* path)
   : KinovaMonoAssembly("Kinova.API.Jaco", path)
 {
+  __inits.push_back( KinovaMonoClass<CJacoArm>::init );
 }
 
 Assembly::~Assembly()
 {
 }
-
-KinovaMonoError_t
-Assembly::init_classes()
-{
-  printf("init_classes(), child class \n");
-
-  KinovaMonoError_t error;
-
-  error = KinovaMonoClass<CJacoArm>::init(__domain, __assembly, __image, get_name());
-  if( error ) { return error; }
-
-  return MONO_ERROR_NONE;
-}
-
-
 
 //*
 /* /================================\

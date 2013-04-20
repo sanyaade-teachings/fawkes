@@ -134,40 +134,30 @@ KinovaMonoAssembly::init(MonoDomain* domain)
   if(!domain)
     return MONO_ERROR_DOMAIN;
 
+  // init assembly
   __domain = domain;
   __assembly = mono_domain_assembly_open(__domain, __path.c_str());
   if(!__assembly)
     return MONO_ERROR_ASSEMBLY;
 
-
+  // get assembly image
   __image = mono_assembly_get_image(__assembly);
   if(!__image)
     return MONO_ERROR_IMAGE;
 
-  KinovaMonoError_t error = init_classes();
-  if( !error )
+  // init assembly classes
+  KinovaMonoError_t error = MONO_ERROR_NONE;
+  for( std::list<init_func>::iterator it=__inits.begin(); it!=__inits.end() && error==MONO_ERROR_NONE; ++it) {
+    error = (*it)(this);
+  }
+
+  if( error == MONO_ERROR_NONE )
     __initialized = true;
 
   return error;
 
   //return init_classes();
   //return MONO_ERROR_NONE;
-}
-
-
-/** Init the classes of the assembly.
- * This procedure needs to be executed once for every assembly before it can be used.
- *
- * This can probably be solved better with templates and maybe std::map. It is not very
- * elegant now, but gets the job done, as this is a first attempt of wrapping the API.
- *
- * @return Possible error. (ERROR_NONE == 0)
- */
-KinovaMonoError_t
-KinovaMonoAssembly::init_classes()
-{
-  printf("init_classes(), parent class \n");
-  return MONO_ERROR_NONE;
 }
 
 } // namespace Kinova

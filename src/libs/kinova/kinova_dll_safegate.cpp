@@ -43,31 +43,14 @@ namespace Kinova { namespace DLL { namespace SafeGate
 Assembly::Assembly(const char* path)
   : KinovaMonoAssembly("Kinova.DLL.SafeGate", path)
 {
+  __inits.push_back( KinovaMonoClass<Crypto>::init );
+  __inits.push_back( KinovaMonoClass<CCypherMessage>::init );
 }
 
 /** Desctructor. */
 Assembly::~Assembly()
 {
 }
-
-KinovaMonoError_t
-Assembly::init_classes()
-{
-  printf("init_classes(), child class \n");
-
-  //*
-  KinovaMonoError_t error = MONO_ERROR_NONE;
-
-  error = KinovaMonoClass<Crypto>::init(this);
-  if( error ) { return error; }
-  error = KinovaMonoClass<CCypherMessage>::init(this);
-  if( error ) { return error; }
-  //*/
-
-  return MONO_ERROR_NONE;
-}
-
-
 
 //*
 /* /================================\
