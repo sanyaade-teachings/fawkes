@@ -3,6 +3,9 @@
 #include <blackboard/remote.h>
 #include <interfaces/NavigatorInterface.h>
 #include <utils/system/argparser.h>
+#include <tf/transform_listener.h>
+#include <utils/math/types.h>
+#include <geometry/hom_point.h>
 
 #include <iostream>
 #include <string.h>
@@ -19,6 +22,7 @@
 
 using namespace fawkes;
 using namespace std;
+using namespace tf;
 
 class ColliManualControl
 {
@@ -29,7 +33,9 @@ class ColliManualControl
   void test();
   void run();
   void print_usage();
+  HomPoint transform_base_to_odom(HomPoint point);
  private:
+  TransformListener *tf_listener;
   NavigatorInterface *m_Target;
   BlackBoard *bb_if;
   ArgumentParser argp;
@@ -46,6 +52,7 @@ ColliManualControl::ColliManualControl(int argc, char **argv): argp(argc, argv, 
 {
   init_bb();
   m_Target = bb_if->open_for_reading<NavigatorInterface>("NavigatorTarget");
+  tf_listener = new TransformListener(bb_if);
   tar_x = -1;
   tar_y = -1;
   setdmode = false;
@@ -71,8 +78,25 @@ void ColliManualControl::print_usage()
     printf("Usage: [-h] <command>\n"
          " -h              This help message\n"
          " Command:\n"
-         "coordx [targetx] coordy [targety] drive_mode [DriveMode]\n");
+         "coordx [targetx] coordy [targety] drive_mode [DriveMode]\n"
+         "exit             Exit from the program");
 
+}
+//-----------------------------------------------------------------------------
+HomPoint ColliManualControl::transform_base_to_odom(HomPoint point)
+{
+  HomPoint res;
+  try {
+    tf::Stamped<tf::Point> target_base(tf::Point(point.x(),point.y(),0.),fawkes::Time(0, 0), "/base_link");
+    tf::Stamped<tf::Point> odomrel_target;
+    tf_listener->transform_point("/odom", target_base, odomrel_target);
+    HomPoint target_trans(odomrel_target.x(),-odomrel_target.y());
+    res = target_trans;
+  } catch (tf::TransformException &e) {
+    cout << "can't transform from baselink to odometry" << endl;
+    e.print_trace();
+  }
+  return res;
 }
 //-----------------------------------------------------------------------------
 void ColliManualControl::test()
@@ -85,6 +109,8 @@ void ColliManualControl::test()
     print_usage();
     exit(0);
   }
+  if( argp_->has_arg("exit") )
+    exit(0);
   NavigatorInterface::SetDriveModeMessage *drive_msg = new NavigatorInterface::SetDriveModeMessage();
   const std::vector< const char * > &items = argp_->items();
   for (unsigned int i = 0; i < items.size(); i++)
@@ -207,8 +233,8 @@ void ColliManualControl::test()
   if(( tar_x != -1 ) && ( tar_y != -1 ))
   {
     setdest = true;
-    //NavigatorInterface::ObstacleMessage *msg = new NavigatorInterface::ObstacleMessage();
     NavigatorInterface::CartesianGotoMessage *msg = new NavigatorInterface::CartesianGotoMessage();
+    cout << "target point is: " << tar_x << " , " << tar_y << endl;
     msg->set_x(tar_x);
     msg->set_y(tar_y);
     m_Target->msgq_enqueue(msg);
@@ -223,18 +249,20 @@ void ColliManualControl::test()
 void ColliManualControl::run()
 {
   test();
+  bool b_drive = true;
+  bool b_dest = true;
   while(true)
   {
     m_Target->read();
-    bool b_drive = true;
     if( setdmode )
     {
       b_drive = ( m_Target->drive_mode() == dmodeId );
     }
-    bool b_dest = true;
     if( setdest )
     {
-      b_dest = (( m_Target->dest_x() == tar_x ) && ( m_Target->dest_y() == tar_y ) );
+      HomPoint trans = transform_base_to_odom(HomPoint(tar_x,tar_y));
+      if( ( trans.x() != m_Target->dest_x() ) || ( trans.y() != m_Target->dest_y() ) )
+        b_dest = false;
     }
     if( ( b_drive ) && ( b_dest ) )
     {

@@ -367,15 +367,6 @@ void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
 	point = HomPoint(m_pLaser->GetReadingPosX(i), m_pLaser->GetReadingPosY(i)); 
 	p_x = point.x();
         p_y = point.y();
-        if( ref_obstacle )
-        {   
-          float angle    = normalize_rad( m_pLaser->GetRadiansForReading( i ) );
-          float sub    = m_pRoboShape->GetRobotLengthforRad( angle );
-          float l = m_pLaser->GetReadingLength( i );
-          float r = l - sub;
-          p_x = r * cos(angle);
-          p_y = r * sin(angle);
-        }
         // ** stuff for testing ** //
 	if ( !((p_x == 0.0) && (p_y == 0.0)) && 
             sqr(p_x-oldp_x)+sqr(p_y-oldp_y) > sqr( m_EllipseDistance ) )
@@ -396,7 +387,7 @@ void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
                 float rad = normalize_rad( m_pLaser->GetRadiansForReading( i ) );
 		height = m_pRoboShape->GetRobotLengthforRad( deg2rad( 90. ) ); 
 		height = max( 4.0, ((height + inc - dec)*100.0)/(float)m_CellHeight );
-                if( !ref_obstacle )
+                if( ref_obstacle )
                   height = min(m_MaxCellExt,height);
 		float length = 0.0;
 		length = m_pRoboShape->GetRobotLengthforRad( rad );
@@ -407,7 +398,7 @@ void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
 		  length = m_pRoboShape->GetRobotLengthforRad( rad );
 
 		length = max( 4.0, ((length + inc - dec)*100.0)/(float)m_CellWidth );
-                if( !ref_obstacle)
+                if( ref_obstacle)
                   length = min(m_MaxCellExt,length);
 		   if ( !m_pLaser->IsPipe( rad ) )
 		   {

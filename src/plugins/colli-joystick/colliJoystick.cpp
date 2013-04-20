@@ -3,7 +3,6 @@
 #include <blackboard/remote.h>
 #include <interfaces/NavigatorInterface.h>
 #include <interfaces/JoystickInterface.h>
-#include <interfaces/MotorInterface.h>
 #include <utils/system/argparser.h>
 
 #include <iostream>
