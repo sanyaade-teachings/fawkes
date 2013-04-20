@@ -88,7 +88,9 @@ main(int argc, char **argv)
     arm->CloseConnection();
 
   } catch(Kinova::KinovaException &e) {
-    cl->log_error(name, "Ex: %s", e.what());
+    cl->log_error(name, "Kinova Ex: %s", e.what());
+  } catch(Exception &e) {
+    cl->log_error(name, "Other Ex: %s", e.what());
   }
 
   cl->log_debug(name, "----------------------------------------------------------------------------------");

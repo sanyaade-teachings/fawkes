@@ -4,7 +4,7 @@ include $(BASEDIR)/etc/buildsys/config.mk
 
 CFLAGS = -g -O2 -Wno-unused-but-set-variable -Wno-unused-variable
 
-LIBS_qa_kinova_api = fawkeslogging kinova stdc++
+LIBS_qa_kinova_api = fawkescore fawkeslogging kinova stdc++
 OBJS_qa_kinova_api = qa_kinova_api.o
 
 #CFLAGS  += $(shell $(PKGCONFIG) --cflags 'mono-2')
