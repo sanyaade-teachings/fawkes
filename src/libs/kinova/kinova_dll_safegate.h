@@ -51,9 +51,6 @@ class Assembly : public KinovaMonoAssembly
 
 /** The CCypherMessage class. See Kinova-API for further information.
  * This is needed to properly create a CJacoArm object.
- *
- * Again, we could save ourselves some code here by using class templates
- * for KinovaMonoClass. Will be done in futer versions.
  */
 class CCypherMessage : public KinovaMonoClass<CCypherMessage>
 {
@@ -72,9 +69,6 @@ class CCypherMessage : public KinovaMonoClass<CCypherMessage>
  *
  * This is declared as a singleton, therefor no public constructors/destructors. We
  * just provide public method, the rest is handled internally.
- *
- * Again, we could save ourselves some code here by using class templates
- * for KinovaMonoClass. Will be done in futer versions.
  */
 class Crypto : public KinovaMonoClass<Crypto>
 {

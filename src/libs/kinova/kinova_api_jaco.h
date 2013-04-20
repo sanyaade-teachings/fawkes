@@ -59,9 +59,6 @@ class Assembly : public KinovaMonoAssembly
 
 /** The CJacoArm class. See Kinova-API for further information.
  * This is the main class for working with the JacoArm.
- *
- * Again, we could save ourselves some code here by using class templates
- * for KinovaMonoClass. Will be done in futer versions.
  */
 class CJacoArm : public KinovaMonoClass<CJacoArm>
 {
@@ -75,7 +72,6 @@ class CJacoArm : public KinovaMonoClass<CJacoArm>
   ~CJacoArm();
 
   /// \brief Initializes connection to MonoMethods
-  //static KinovaMonoError_t init(MonoDomain* domain, MonoAssembly* assembly, MonoImage* image);
   static KinovaMonoError_t init(MonoImage* image, const char* class_namespace);
 
   /// \brief Closes the USB Connection.

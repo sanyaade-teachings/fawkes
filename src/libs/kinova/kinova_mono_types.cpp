@@ -95,24 +95,36 @@ KinovaMonoAssembly::~KinovaMonoAssembly()
 {
 }
 
+/** Get the name we gave to this KinovaMonoAssembly instance.
+ * @return assembly name
+ */
 const char*
 KinovaMonoAssembly::get_name() const
 {
   return __name;
 }
 
+/** Get active mono-domain.
+ * @return active mono-domain
+ */
 MonoDomain*
 KinovaMonoAssembly::get_domain() const
 {
   return __domain;
 }
 
+/** Get mono assembly.
+ * @return mono assembly
+ */
 MonoAssembly*
 KinovaMonoAssembly::get_assembly() const
 {
   return __assembly;
 }
 
+/** Get mono image.
+ * @return mono image.
+ */
 MonoImage*
 KinovaMonoAssembly::get_image() const
 {

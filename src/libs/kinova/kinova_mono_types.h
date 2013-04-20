@@ -95,7 +95,7 @@ class KinovaMonoAssembly
   MonoAssembly* get_assembly() const;
   MonoImage*    get_image() const;
   const char*   get_name() const;
-  const char*   get_path() const;
+  //const char*   get_path() const;
 
  protected:
   MonoDomain*   __domain;    /**< The active mono domain */
@@ -111,10 +111,29 @@ class KinovaMonoAssembly
 
 
 
-/** Representing a Class.
- * Each provided class should be a child of this one.
+/** Representing a class.
+ * Each class from the C# library that we want to provide for the CPP API should be
+ * derived from this class, with
+ *   class MyClass : public KinovaMonoClass<MyClass>
  *
- * Probably better if declared as a template. This is just a first attempt though.*/
+ * This is a class template, in order to allow each derived class to have independent
+ * static members. As we will have a derived class for each C# class that we want to
+ * provide, this saves a lot of repetitive code.
+ *
+ * The init-function is basically a call to the derived class's init-function. This
+ * has two reasons:
+ * 1) Each derived class has own private members that need to be initialized, which
+ *    cannot be done here, as we don't have (and don't want to have) knowledge about
+ *    those classes here .
+ * 2) The initialization procedure for __class is allways the same, which suggest to
+ *    write it here in this template's member function. However, that requires code
+ *    from mono, which would need an inclusion of a mono-header in this header file,
+ *    which again means that the user needs to consider mono CFLAGS/LIBS in the compiler
+ *    (which we want to avoid; see commit log).
+ *    Although that's just 2 lines of code, with increasing amount of classes it would
+ *    be nice to even avoid repetition of those 2 lines. Still looking for a nice solution
+ *    for this....
+ */
 template <typename T>
 class KinovaMonoClass
 {
@@ -147,6 +166,10 @@ KinovaMonoClass<T>::get_object()
   return (MyMonoObject*)__object;
 }
 
+/** Initialize the class. Needs to be done once per original API class.
+ * @param assembly Pointer to the KinovaMonoAssembly which this class belongs to.
+ * @return Possible error. (ERROR_NONE == 0)
+ */
 template <typename T>
 KinovaMonoError_t
 KinovaMonoClass<T>::init(KinovaMonoAssembly* assembly)
@@ -158,7 +181,6 @@ KinovaMonoClass<T>::init(KinovaMonoAssembly* assembly)
 
 /** Initialize the class. Needs to be done once per original API class.
  * @param domain The active mono-domain.
- * @param assembly The assembly this class belongs to.
  * @param image The image of the assembly.
  * @param class_namespace The namespace which the class belongs to.
  * @return Possible error. (ERROR_NONE == 0)

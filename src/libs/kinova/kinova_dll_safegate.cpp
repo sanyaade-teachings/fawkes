@@ -84,12 +84,10 @@ CCypherMessage::~CCypherMessage()
 }
 
 /** Initialize the CCypherMessage class and its methods. Needs to be done once.
- * @param domain The active mono-domain.
- * @param assembly The assembly this class belongs to.
  * @param image The image of the assembly.
+ * @param class_namespace The namespace which the class belongs to. Usually the name of the assembly.
  * @return Possible error. (ERROR_NONE == 0)
  */
-//*
 KinovaMonoError_t
 CCypherMessage::init(MonoImage* image, const char* class_namespace)
 {
@@ -100,7 +98,6 @@ CCypherMessage::init(MonoImage* image, const char* class_namespace)
 
   return MONO_ERROR_NONE;
 }
-//*/
 
 
 
@@ -133,9 +130,8 @@ Crypto::~Crypto()
 
 
 /** Initialize the Crypto class. Needs to be done once.
- * @param domain The active mono-domain.
- * @param assembly The assembly this class belongs to.
  * @param image The image of the assembly.
+ * @param class_namespace The namespace which the class belongs to. Usually the name of the assembly.
  * @return Possible error. (ERROR_NONE == 0)
  */
 //*
