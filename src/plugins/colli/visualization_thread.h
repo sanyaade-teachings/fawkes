@@ -75,6 +75,7 @@ class ColliVisualizationThread
   void visualize_free_cells();
   void visualize_seen_states();
   void visualize_colli_params();
+  void visualize_robot_icon();
   void visualize_modified_target();
   HomPoint transform( HomPoint point );
   HomPoint transform_robo( HomPoint point );
@@ -87,6 +88,7 @@ class ColliVisualizationThread
   void visualize_target_odom();
   void callback( const geometry_msgs::PoseStamped::ConstPtr &msg);
   void processFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback );
+  void robotFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback );
  private:
   fawkes::Mutex mutex_;
   std::string frame_id_;
@@ -123,6 +125,8 @@ class ColliVisualizationThread
  
   ros::Publisher *drive_mode_pub_;
   interactive_markers::InteractiveMarkerServer *server;
+  interactive_markers::InteractiveMarkerServer *server_robot;
+  ros::Subscriber *robot_sub_;
   ros::Subscriber *drive_mode_sub_;
 
   vector<HomPoint > cells_;
@@ -165,6 +169,7 @@ class ColliVisualizationThread
   MotorInterface  *m_motor;
   bool ref_obstacle;
   string naviface_id;
+  geometry_msgs::Pose robot_marker_pose;
 }; 
 
 #endif

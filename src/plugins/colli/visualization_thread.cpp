@@ -39,7 +39,7 @@ void ColliVisualizationThread::init()
   {
     naviface_id = config->get_string("/plugins/colli/Navigator_interface_id");
   }
-
+  m_motor = blackboard->open_for_reading<MotorInterface>("Motor Brutus");
   m_navi = blackboard->open_for_reading<NavigatorInterface>(naviface_id.c_str());
   p_navi = blackboard->open_for_reading<NavigatorInterface>("Pathplan");
   navsub_ = new ros::Subscriber();
@@ -122,6 +122,11 @@ void ColliVisualizationThread::init()
   drive_mode_sub_ = new ros::Subscriber();
   *drive_mode_sub_ = rosnode->subscribe("colli_params_marker/feedback", 100,&ColliVisualizationThread::processFeedback,this);
   visualize_colli_params();
+
+  server_robot = new interactive_markers::InteractiveMarkerServer("robot_marker");
+  robot_sub_ = new ros::Subscriber();
+  *robot_sub_ = rosnode->subscribe("robot_marker/feedback", 100,&ColliVisualizationThread::robotFeedback,this);  
+  visualize_robot_icon();  
 }
 //-----------------------------------------------------------------------------------------------------------
 void ColliVisualizationThread::finalize()
@@ -250,12 +255,12 @@ void ColliVisualizationThread::callback( const geometry_msgs::PoseStamped::Const
   maxvel_msg->set_max_velocity(1.5);
   m_navi->msgq_enqueue(maxvel_msg);
 
-  NavigatorInterface::SetSecurityDistanceMessage *seq_msg = new NavigatorInterface::SetSecurityDistanceMessage(); 
+/* NavigatorInterface::SetSecurityDistanceMessage *seq_msg = new NavigatorInterface::SetSecurityDistanceMessage(); 
   if( ref_obstacle )
     seq_msg->set_security_distance(0);
   else
     seq_msg->set_security_distance(0.2);
-  m_navi->msgq_enqueue(seq_msg);
+  m_navi->msgq_enqueue(seq_msg);*/
 }
 //---------------------------------------------------------------------------------------------------
 void ColliVisualizationThread::processFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
@@ -265,7 +270,7 @@ void ColliVisualizationThread::processFeedback(const visualization_msgs::Interac
   ROS_INFO_STREAM( feedback->marker_name << " is now at "
         << feedback->pose.position.x << ", " << feedback->pose.position.y
         << ", " << feedback->pose.position.z );
-
+  
   feedback_id = feedback->menu_entry_id;
   if(( feedback_id <= 8 ) && ( feedback_id > 0 ))
   {
@@ -351,6 +356,18 @@ void ColliVisualizationThread::processFeedback(const visualization_msgs::Interac
 
 }
 //---------------------------------------------------------------------------------------------------
+void ColliVisualizationThread::robotFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
+{
+  robot_marker_pose.position.x = feedback->pose.position.x;
+  robot_marker_pose.position.y = feedback->pose.position.y;
+  robot_marker_pose.position.z = feedback->pose.position.z;
+  robot_marker_pose.orientation.x = feedback->pose.orientation.x;
+  robot_marker_pose.orientation.y = feedback->pose.orientation.y;
+  robot_marker_pose.orientation.z = feedback->pose.orientation.z;
+  MotorInterface::SetOdometryMessage *odom_msg = new MotorInterface::SetOdometryMessage(0,0,-robot_marker_pose.orientation.x);
+  m_motor->msgq_enqueue(odom_msg);
+}
+//---------------------------------------------------------------------------------------------------
 void ColliVisualizationThread::loop()
 {
   MutexLocker lock(&mutex_);
@@ -373,6 +390,9 @@ void ColliVisualizationThread::loop()
   logger->log_info(name(),"rviz target point frame id is:%s\n",pose_frame_cstr);
   logger->log_info(name(),"transformed rviz target point is: %f,%f\n",rvizTarget.x(),rvizTarget.y());
   logger->log_info(name(),"drive mode marker is:%d , feedback_id is:%d \n",has_feedback,feedback_id);
+  logger->log_info(name(), "robot icon is now at : %f,%f,%f with orientation %f,%f,%f",robot_marker_pose.position.x,robot_marker_pose.position.y,robot_marker_pose.position.z,       
+                            robot_marker_pose.orientation.x,robot_marker_pose.orientation.y,robot_marker_pose.orientation.z);
+  
   nav_msgs::GridCells laserc;
   laserc.header.frame_id = frame_id_;
   laserc.header.stamp = ros::Time::now();
@@ -666,6 +686,40 @@ void ColliVisualizationThread::visualize_colli_params()
 
   server->insert(dmode);
   server->applyChanges();
+}
+//--------------------------------------------------------------------------------
+void ColliVisualizationThread::visualize_robot_icon()
+{
+  visualization_msgs::InteractiveMarker dmode;
+  dmode.header.frame_id = "/base_link";
+  dmode.header.stamp = ros::Time::now();
+  dmode.name = "Robot";
+  dmode.description = "Robot Icon";
+  HomPoint transPoint = transform_robo(robo_pos_);
+  dmode.pose.position.x = transPoint.x();
+  dmode.pose.position.y = transPoint.y();
+  dmode.pose.position.z = 0.0;
+  visualization_msgs::Marker robot_marker;
+  robot_marker.type = visualization_msgs::Marker::CYLINDER;
+  robot_marker.scale.x = 0.2;
+  robot_marker.scale.y = 0.2;
+  robot_marker.scale.z = 0.2;
+  robot_marker.color.r = 1.0;
+  robot_marker.color.g = 0.0;
+  robot_marker.color.b = 0.0;
+  robot_marker.color.a = 1.0;
+  robot_marker.lifetime = ros::Duration(120, 0);
+
+  visualization_msgs::InteractiveMarkerControl robot_control;
+  robot_control.always_visible = true;
+  robot_control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
+  robot_control.name = "rotate";
+  robot_control.description = "robot odometry rotate";
+  robot_control.markers.push_back( robot_marker );
+  dmode.controls.push_back( robot_control );
+
+  server_robot->insert(dmode);
+  server_robot->applyChanges();   
 }
 //---------------------------------------------------------------------------------
 void ColliVisualizationThread::visualize_modified_target()

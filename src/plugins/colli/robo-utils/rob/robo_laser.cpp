@@ -177,8 +177,8 @@ void Laser::transform(tf::TransformListener *tf_listener)
     m_pReadings->SetPosX(i,base_point.x());
     m_pReadings->SetPosY(i,-base_point.y());
     
-    float angle = normalize_rad(atan2(-base_point.y(),base_point.x()));
-    m_pReadings->SetRadians(i,angle );
+    /*float angle = normalize_rad(atan2(-base_point.y(),base_point.x()));
+    m_pReadings->SetRadians(i,angle );*/
   }
   
 }
