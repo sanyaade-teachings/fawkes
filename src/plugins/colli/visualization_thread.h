@@ -35,6 +35,9 @@ namespace ros {
 
 using namespace ros;
 using namespace fawkes;
+
+const int max_counter_ = 100;
+
 class ColliVisualizationThread
 : public ColliVisualizationThreadBase,
   public fawkes::Thread,
@@ -170,6 +173,8 @@ class ColliVisualizationThread
   bool ref_obstacle;
   string naviface_id;
   geometry_msgs::Pose robot_marker_pose;
+  bool frame_valid_;
+  string fixed_frame_;
 }; 
 
 #endif

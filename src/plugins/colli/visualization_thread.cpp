@@ -15,6 +15,7 @@ ColliVisualizationThread::ColliVisualizationThread()
   has_feedback = 0;
   feedback_id = -1;
   pose_frame_id = "";
+  fixed_frame_ = "/base_link";
 }
 //-------------------------------------------------------------------------------------------------------------
 void ColliVisualizationThread::init()
@@ -353,7 +354,11 @@ void ColliVisualizationThread::processFeedback(const visualization_msgs::Interac
     }
     m_navi->msgq_enqueue(esc_msg);
   }
-
+  else if(feedback_id == 25)
+  {
+    MotorInterface::ResetOdometryMessage *odom_msg = new MotorInterface::ResetOdometryMessage();
+    m_motor->msgq_enqueue(odom_msg);
+  }
 }
 //---------------------------------------------------------------------------------------------------
 void ColliVisualizationThread::robotFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
@@ -371,7 +376,14 @@ void ColliVisualizationThread::robotFeedback(const visualization_msgs::Interacti
 void ColliVisualizationThread::loop()
 {
   MutexLocker lock(&mutex_);
-
+  static int counter = 0;
+  counter ++;
+  if( counter == max_counter_ )
+  {
+    visualize_colli_params();
+    visualize_robot_icon();
+    counter = 0;
+  }
   nav_msgs::GridCells robs;
   robs.header.frame_id = frame_id_;
   robs.header.stamp = ros::Time::now();
@@ -562,7 +574,7 @@ HomPoint ColliVisualizationThread::transform_laser_to_base(HomPoint point)
 void ColliVisualizationThread::visualize_colli_params()
 {
   visualization_msgs::InteractiveMarker dmode;
-  dmode.header.frame_id = "/base_link";
+  dmode.header.frame_id = fixed_frame_;
   dmode.header.stamp = ros::Time::now();
   dmode.name = "Colli Parameters Selection";
   dmode.description = "Colli Parameters Selection";
@@ -683,6 +695,12 @@ void ColliVisualizationThread::visualize_colli_params()
   menuesEscMode[1].parent_id = menuEsc.id;
   dmode.menu_entries.push_back(menuesEscMode[1]);
 
+  visualization_msgs::MenuEntry menuRes;
+  menuRes.title = "Reset odom";
+  menuRes.command_type = visualization_msgs::MenuEntry::FEEDBACK;
+  menuRes.id = 25;
+  menuRes.parent_id = 0;
+  dmode.menu_entries.push_back(menuRes);
 
   server->insert(dmode);
   server->applyChanges();
@@ -691,7 +709,7 @@ void ColliVisualizationThread::visualize_colli_params()
 void ColliVisualizationThread::visualize_robot_icon()
 {
   visualization_msgs::InteractiveMarker dmode;
-  dmode.header.frame_id = "/base_link";
+  dmode.header.frame_id = fixed_frame_;
   dmode.header.stamp = ros::Time::now();
   dmode.name = "Robot";
   dmode.description = "Robot Icon";
