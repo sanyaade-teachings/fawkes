@@ -543,7 +543,7 @@ void ColliThread::RegisterAtBlackboard()
   m_pColliDataObj->write(); 
   m_pColliTargetObj->read();
   
-  ninit = blackboard->open_for_writing<NavigatorInterface>("NavigatorTarget");
+  ninit = blackboard->open_for_writing<NavigatorInterface>(naviface_id.c_str());
 }
 //--------------------------------------------------------------------------
 //Initialize all modules used by the Colli

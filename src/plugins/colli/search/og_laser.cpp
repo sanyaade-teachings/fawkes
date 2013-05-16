@@ -356,8 +356,8 @@ void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
   int posX, posY; 
   HomPoint point;
   float p_x, p_y;
-  float oldp_x = 1000.0;
-  float oldp_y = 1000.0;
+ /* float oldp_x = 1000.0;
+  float oldp_y = 1000.0;*/
 
   for ( int i = 0; i < numberOfReadings; i++ ){
       if ( m_pLaser->GetReadingLength(i) >= m_MinimumLaserLength )
@@ -367,17 +367,18 @@ void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
 	point = HomPoint(m_pLaser->GetReadingPosX(i), m_pLaser->GetReadingPosY(i)); 
 	p_x = point.x();
         p_y = point.y();
-        // ** stuff for testing ** //
-	if ( !((p_x == 0.0) && (p_y == 0.0)) && 
+/*	if ( !((p_x == 0.0) && (p_y == 0.0)) && 
             sqr(p_x-oldp_x)+sqr(p_y-oldp_y) > sqr( m_EllipseDistance ) )
 	  {
 	    oldp_x = p_x;
-	    oldp_y = p_y;
+	    oldp_y = p_y;*/
 	    posX = midX + (int)((p_x*100.0) / ((float)m_CellWidth ));
 	    posY = midY + (int)((p_y*100.0) / ((float)m_CellHeight ));
    
-   	    if ( !( (posX <= 5) || (posX >= m_Width-6) ||
-		    (posY <= 5) || (posY >= m_Height-6) ) )
+  // 	    if ( !( (posX <= 5) || (posX >= m_Width-6) ||
+//		    (posY <= 5) || (posY >= m_Height-6) ) )
+            if ( !( (posX <= 0) || (posX >= m_Width-6) ||
+                    (posY <= 0) || (posY >= m_Height-6) ) )
 	      {
 		//float dec = max( (sqrt(sqr(p_x)+sqr(p_y))/3.0-1.0), 0.0 );
 		//float dec = max((m_pLaser->GetReadingLength(i)/2.0)-1.0, 0.0 );
@@ -411,7 +412,7 @@ void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
 		    }
 		   }
 	      }
-	  }
+	  //}
       }
    }
 }

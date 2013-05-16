@@ -142,7 +142,6 @@ class ColliThread
   float m_MaximumRoboIncrease;                   // maximum increasement of the robots size
   int m_RobocupMode;                             // indicator if robocup or not
 
-
   // stop on target stuff
   std::vector< float > m_oldAnglesToTarget;      // the old angles to the target
 
