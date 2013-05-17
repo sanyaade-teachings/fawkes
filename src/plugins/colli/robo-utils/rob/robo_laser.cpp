@@ -175,7 +175,6 @@ void Laser::transform(tf::TransformListener *tf_listener)
     }*/
     m_pReadings->SetPosX(i,posX);
     m_pReadings->SetPosY(i,-posY);
-    
   //  m_pReadings->SetPosX(i,base_point.x());
 //    m_pReadings->SetPosY(i,-base_point.y());  
   }

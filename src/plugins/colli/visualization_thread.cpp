@@ -879,7 +879,8 @@ void ColliVisualizationThread::visualize_orig_laser_points()
   lgs.cell_height = cell_height_/100.;
   for( unsigned int l = 0; l < orig_laser_points_.size(); l++ )
   {
-    HomPoint base_point = transform_laser_to_base(orig_laser_points_[l]);
+    HomPoint base_point = orig_laser_points_[l];
+    //HomPoint base_point = transform_laser_to_base(orig_laser_points_[l]);
     geometry_msgs::Point p;
     p.x = base_point.x();
     p.y = base_point.y();
@@ -921,7 +922,8 @@ void ColliVisualizationThread::visualize_near_cells()
   for( size_t i = 0; i < near_cells_.size(); i++ )
   {
     geometry_msgs::Point p;
-    HomPoint transPoint = transform_robo(near_cells_[i]);
+    //HomPoint transPoint = transform_robo(near_cells_[i]);
+    HomPoint transPoint = transform(near_cells_[i]);    
     p.x = transPoint.x();
     p.y = -transPoint.y();
     p.z = 0.0;
@@ -940,7 +942,8 @@ void ColliVisualizationThread::visualize_far_cells()
   for( size_t i = 0; i < far_cells_.size(); i++ )
   {
     geometry_msgs::Point p;
-    HomPoint transPoint = transform_robo(far_cells_[i]);
+    //HomPoint transPoint = transform_robo(far_cells_[i]);
+    HomPoint transPoint = transform(far_cells_[i]);
     p.x = transPoint.x();
     p.y = -transPoint.y();
     p.z = 0.0;
@@ -959,7 +962,8 @@ void ColliVisualizationThread::visualize_middle_cells()
   for( size_t i = 0; i < middle_cells_.size(); i++ )
   {
     geometry_msgs::Point p;
-    HomPoint transPoint = transform_robo(middle_cells_[i]);
+  //  HomPoint transPoint = transform_robo(middle_cells_[i]);
+    HomPoint transPoint = transform(middle_cells_[i]);
     p.x = transPoint.x();
     p.y = -transPoint.y();
     p.z = 0.0;
@@ -998,7 +1002,8 @@ void ColliVisualizationThread::visualize_found_astar_occ()
   for( size_t i = 0; i < astar_found_occ_.size(); i++ )
   {
     geometry_msgs::Point p;
-    HomPoint transPoint = transform_robo(astar_found_occ_[i]);
+    //HomPoint transPoint = transform_robo(astar_found_occ_[i]);
+    HomPoint transPoint = transform(astar_found_occ_[i]);
     p.x = transPoint.x();
     p.y = -transPoint.y();
     p.z = 0.0;
@@ -1018,7 +1023,8 @@ void ColliVisualizationThread::visualize_free_cells()
   for( size_t i = 0; i < free_cells_.size(); i++ )
   {
     geometry_msgs::Point p;
-    HomPoint transPoint = transform_robo(free_cells_[i]);
+   // HomPoint transPoint = transform_robo(free_cells_[i]);
+    HomPoint transPoint = transform(free_cells_[i]);
     p.x = transPoint.x();
     p.y = -transPoint.y();
     p.z = 0.0;
@@ -1037,7 +1043,8 @@ void ColliVisualizationThread::visualize_seen_states()
   for( size_t i = 0; i < seen_states_.size(); i++ )
   {
     geometry_msgs::Point p;
-    HomPoint transPoint = transform_robo(seen_states_[i]);
+   // HomPoint transPoint = transform_robo(seen_states_[i]);
+    HomPoint transPoint = transform(seen_states_[i]);
     p.x = transPoint.x();
     p.y = -transPoint.y();
     p.z = 0.0;

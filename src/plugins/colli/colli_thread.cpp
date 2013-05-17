@@ -126,6 +126,8 @@ void ColliThread::init()
       cout << "COLLI (Constructor): Using Colli for an AllemaniACs IKEA Style Robot" << endl;
     }
 
+  robo_widthX = config->get_float("/plugins/colli/Roboshape/WIDTH_X") * 100.;
+  robo_widthY = config->get_float("/plugins/colli/Roboshape/WIDTH_Y") * 100.;
   for ( unsigned int i = 0; i < 10; i++ )
     m_oldAnglesToTarget.push_back( 0.0 );
 
@@ -483,11 +485,15 @@ void ColliThread::loop()
                   m_LocalGridTarget = m_pSearch->GetLocalTarget();
                   m_LocalGridTrajec = m_pSearch->GetLocalTrajec();
                   // coordinate transformation from grid coordinates to relative robot coordinates
-                  m_LocalTarget = HomPoint( (m_LocalGridTarget.x() - m_RoboGridPos.x())*m_pLaserOccGrid->getCellWidth()/100.0,
+                 /* m_LocalTarget = HomPoint( (m_LocalGridTarget.x() - m_RoboGridPos.x())*m_pLaserOccGrid->getCellWidth()/100.0,
                                           (m_LocalGridTarget.y() - m_RoboGridPos.y())*m_pLaserOccGrid->getCellHeight()/100.0 );
                   m_LocalTrajec = HomPoint( (m_LocalGridTrajec.x() - m_RoboGridPos.x())*m_pLaserOccGrid->getCellWidth()/100.0,
-                                          (m_LocalGridTrajec.y() - m_RoboGridPos.y())*m_pLaserOccGrid->getCellHeight()/100.0 );
-
+                                          (m_LocalGridTrajec.y() - m_RoboGridPos.y())*m_pLaserOccGrid->getCellHeight()/100.0 );*/
+                  HomPoint mod_robo = nearest_cell_to_target();
+                  m_LocalTarget = HomPoint( (m_LocalGridTarget.x() - mod_robo.x())*m_pLaserOccGrid->getCellWidth()/100.0,
+                                          (m_LocalGridTarget.y() - mod_robo.y())*m_pLaserOccGrid->getCellHeight()/100.0 );
+                  m_LocalTrajec = HomPoint( (m_LocalGridTrajec.x() - mod_robo.x())*m_pLaserOccGrid->getCellWidth()/100.0,
+                                          (m_LocalGridTrajec.y() - mod_robo.y())*m_pLaserOccGrid->getCellHeight()/100.0 );
                   // call appopriate drive mode
                   m_pSelectDriveMode->SetLocalTarget( m_LocalTarget.x(), m_LocalTarget.y() );
                   m_pSelectDriveMode->SetLocalTrajec( m_LocalTrajec.x(), m_LocalTrajec.y() );
@@ -772,11 +778,6 @@ void ColliThread::UpdateOwnModules()
                                                 (int)(5*fabs(GetMotorTranslation(motor_des->vx(),motor_des->omega()))+3) ) );
       m_pLaserOccGrid->setCellHeight( (int)max( (int)m_OccGridCellHeight,
                                                 (int)(5*fabs(GetMotorTranslation(motor_des->vx(),motor_des->omega()))+3) ) );
-     /* int mcell_width = max(3,(int)(5*fabs(GetMotorTranslation(motor_des->vx(),motor_des->omega()))+3));
-      int mcell_height = max(3,(int)(5*fabs(GetMotorTranslation(motor_des->vx(),motor_des->omega()))+3));
-      m_pLaserOccGrid->setCellWidth(  (int)min( (int)m_OccGridCellWidth, mcell_width) );
-      m_pLaserOccGrid->setCellHeight( (int)min( (int)m_OccGridCellHeight,mcell_height));*/
-      
     }
     logger->log_info(name(),"cell size is %d,%d",m_pLaserOccGrid->getCellWidth(),m_pLaserOccGrid->getCellHeight());
   // Calculate discrete position of the laser whicj is different for RWI Robots
@@ -809,7 +810,6 @@ void ColliThread::UpdateOwnModules()
 
   targetGridX += robopos_x;
   targetGridY += robopos_y;
-
 
   // check the target borders. if its out of the occ grid, put it back in by border checking
   // with linear interpolation
@@ -902,6 +902,35 @@ bool ColliThread::CheckEscape()
     {
       return false;
     }
+}
+//----------------------------------------------------------------------------------------------------------------------
+HomPoint ColliThread::nearest_cell_to_target()
+{
+  int cell_size = robo_widthX;
+  if( robo_widthY < cell_size )
+    cell_size = robo_widthY;
+  cell_size /= m_pLaserOccGrid->getCellWidth();
+  cell_size /= 2;
+  int min_roboX = m_RoboGridPos.x();
+  int min_roboY = m_RoboGridPos.y();
+  float min_dis = sqrt(pow(min_roboX-m_TargetGridPos.x(),2)+pow(min_roboY-m_TargetGridPos.y(),2));
+  for( int i = m_RoboGridPos.x() - cell_size; i <= m_RoboGridPos.x() + cell_size; i++ )
+  {
+    for( int j =  m_RoboGridPos.y() - cell_size; j <= m_RoboGridPos.y() + cell_size; j++ )
+    {
+      if( ( i >= 0 ) && ( j >= 0 ) && ( i < (int)m_pLaserOccGrid->getWidth() ) && ( j < (int)m_pLaserOccGrid->getHeight()) )
+      {
+        float dis = sqrt(pow(i-m_TargetGridPos.x(),2)+pow(j-m_TargetGridPos.y(),2));
+        if( dis < min_dis )
+        {
+          min_dis = dis;
+          min_roboX = i;
+          min_roboY = j;
+        }
+      }
+    }
+  }
+  return HomPoint(min_roboX,min_roboY);
 }
 //----------------------------------------------------------------------------------------------------------------------
 #ifdef HAVE_VISUAL_DEBUGGING

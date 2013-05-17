@@ -141,7 +141,7 @@ class ColliThread
   int m_OccGridCellHeight, m_OccGridCellWidth;   // occgrid cell sizes
   float m_MaximumRoboIncrease;                   // maximum increasement of the robots size
   int m_RobocupMode;                             // indicator if robocup or not
-
+  int robo_widthX,robo_widthY;
   // stop on target stuff
   std::vector< float > m_oldAnglesToTarget;      // the old angles to the target
 
@@ -179,7 +179,7 @@ class ColliThread
   void publish_odom();
   HomPoint transform_odom_to_base(HomPoint point);
   HomPoint transform_base_to_odom(HomPoint point);
-
+  HomPoint nearest_cell_to_target();
   inline float sqr( float x )
   {
     return (x*x);

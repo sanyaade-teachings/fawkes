@@ -122,6 +122,8 @@ public:
   {
     return m_TargetPosition;
   }
+  
+  HomPoint get_adjust_robo();
 private:
 
   /** Returns the current, modified waypoint to drive to.
@@ -142,7 +144,6 @@ private:
 			  const int maxcount );
 
 
-
   // --------------------------------- //
   //    VARIABLES 
   // --------------------------------- //
@@ -152,8 +153,7 @@ private:
 
   HomPoint m_RoboPosition, m_TargetPosition;
   bool m_UpdatedSuccessful;
-
-  
+  int robo_widthX,robo_widthY;
   // SJ TODO: Delete paint stuff 
 #ifdef _COLLI_VISUALIZE_
   CVisualize * m_pVis;

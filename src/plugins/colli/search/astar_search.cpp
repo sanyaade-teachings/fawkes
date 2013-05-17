@@ -112,6 +112,8 @@ CSearch::CSearch( Logger* logger, Configuration *config, CLaserOccupancyGrid * o
      m_RobocupMode = config->get_int("/plugins/colli/Colli_ROBOCUP_MODE");
   }
   loggerAstar->log_info("CSearch","CSearch(Constructor): Exiting \n");
+  robo_widthX = config->get_float("/plugins/colli/Roboshape/WIDTH_X") * 100.;
+  robo_widthY = config->get_float("/plugins/colli/Roboshape/WIDTH_Y") * 100.;
 }
 
 
@@ -124,6 +126,7 @@ CSearch::~CSearch()
 
 std::vector< HomPoint >  CSearch::GetPlan()
 {
+  
   return m_vPlan;
 }
 
@@ -133,10 +136,35 @@ std::vector< HomPoint >  CSearch::GetPlan()
 void CSearch::Update( int roboX, int roboY, int targetX, int targetY)
 {
   m_UpdatedSuccessful = false;
+  int cell_size = robo_widthX;
+  if( robo_widthY < cell_size )
+    cell_size = robo_widthY;
+  cell_size /= m_pOccGrid->getCellWidth();
+  cell_size /= 2;
+  int min_roboX = roboX;
+  int min_roboY = roboY;
+  float min_dis = sqrt(pow(roboX-targetX,2)+pow(roboY-targetY,2));
+  for( int i = roboX - cell_size; i <= roboX + cell_size; i++ )
+  {
+    for( int j = roboY - cell_size; j <= roboY + cell_size; j++ )
+    {
+      if( ( i >= 0 ) && ( j >= 0 ) && ( i < m_pOccGrid->getWidth() ) && ( j < m_pOccGrid->getHeight()) )
+      {
+        float dis = sqrt(pow(i-targetX,2)+pow(j-targetY,2));
+        if( dis < min_dis )
+        {
+          min_dis = dis;
+          min_roboX = i;
+          min_roboY = j;
+        }
+      }
+    }
+  }
   // check, if a position is in an obstacle
-  m_RoboPosition = HomPoint(roboX, roboY);
-  m_LocalTarget     = HomPoint( roboX, roboY );
-  m_LocalTrajectory = HomPoint( roboX, roboY );
+  //m_RoboPosition = HomPoint(roboX, roboY);
+  m_RoboPosition = HomPoint(min_roboX, min_roboY);
+  m_LocalTarget     = HomPoint( min_roboX, min_roboY );
+  m_LocalTrajectory = HomPoint( min_roboX, min_roboY );
   
   if( m_pOccGrid->getProb( targetX, targetY ) == _COLLI_CELL_OCCUPIED_ )
     {
@@ -162,63 +190,7 @@ void CSearch::Update( int roboX, int roboY, int targetX, int targetY)
       m_LocalTarget     = AdjustWaypoint( m_LocalTarget );
       m_LocalTrajectory = CalculateLocalTrajectoryPoint();
     } 
-#ifdef _COLLI_VISUALIZE_
-  if ( m_pVis != 0 )
-    {
-      m_pVis->draw_field();
-
-
-      m_pVis->set_color( "darkgray" );
-      for ( int gridY = 0; gridY < m_pOccGrid->getHeight(); gridY++ )
-    	for ( int gridX = 0; gridX < m_pOccGrid->getWidth(); gridX++ )
-    	  if ( m_pOccGrid->getProb( gridX, gridY ) == _COLLI_CELL_NEAR_ )
-    	    m_pVis->draw_point( 2*gridX, 2*gridY );
-
-
-      m_pVis->set_color( "gray" );
-      for ( int gridY = 0; gridY < m_pOccGrid->getHeight(); gridY++ )
-    	for ( int gridX = 0; gridX < m_pOccGrid->getWidth(); gridX++ )
-    	  if ( m_pOccGrid->getProb( gridX, gridY ) == _COLLI_CELL_MIDDLE_ ) 
-    	    m_pVis->draw_point( 2*gridX, 2*gridY );
-
-      m_pVis->set_color( "lightgray" );
-      for ( int gridY = 0; gridY < m_pOccGrid->getHeight(); gridY++ )
-    	for ( int gridX = 0; gridX < m_pOccGrid->getWidth(); gridX++ )
-    	  if ( m_pOccGrid->getProb( gridX, gridY ) == _COLLI_CELL_FAR_ )
-    	    m_pVis->draw_point( 2*gridX, 2*gridY );
-
-      m_pVis->set_color( "black" );
-      for ( int gridY = 0; gridY < m_pOccGrid->getHeight(); gridY++ )
-    	for ( int gridX = 0; gridX < m_pOccGrid->getWidth(); gridX++ )
-    	  if ( m_pOccGrid->getProb( gridX, gridY ) == _COLLI_CELL_OCCUPIED_ )
-    	    m_pVis->draw_point( 2*gridX, 2*gridY );
-
-      
-      m_pVis->set_color( "green" );
-      m_pVis->draw_full_circle( (int)(2*roboX), (int)(2*roboY), 5, 5 );
-      m_pVis->draw_full_circle( (int)(2*(roboX-20/m_pOccGrid->getCellWidth())),
-				(int)(2*roboY), 5, 5 );
-
-      m_pVis->set_color( "blue" );
-      m_pVis->draw_line( (int)(2*roboX), (int)(2*roboY), 
-     			 (int)(2*m_LocalTarget.X()), (int)(2*m_LocalTarget.Y()) );
-      m_pVis->set_color( "forestgreen" );
-      m_pVis->draw_line( (int)(2*m_LocalTarget.X()), (int)(2*m_LocalTarget.Y()), 
-     			 (int)(2*targetX), (int)(2*targetY) );
-
-      m_pVis->set_color( "red" );
-      m_pVis->draw_full_circle( (int)(2*m_LocalTrajectory.X()), (int)(2*m_LocalTrajectory.Y()), 5, 5 );
-      for ( unsigned int i = 0; i < m_vPlan.size(); i++ )
-     	{
-     	  m_pVis->draw_full_circle( (int)(2*m_vPlan[i].X()), 
-     				    (int)(2*m_vPlan[i].Y()), 3, 3 );
- 	}
-      m_pVis->myXtAppMainLoop();
-    }
-#endif
 }
-
-
 
 // Return, if the previous called update performed successfully
 bool CSearch::UpdatedSuccessful()
@@ -226,7 +198,10 @@ bool CSearch::UpdatedSuccessful()
   return m_UpdatedSuccessful;
 }
 
-
+HomPoint CSearch::get_adjust_robo()
+{
+  return m_RoboPosition;
+}
 
 /* **************************************************************************** */
 /* **************************************************************************** */
