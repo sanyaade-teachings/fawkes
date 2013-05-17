@@ -64,7 +64,7 @@ ifeq ($(HAVE_PCL),1)
   # 		  -DHAVE_ROS_SENSOR_MSGS
   # endif
 
-  CFLAGS_PCL  += -DHAVE_PCL $(CFLAGS_EIGEN3) \
+  CFLAGS_PCL  += -DHAVE_PCL $(CFLAGS_EIGEN3) -Wno-unknown-pragmas -Wno-deprecated-declarations \
 		 $(shell $(PKGCONFIG) --cflags 'pcl_common$(PCL_VERSION_SUFFIX)')
   LDFLAGS_PCL += $(LDFLAGS_EIGEN3) \
 		 $(shell $(PKGCONFIG) --libs 'pcl_common$(PCL_VERSION_SUFFIX)')
