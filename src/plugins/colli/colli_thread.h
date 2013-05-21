@@ -181,6 +181,7 @@ class ColliThread
   HomPoint transform_base_to_odom(HomPoint point);
   HomPoint nearest_cell_to_target();
   float motor_distance;
+  bool adjust_robopos;
   inline float sqr( float x )
   {
     return (x*x);

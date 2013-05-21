@@ -154,6 +154,7 @@ private:
   HomPoint m_RoboPosition, m_TargetPosition;
   bool m_UpdatedSuccessful;
   int robo_widthX,robo_widthY;
+  bool adjust_robopos;
   // SJ TODO: Delete paint stuff 
 #ifdef _COLLI_VISUALIZE_
   CVisualize * m_pVis;

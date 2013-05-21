@@ -111,9 +111,25 @@ CSearch::CSearch( Logger* logger, Configuration *config, CLaserOccupancyGrid * o
   {
      m_RobocupMode = config->get_int("/plugins/colli/Colli_ROBOCUP_MODE");
   }
-  loggerAstar->log_info("CSearch","CSearch(Constructor): Exiting \n");
-  robo_widthX = config->get_float("/plugins/colli/Roboshape/WIDTH_X") * 100.;
-  robo_widthY = config->get_float("/plugins/colli/Roboshape/WIDTH_Y") * 100.;
+  if (!config->exists("/plugins/colli/adjust_robo_pos") )
+  {
+    cout << "***** ERROR *****: Could not get: adjust_robo_pos" << endl;
+    adjust_robopos = false;
+  }
+  else
+  {
+    adjust_robopos = config->get_bool("/plugins/colli/adjust_robo_pos");
+  }
+
+  if( !config->exists("/plugins/colli/Roboshape/WIDTH_X") )
+     adjust_robopos = false;
+  else
+    robo_widthX = config->get_float("/plugins/colli/Roboshape/WIDTH_X") * 100.;
+
+  if( !config->exists("/plugins/colli/Roboshape/WIDTH_Y") )
+    adjust_robopos = false;
+  else
+    robo_widthY = config->get_float("/plugins/colli/Roboshape/WIDTH_Y") * 100.;
 }
 
 
@@ -136,26 +152,30 @@ std::vector< HomPoint >  CSearch::GetPlan()
 void CSearch::Update( int roboX, int roboY, int targetX, int targetY)
 {
   m_UpdatedSuccessful = false;
-  int cell_size = robo_widthX;
-  if( robo_widthY < cell_size )
-    cell_size = robo_widthY;
-  cell_size /= m_pOccGrid->getCellWidth();
-  cell_size /= 2;
   int min_roboX = roboX;
   int min_roboY = roboY;
-  float min_dis = sqrt(pow(roboX-targetX,2)+pow(roboY-targetY,2));
-  for( int i = roboX - cell_size; i <= roboX + cell_size; i++ )
+  if( adjust_robopos )
   {
-    for( int j = roboY - cell_size; j <= roboY + cell_size; j++ )
+    int cell_size = robo_widthX;
+    if( robo_widthY < cell_size )
+      cell_size = robo_widthY;
+    cell_size /= m_pOccGrid->getCellWidth();
+    cell_size /= 2;
+
+    float min_dis = sqrt(pow(roboX-targetX,2)+pow(roboY-targetY,2));
+    for( int i = roboX - cell_size; i <= roboX + cell_size; i++ )
     {
-      if( ( i >= 0 ) && ( j >= 0 ) && ( i < m_pOccGrid->getWidth() ) && ( j < m_pOccGrid->getHeight()) )
+      for( int j = roboY - cell_size; j <= roboY + cell_size; j++ )
       {
-        float dis = sqrt(pow(i-targetX,2)+pow(j-targetY,2));
-        if( dis < min_dis )
+        if( ( i >= 0 ) && ( j >= 0 ) && ( i < m_pOccGrid->getWidth() ) && ( j < m_pOccGrid->getHeight()) )
         {
-          min_dis = dis;
-          min_roboX = i;
-          min_roboY = j;
+          float dis = sqrt(pow(i-targetX,2)+pow(j-targetY,2));
+          if( dis < min_dis )
+          {
+            min_dis = dis;
+            min_roboX = i;
+            min_roboY = j;
+          }
         }
       }
     }
