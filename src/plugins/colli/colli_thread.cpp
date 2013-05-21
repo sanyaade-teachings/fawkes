@@ -114,6 +114,17 @@ void ColliThread::init()
     naviface_id = config->get_string("/plugins/colli/Navigator_interface_id");
   }
 
+  if (!config->exists("/plugins/colli/Laser_interface_id") )
+  {
+    cout << "***** ERROR *****: Could not get: Laser_interface_id"
+         << " --> ABORTING!" << endl << endl;
+    return;
+  }
+  else
+  {
+    laser_iface_id = config->get_string("/plugins/colli/Laser_interface_id");
+  }
+
   /* As default we use a football player AllemaniACs robot */
   if (default_hostname == "carl_rc.informatik.rwth-aachen.de")
     {
@@ -125,6 +136,16 @@ void ColliThread::init()
       isRwiRobot = false;
       cout << "COLLI (Constructor): Using Colli for an AllemaniACs IKEA Style Robot" << endl;
     }
+
+  if (!config->exists("/plugins/colli/MotorDistance") )
+  {
+    cout << "***** ERROR *****: Could not get: MotorDistance" << endl;
+    motor_distance = 19.4;
+  }
+  else
+  {
+    motor_distance = config->get_float("/plugins/colli/MotorDistance");
+  }
 
   robo_widthX = config->get_float("/plugins/colli/Roboshape/WIDTH_X") * 100.;
   robo_widthY = config->get_float("/plugins/colli/Roboshape/WIDTH_Y") * 100.;
@@ -535,7 +556,7 @@ void ColliThread::RegisterAtBlackboard()
 
   m_pMopoObj = blackboard->open_for_reading<MotorInterface>("Motor Brutus");
   motor_des = blackboard->open_for_writing<MotorInterface>("Motor Caesar");
-  m_pLaserScannerObj = blackboard->open_for_reading<Laser360Interface>("Laser");
+  m_pLaserScannerObj = blackboard->open_for_reading<Laser360Interface>(laser_iface_id.c_str());
   m_pColliTargetObj = blackboard->open_for_reading<NavigatorInterface>(naviface_id.c_str());
   m_pColliDataObj = blackboard->open_for_writing<NavigatorInterface>("Navigator Temp"); 
 
@@ -763,8 +784,6 @@ void ColliThread::UpdateColliStateMachine()
 //  the targetPointX and targetPointY were calculated in the collis state machine!
 void ColliThread::UpdateOwnModules()
 {
-  float motor_distance = 19.4;
-  
   if ( m_RobocupMode == 1 )  // Robocup mode
     {
       // set the cell size according to the current speed
@@ -795,9 +814,9 @@ void ColliThread::UpdateOwnModules()
   laserpos_x -= (int)( GetMotorTranslation(motor_des->vx(),motor_des->omega())*m_pLaserOccGrid->getWidth() / (2*3.0) );
   laserpos_x  = max ( laserpos_x, 10 );
   laserpos_x  = min ( laserpos_x, (int)(m_pLaserOccGrid->getWidth()-10) );
+  
   int robopos_x = laserpos_x + (int)(motor_distance/(float)m_pLaserOccGrid->getCellWidth());
   int robopos_y = laserpos_y;
-  
 
   // coordinate transformation for target point
   float aX = m_TargetPointX - m_pMopoObj->odometry_position_x ();

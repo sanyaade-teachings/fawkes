@@ -151,7 +151,7 @@ class ColliThread
   vector<HomPoint > m_vSolution;
   
   string naviface_id;
-
+  string laser_iface_id;
   /* ************************************************************************ */
   /* PRIVATE METHODS                                                          */
   /* ************************************************************************ */
@@ -180,6 +180,7 @@ class ColliThread
   HomPoint transform_odom_to_base(HomPoint point);
   HomPoint transform_base_to_odom(HomPoint point);
   HomPoint nearest_cell_to_target();
+  float motor_distance;
   inline float sqr( float x )
   {
     return (x*x);

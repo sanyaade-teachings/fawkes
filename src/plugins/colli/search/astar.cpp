@@ -283,19 +283,9 @@ void CAStar::GenerateChildren( CAStarState * father )
   seen_states.push_back(HomPoint(father->m_X, father->m_Y ));
 
   prob = m_pOccGrid->getProb( father->m_X, father->m_Y );
-  if( prob == _COLLI_CELL_OCCUPIED_ )
-  {
-    loggerASS->log_error("ASTAR","ERROR. father state is occupied\n");
-  } 
   if ( father->m_Y > 0 )
     {
-      bool isValid = true;
       prob = m_pOccGrid->getProb( father->m_X, father->m_Y-1 );
-      if(( prob != _COLLI_CELL_OCCUPIED_) && ( prob != _COLLI_CELL_FREE_) && ( prob != _COLLI_CELL_MIDDLE_) && ( prob != _COLLI_CELL_FAR_) && ( prob != _COLLI_CELL_NEAR_))
-      {
-        loggerASS->log_error("ASTAR","probability is not valid");
-        isValid = false;
-      }
       if( prob != _COLLI_CELL_OCCUPIED_ )
 	{
 	  child = m_vAStarStates[++m_AStarStateCount];
@@ -318,13 +308,6 @@ void CAStar::GenerateChildren( CAStarState * father )
   if ( father->m_Y < (signed int)m_Height )
     {
       prob = m_pOccGrid->getProb( father->m_X, father->m_Y+1 );
-      bool isValid = true;
-      if(( prob != _COLLI_CELL_OCCUPIED_) && ( prob != _COLLI_CELL_FREE_) && ( prob != _COLLI_CELL_MIDDLE_) && ( prob != _COLLI_CELL_FAR_) && ( prob != _COLLI_CELL_NEAR_))
-      {
-        isValid = false;
-        loggerASS->log_error("ASTAR","probability is not valid");
-      }
-
       if( prob != _COLLI_CELL_OCCUPIED_ )
 	{
 	  child = m_vAStarStates[++m_AStarStateCount];
@@ -348,11 +331,7 @@ void CAStar::GenerateChildren( CAStarState * father )
 
   if ( father->m_X > 0 )
     {
-      bool isValid = true;
       prob = m_pOccGrid->getProb( father->m_X-1, father->m_Y );
-      if(( prob != _COLLI_CELL_OCCUPIED_) && ( prob != _COLLI_CELL_FREE_) && ( prob != _COLLI_CELL_MIDDLE_) && ( prob != _COLLI_CELL_FAR_) && ( prob != _COLLI_CELL_NEAR_))
-        loggerASS->log_error("ASTAR","probability is not valid");
-        isValid = false;
       if( prob != _COLLI_CELL_OCCUPIED_ )
 	{
 	  child = m_vAStarStates[++m_AStarStateCount];
@@ -374,13 +353,7 @@ void CAStar::GenerateChildren( CAStarState * father )
   
   if ( father->m_X < (signed int)m_Width )
     {
-      bool isValid = true;
       prob = m_pOccGrid->getProb( father->m_X+1, father->m_Y );
-      if(( prob != _COLLI_CELL_OCCUPIED_) && ( prob != _COLLI_CELL_FREE_) && ( prob != _COLLI_CELL_MIDDLE_) && ( prob != _COLLI_CELL_FAR_)&&( prob != _COLLI_CELL_NEAR_))
-      {
-        loggerASS->log_error("ASTAR","probability is not valid");
-       isValid = false;
-      }
       if( prob != _COLLI_CELL_OCCUPIED_ )
 	{
 	  child = m_vAStarStates[++m_AStarStateCount];
