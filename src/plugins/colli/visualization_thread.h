@@ -171,6 +171,7 @@ class ColliVisualizationThread
   NavigatorInterface *p_navi;
   MotorInterface  *m_motor;
   bool ref_obstacle;
+  string motor_iface_id;
   string naviface_id;
   geometry_msgs::Pose robot_marker_pose;
   bool frame_valid_;

@@ -93,7 +93,7 @@ plugins/colli:
   Navigator_interface_id: NavigatorTarget
   # The id of laser iface
   Laser_interface_id: Laser
-  # The id of laser iface
+  # The id of motor iface
   Motor_interface_id: Motor Brutus
   # Motor distance from laser in cm
   MotorDistance: 19.4

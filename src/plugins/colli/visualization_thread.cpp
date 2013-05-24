@@ -40,7 +40,17 @@ void ColliVisualizationThread::init()
   {
     naviface_id = config->get_string("/plugins/colli/Navigator_interface_id");
   }
-  m_motor = blackboard->open_for_reading<MotorInterface>("Motor Brutus");
+  if (!config->exists("/plugins/colli/Motor_interface_id") )
+  {
+    cout << "***** ERROR *****: Could not get: Motor_interface_id"
+         << " --> ABORTING!" << endl << endl;
+    return;
+  }
+  else
+  {
+    motor_iface_id = config->get_string("/plugins/colli/Motor_interface_id");
+  }
+  m_motor = blackboard->open_for_reading<MotorInterface>(motor_iface_id.c_str());
   m_navi = blackboard->open_for_reading<NavigatorInterface>(naviface_id.c_str());
   p_navi = blackboard->open_for_reading<NavigatorInterface>("Pathplan");
   navsub_ = new ros::Subscriber();
