@@ -152,6 +152,7 @@ class ColliThread
   
   string naviface_id;
   string laser_iface_id;
+  string motor_iface_id;
   /* ************************************************************************ */
   /* PRIVATE METHODS                                                          */
   /* ************************************************************************ */

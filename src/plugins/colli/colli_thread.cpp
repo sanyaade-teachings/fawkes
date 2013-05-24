@@ -125,6 +125,17 @@ void ColliThread::init()
     laser_iface_id = config->get_string("/plugins/colli/Laser_interface_id");
   }
 
+  if (!config->exists("/plugins/colli/Motor_interface_id") )
+  {
+    cout << "***** ERROR *****: Could not get: Motor_interface_id"
+         << " --> ABORTING!" << endl << endl;
+    return;
+  }
+  else
+  {
+    motor_iface_id = config->get_string("/plugins/colli/Motor_interface_id");
+  }
+
   /* As default we use a football player AllemaniACs robot */
   if (default_hostname == "carl_rc.informatik.rwth-aachen.de")
     {
@@ -578,7 +589,7 @@ void ColliThread::RegisterAtBlackboard()
 {
   m_tf_pub_odom = new tf::TransformPublisher(blackboard, "colli odometry");
 
-  m_pMopoObj = blackboard->open_for_reading<MotorInterface>("Motor Brutus");
+  m_pMopoObj = blackboard->open_for_reading<MotorInterface>(motor_iface_id.c_str());
   motor_des = blackboard->open_for_writing<MotorInterface>("Motor Caesar");
   m_pLaserScannerObj = blackboard->open_for_reading<Laser360Interface>(laser_iface_id.c_str());
   m_pColliTargetObj = blackboard->open_for_reading<NavigatorInterface>(naviface_id.c_str());
