@@ -375,10 +375,10 @@ void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
 	    posX = midX + (int)((p_x*100.0) / ((float)m_CellWidth ));
 	    posY = midY + (int)((p_y*100.0) / ((float)m_CellHeight ));
    
-  // 	    if ( !( (posX <= 5) || (posX >= m_Width-6) ||
-//		    (posY <= 5) || (posY >= m_Height-6) ) )
-            if ( !( (posX <= 0) || (posX >= m_Width-6) ||
-                    (posY <= 0) || (posY >= m_Height-6) ) )
+   	    if ( !( (posX <= 5) || (posX >= m_Width-6) ||
+		    (posY <= 5) || (posY >= m_Height-6) ) )
+  //          if ( !( (posX <= 0) || (posX >= m_Width-6) ||
+    //                (posY <= 0) || (posY >= m_Height-6) ) )
 	      {
 		//float dec = max( (sqrt(sqr(p_x)+sqr(p_y))/3.0-1.0), 0.0 );
 		//float dec = max((m_pLaser->GetReadingLength(i)/2.0)-1.0, 0.0 );

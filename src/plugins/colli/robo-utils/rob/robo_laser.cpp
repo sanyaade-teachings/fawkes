@@ -159,26 +159,40 @@ void Laser::CalculatePositions()
     m_pReadings->SetPos(i);
 }
 
-void Laser::transform(tf::TransformListener *tf_listener)
+void Laser::transform(tf::TransformListener *tf_listener,string laser_frame)
 {
   for ( int i = 0; i < m_NumberOfReadings; i++ )
   {
     float posX = m_pReadings->GetPosX(i);
     float posY = m_pReadings->GetPosY(i);
-    /*tf::Stamped<tf::Point> base_point;
-    tf::Stamped<tf::Point> laser_point(tf::Point(posX,posY,0),fawkes::Time(0, 0),"/base_laser"); 
+    tf::Stamped<tf::Point> base_point;
+    tf::Stamped<tf::Point> laser_point(tf::Point(posX,posY,0),fawkes::Time(0, 0),laser_frame); 
     try{
       tf_listener->transform_point("/base_link", laser_point, base_point);
       
     }catch(...){
       cout << "can't transform to the base link" << endl;
-    }*/
-    m_pReadings->SetPosX(i,posX);
-    m_pReadings->SetPosY(i,-posY);
-    // m_pReadings->SetPosX(i,base_point.x());
-    // m_pReadings->SetPosY(i,-base_point.y());  
+    }
+   /* m_pReadings->SetPosX(i,posX);
+    m_pReadings->SetPosY(i,-posY);*/
+    m_pReadings->SetPosX(i,base_point.x());
+    m_pReadings->SetPosY(i,-base_point.y());
+
+    // ** in the case, we do not get laser readings in /base_laser
+    if( m_pReadings->GetLength(i) <= 0 )
+      continue;
+    
+    tf::Stamped<tf::Point> blaser_point;
+    tf::Stamped<tf::Point> tpoint(tf::Point(posX,posY,0),fawkes::Time(0, 0),laser_frame);
+    try{
+      tf_listener->transform_point("/base_laser", tpoint, blaser_point);
+      float length = sqrt(pow(blaser_point.x(),2)+pow(blaser_point.y(),2)); 
+      m_pReadings->SetLength(i,length);
+    }catch(...){
+      cout << "can't transform to the base laser" << endl;
+    } 
   }
-  
+  laser_frame_ = laser_frame;
 }
 
 /* =========================================================================================== */

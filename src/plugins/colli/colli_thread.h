@@ -150,6 +150,7 @@ class ColliThread
 
   vector<HomPoint > m_vSolution;
   
+  string laser_frame;
   string naviface_id;
   string laser_iface_id;
   string motor_iface_id;

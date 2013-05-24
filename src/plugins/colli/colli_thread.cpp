@@ -151,7 +151,7 @@ void ColliThread::init()
   if (!config->exists("/plugins/colli/MotorDistance") )
   {
     cout << "***** ERROR *****: Could not get: MotorDistance" << endl;
-    motor_distance = 19.4;
+    motor_distance = 0;
   }
   else
   {
@@ -204,7 +204,7 @@ void ColliThread::init()
   BBAlive( "laser_obstacles", 4);*/
 
   logger->log_info(name(),"COLLI (Constructor): Initialization done.\n");
-
+  laser_frame = "/base_laser";
 }
 //-------------------------------------------------------------
 void ColliThread::finalize()
@@ -612,11 +612,11 @@ void ColliThread::RegisterAtBlackboard()
 
 void ColliThread::InitializeModules()
 {
-    
+  laser_frame = m_pLaserScannerObj->frame();
   // FIRST(!): the laserinterface (uses the laserscanner)
   m_pLaser = new Laser( m_pLaserScannerObj, "" );
   m_pLaser->UpdateLaser(); 
-  m_pLaser->transform(tf_listener);
+  m_pLaser->transform(tf_listener,laser_frame);
 
   // SECOND(!): the occupancy grid (it uses the laser)
 
@@ -891,7 +891,7 @@ void ColliThread::UpdateOwnModules()
 
   // update the laser
   m_pLaser->UpdateLaser();
-  m_pLaser->transform(tf_listener);
+  m_pLaser->transform(tf_listener,laser_frame);
   // Robo increasement for robots
   float m_RoboIncrease = 0.0;
 

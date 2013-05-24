@@ -889,8 +889,8 @@ void ColliVisualizationThread::visualize_orig_laser_points()
   lgs.cell_height = cell_height_/100.;
   for( unsigned int l = 0; l < orig_laser_points_.size(); l++ )
   {
-    HomPoint base_point = orig_laser_points_[l];
-    //HomPoint base_point = transform_laser_to_base(orig_laser_points_[l]);
+    //HomPoint base_point = orig_laser_points_[l];
+    HomPoint base_point = transform_laser_to_base(orig_laser_points_[l]);
     geometry_msgs::Point p;
     p.x = base_point.x();
     p.y = base_point.y();

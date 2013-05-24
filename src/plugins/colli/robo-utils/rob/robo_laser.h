@@ -108,8 +108,8 @@ class Laser
    */
   int UpdateLaser( );
    
-  void transform(tf::TransformListener *listener);
-
+  void transform(tf::TransformListener *listener,string laser_frame);
+  string laser_frame_;
   // ================================================= //
   // Return the actual readings. Nothing interpolated. //
   // ================================================= //
