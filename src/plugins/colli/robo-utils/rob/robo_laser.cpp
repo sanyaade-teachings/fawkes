@@ -159,7 +159,8 @@ void Laser::CalculatePositions()
     m_pReadings->SetPos(i);
 }
 
-void Laser::transform(tf::TransformListener *tf_listener,string laser_frame)
+//void Laser::transform(tf::TransformListener *tf_listener,string laser_frame)
+void Laser::transform(tf::Transformer *tf_listener,string laser_frame)
 {
   for ( int i = 0; i < m_NumberOfReadings; i++ )
   {

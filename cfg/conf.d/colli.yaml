@@ -96,6 +96,7 @@ plugins/colli:
   # The id of motor iface
   Motor_interface_id: Motor Brutus
   # Motor distance from laser in cm
-  MotorDistance: 19.4
+  #MotorDistance: 19.4
+  MotorDistance: 0
   # If all the cells containing the robot must be considered
-  adjust_robo_pos: true
+  adjust_robo_pos: false
