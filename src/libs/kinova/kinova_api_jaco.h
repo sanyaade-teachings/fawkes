@@ -36,6 +36,11 @@ namespace Kinova { namespace DLL { namespace SafeGate {
   class CCypherMessage;
 }}}
 
+namespace Kinova { namespace DLL { namespace Data {
+  class CPosition;
+}}}
+
+
 namespace Kinova { namespace API { namespace Jaco
 {
 
@@ -55,8 +60,114 @@ class Assembly : public KinovaMonoAssembly
   virtual ~Assembly();
 };
 
+//*
+/* /================================\
+ *     Namespace Configurations
+ * \================================/*/
+class CJacoConfigurationManager : public KinovaMonoClass<CJacoConfigurationManager>
+{
+ public:
+  /// \brief Constructor, taking a CCypherMessage (encrypted password).
+  CJacoConfigurationManager(Kinova::DLL::SafeGate::CCypherMessage* encPassword);
+  /// \brief Constructor, taking a plain password.
+  CJacoConfigurationManager(const char* password);
+  /// \brief Constructor, taking an object.
+  CJacoConfigurationManager(MyMonoObject* object);
+
+  ~CJacoConfigurationManager();
+
+  static KinovaMonoError_t init(MonoImage* image, const char* class_namespace);
+
+  //...
+  //CVectorEuler* GetHandPosition();
+  //...
+ private:
+  void create(Kinova::DLL::SafeGate::CCypherMessage* encPassword);
+  static MonoMethod* __m_ctor;
+  static MonoMethod* __m_GetHandPosition;
+};
+
+//*
+/* /================================\
+ *     Namespace Diagnostic
+ * \================================/*/
+class CJacoDiagnosticDataManager : public KinovaMonoClass<CJacoDiagnosticDataManager>
+{
+ public:
+  /// \brief Constructor, taking a CCypherMessage (encrypted password).
+  CJacoDiagnosticDataManager(Kinova::DLL::SafeGate::CCypherMessage* encPassword);
+  /// \brief Constructor, taking a plain password.
+  CJacoDiagnosticDataManager(const char* password);
+  /// \brief Constructor, taking an object.
+  CJacoDiagnosticDataManager(MyMonoObject* object);
+
+  ~CJacoDiagnosticDataManager();
+
+  static KinovaMonoError_t init(MonoImage* image, const char* class_namespace);
+
+  //public void DeleteErrorLog();
+
+  //unsigned long long GetErrorLogCount();
+
+  //List<CError*>* GetErrorsFromJaco();
+
+  //CPeripheralInformation^ GetPeripheralInformationFromJaco();
+
+  //CPosition* GetPositionFromJaco(int index);
+
+  //int GetPositionLogCount();
+
+  Kinova::DLL::Data::CPosition* GetPositionLogLiveFromJaco();
+
+  //float[] GetSensorsInfo();
+
+  //double RealSpeedTest();
+
+ private:
+  void create(Kinova::DLL::SafeGate::CCypherMessage* encPassword);
+  static MonoMethod* __m_ctor;
+  static MonoMethod* __m_GetPositionLogLiveFromJaco;
+};
 
 
+class CJacoDiagnosticManager : public KinovaMonoClass<CJacoDiagnosticManager>
+{
+ public:
+  /// \brief Constructor, taking a CCypherMessage (encrypted password).
+  CJacoDiagnosticManager(Kinova::DLL::SafeGate::CCypherMessage* encPassword);
+  /// \brief Constructor, taking a plain password.
+  CJacoDiagnosticManager(const char* password);
+  /// \brief Constructor, taking an object.
+  CJacoDiagnosticManager(MyMonoObject* object);
+
+  ~CJacoDiagnosticManager();
+
+  static KinovaMonoError_t init(MonoImage* image, const char* class_namespace);
+
+ //properties in C#
+ CJacoDiagnosticDataManager* DataManager();
+ void DataManager(CJacoDiagnosticDataManager* value);
+
+ //CJacoTestManager* TestManager();
+ //void TestManager(CJacoTestManager* value);
+
+ //CJacoToolManager* ToolManager();
+ //void ToolManager(CJacoToolManager* value);
+
+ private:
+  void create(Kinova::DLL::SafeGate::CCypherMessage* encPassword);
+  static MonoMethod* __m_ctor;
+
+  //"properties"
+  static MonoProperty* __p_DataManager;
+  CJacoDiagnosticDataManager* __o_DataManager;
+};
+
+
+//*
+/* /================================\
+ *     (no further nested namespace)
+ * \================================/*/
 /** The CJacoArm class. See Kinova-API for further information.
  * This is the main class for working with the JacoArm.
  */
@@ -83,6 +194,16 @@ class CJacoArm : public KinovaMonoClass<CJacoArm>
   /// \brief Ask if Jaco is ready to communicate.
   bool JacoIsReady();
 
+  //properties in C#
+  //CJacoConfigurationManager* ConfigurationsManager();
+  //void ConfigurationsManager(CJacoConfigurationManager* value);
+
+  //CJacoControlManager* ControlManager();
+  //void ControlManager(CJacoControlManager* value);
+
+  CJacoDiagnosticManager* DiagnosticManager();
+  void DiagnosticManager(CJacoDiagnosticManager* value);
+
  protected:
   /** Releases unmanaged resources and performs other cleanup operations
    *  before the CJacoArm is reclaimed by garbage collection. */
@@ -96,12 +217,20 @@ class CJacoArm : public KinovaMonoClass<CJacoArm>
   static MonoMethod* __m_JacoIsReady;
   static MonoMethod* __m_Finalize;
 
+  //"properties"
+  static MonoProperty* __p_DiagnosticManager;
+  CJacoDiagnosticManager* __o_DiagnosticManager;
+
   static void (*__CloseConnection)(MyMonoObject* object);
   //CJacoConfigurationManager ConfigurationsManager;
   //CJacoControlManager       ControlManager;
   //CJacoDiagnosticManager    DiagnosticManager;
 
 }; // class CJacoArm
+
+
+
+
 
 }}} // namespace Kinova::API::Jaco
 #endif
