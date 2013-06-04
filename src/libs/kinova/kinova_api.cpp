@@ -64,6 +64,7 @@ JacoAPI::init()
   //create the containers for the mono assembblies
   __assemblies.push_back(new API::Jaco::Assembly(__path));
   __assemblies.push_back(new DLL::SafeGate::Assembly(__path));
+  __assemblies.push_back(new DLL::Data::Assembly(__path));
 
   //initialize the assemblies in the containers
   KinovaMonoError_t error;

@@ -28,6 +28,7 @@
 
 //include all assembly headers here
 #include "kinova_dll_safegate.h"
+#include "kinova_dll_data.h"
 #include "kinova_api_jaco.h"
 
 #include <list>
