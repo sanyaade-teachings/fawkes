@@ -35,6 +35,7 @@ typedef struct _MonoAssembly MonoAssembly;
 typedef struct _MonoImage MonoImage;
 typedef struct _MonoClass MonoClass;
 typedef struct _MonoMethod MonoMethod;
+typedef struct _MonoProperty MonoProperty;
 //MonoObject is an unnamed struct -_- see declaration below in Kinova namespace
 
 namespace Kinova
@@ -58,7 +59,8 @@ typedef enum
   MONO_ERROR_IMAGE       = 3,
   MONO_ERROR_CLASS       = 4,
   MONO_ERROR_METHOD      = 5,
-  MONO_ERROR_OBJECT      = 6
+  MONO_ERROR_PROPERTY    = 6,
+  MONO_ERROR_OBJECT      = 7
 } KinovaMonoError_t;
 
 
@@ -144,6 +146,7 @@ class KinovaMonoClass
   static KinovaMonoError_t init(MonoDomain* domain, MonoImage* image, const char* class_namespace);
 
   MyMonoObject* get_object();
+  void set_object(MyMonoObject* object);
 
  protected:
   static MonoDomain* __domain;  /**< The active mono domain */
@@ -164,6 +167,16 @@ MyMonoObject*
 KinovaMonoClass<T>::get_object()
 {
   return (MyMonoObject*)__object;
+}
+
+/** Set the actual object in the mono-domain.
+ * @param object The actual object (MonoObject*) in the mono-domain.
+ */
+template <typename T>
+void
+KinovaMonoClass<T>::set_object(MyMonoObject* object)
+{
+  __object = object;
 }
 
 /** Initialize the class. Needs to be done once per original API class.
