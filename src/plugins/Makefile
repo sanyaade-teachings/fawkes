@@ -26,7 +26,7 @@ SUBDIRS	= bbsync bblogger webview ttmainloop rrd rrdweb \
 	  clips clips-agent clips-protobuf clips-webview \
 	  mongodb mongodb_log \
 	  openni refboxcomm ros player xmlrpc \
-	  readylogagent
+	  readylogagent robotino-sim
 
 include $(BUILDSYSDIR)/rules.mk
 
