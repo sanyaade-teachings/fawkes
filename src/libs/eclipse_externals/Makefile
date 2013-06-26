@@ -30,7 +30,7 @@ OBJS_all = $(OBJS_eclipse_externals)
 
 ifeq ($(HAVE_ECLIPSE),1)
   LIBS_all = $(LIBDIR)/eclipse_externals.so
-  LIBS_all = $(LIBDIR)/libeclipse_externals.so
+  LIBS_all += $(LIBDIR)/libeclipse_externals.so
 else
   WARN_TARGETS += warning_eclipse
 endif
