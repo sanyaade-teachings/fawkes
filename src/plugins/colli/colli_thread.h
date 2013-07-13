@@ -35,14 +35,10 @@
 #include <aspect/logging.h>
 #include <aspect/blackboard.h>
 #include <aspect/tf.h>
+
 #include <utils/time/clock.h>
 #include <utils/math/types.h>
 #include <utils/math/angle.h>
-#include <interfaces/MotorInterface.h>
-#include <interfaces/Laser360Interface.h>
-#include <interfaces/Laser720Interface.h>
-#include <interfaces/Position2DTrackInterface.h>
-#include <interfaces/NavigatorInterface.h>
 #include <geometry/hom_point.h>
 #include <blackboard/remote.h>
 #include <tf/transform_publisher.h>
@@ -81,6 +77,13 @@ const string default_hostname = "";
 #ifdef HAVE_VISUAL_DEBUGGING
 class ColliVisualizationThreadBase;
 #endif
+
+namespace fawkes {
+  class MotorInteface;
+  class Laser360Interface;
+  class NavigatorInterface;
+}
+
 
 class ColliThread
 : public fawkes::Thread,
@@ -170,6 +173,8 @@ class ColliThread
   string naviface_id;
   string laser_iface_id;
   string motor_iface_id;
+
+
   /* ************************************************************************ */
   /* PRIVATE METHODS                                                          */
   /* ************************************************************************ */

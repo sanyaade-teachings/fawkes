@@ -25,6 +25,10 @@
  #include "visualization_thread_base.h"
 #endif
 
+#include <interfaces/MotorInterface.h>
+#include <interfaces/Laser360Interface.h>
+#include <interfaces/NavigatorInterface.h>
+
 using namespace fawkes;
 using namespace std;
 
