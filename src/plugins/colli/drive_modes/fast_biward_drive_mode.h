@@ -52,34 +52,34 @@
 /*                                                                      */
 /* ******************************************************************** */
 
-
 #ifndef _COLLI_FAST_BIWARD_DRIVE_MODE_H_
 #define _COLLI_FAST_BIWARD_DRIVE_MODE_H_
-
 
 #include "abstract_drive_mode.h"
 #include "fast_forward_drive_mode.h"
 #include "fast_backward_drive_mode.h"
 
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
 
-
-//
 class CFastBiwardDriveModule : public CAbstractDriveMode
 {
 public:
 
-  /** Constructor. 
+  /** Constructor.
    */
   CFastBiwardDriveModule( Logger* logger, Configuration *config, CFastForwardDriveModule*  forward_module,
-			  CFastBackwardDriveModule* backward_module );
+        CFastBackwardDriveModule* backward_module );
 
-  
+
   /** Destructor. Does nothing, because nothing was created in this module.
    */
   ~CFastBiwardDriveModule();
 
 
-  /** This Routine is called. Afterwards the m_proposedTranslation and 
+  /** This Routine is called. Afterwards the m_proposedTranslation and
    *    m_proposedRotation have to be filled. Here they are
    *    set to zero.
    */
@@ -89,7 +89,7 @@ public:
 private:
 
   float m_MaxTranslation, m_MaxRotation;
-  
+
   CFastForwardDriveModule*   m_pFastForwardDriveModule;
   CFastBackwardDriveModule*  m_pFastBackwardDriveModule;
 
@@ -98,6 +98,6 @@ private:
   Logger* loggerFastBi;
 };
 
-
+} // namespace fawkes
 
 #endif

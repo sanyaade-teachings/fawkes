@@ -56,26 +56,28 @@
 #ifndef _COLLI_MEDIUM_BACKWARD_DRIVE_MODE_H_
 #define _COLLI_MEDIUM_BACKWARD_DRIVE_MODE_H_
 
-
 #include "abstract_drive_mode.h"
 
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
 
-//
 class CMediumBackwardDriveModule : public CAbstractDriveMode
 {
 public:
 
-  /** Constructor. 
+  /** Constructor.
    */
   CMediumBackwardDriveModule( Logger* logger, Configuration *config );
 
-  
+
   /** Destructor. Does nothing, because nothing was created in this module.
    */
   ~CMediumBackwardDriveModule();
 
 
-  /** This Routine is called. Afterwards the m_proposedTranslation and 
+  /** This Routine is called. Afterwards the m_proposedTranslation and
    *    m_proposedRotation have to be filled. Here they are
    *    set to zero.
    */
@@ -85,16 +87,16 @@ public:
 private:
 
   float MediumBackward_Translation ( float dist_to_target, float dist_to_front, float alpha,
-				     float trans_0, float rot_0, float rot_1 );
-  
+             float trans_0, float rot_0, float rot_1 );
+
   float MediumBackward_Curvature( float dist_to_target, float dist_to_trajec, float alpha,
-				  float trans_0, float rot_0 );
-  
+          float trans_0, float rot_0 );
+
   float m_MaxTranslation, m_MaxRotation;
- 
+
   Logger* loggerMedBack;
 };
 
-
+} // namespace fawkes
 
 #endif

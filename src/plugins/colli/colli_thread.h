@@ -25,9 +25,6 @@
 
 #include "drive_realization/quadratic_motor_instruct.h"
 #include "drive_modes/select_drive_mode.h"
-#include "search/og_laser.h"
-#include "search/astar_search.h"
-#include "robo-utils/rob/robo_laser.h"
 
 #include <core/threading/thread.h>
 #include <aspect/clock.h>
@@ -71,6 +68,11 @@ namespace fawkes {
   class MotorInteface;
   class Laser360Interface;
   class NavigatorInterface;
+
+  class ColliLaserOccupancyGrid;
+  class ColliSearch;
+
+  class Laser;
 }
 
 
@@ -112,14 +114,14 @@ class ColliThread
 
   fawkes::tf::TransformPublisher *m_tf_pub_odom;
 
-  Laser*                          m_pLaser;            // laser interface for easy use
-  CSearch*                        m_pSearch;           // our plan module which calculates the info
+  fawkes::Laser*                          m_pLaser;            // laser interface for easy use
+  ColliSearch*                        m_pSearch;           // our plan module which calculates the info
 
   CSelectDriveMode*               m_pSelectDriveMode;  // the drive mode selection module
 
   CBaseMotorInstruct*             m_pMotorInstruct;    // the motor instructor module
 
-  CLaserOccupancyGrid*            m_pLaserOccGrid;     // the grid to drive on
+  ColliLaserOccupancyGrid*            m_pLaserOccGrid;     // the grid to drive on
   /* ************************************************************************ */
   /* PRIVATE VARIABLES THAT HAVE TO BE HANDLED ALL OVER THE MODULE            */
   /* ************************************************************************ */

@@ -1,74 +1,50 @@
-//     Roboshape class implementation by Stefan Jacobs
-//     Copyright (C) 2002  Stefan Jacobs <Stefan_J@gmx.de>
-//
-//     This program is free software; you can redistribute it and/or modify
-//     it under the terms of the GNU General Public License as published by
-//     the Free Software Foundation; either version 2 of the License, or
-//     (at your option) any later version.
-//
-//     This program is distributed in the hope that it will be useful,
-//     but WITHOUT ANY WARRANTY; without even the implied warranty of
-//     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//     GNU General Public License for more details.
-//
-//     You should have received a copy of the GNU General Public License
-//     along with this program; if not, write to the Free Software
-//     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
 
+/***************************************************************************
+ *  roboshape.cpp - Roboshape class
+ *
+ *  Created: Sat Jul 13 18:06:21 2013
+ *  Copyright  2002  Stefan Jacobs
+ *             2012  Safoura Rezapour Lakani
+ *             2013  Bahram Maleki-Fard, AllemaniACs RoboCup Team
+ *
+ ****************************************************************************/
 
-/*
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-  ©                                                                            ©
-  ©                                            ####   ####           .-""-.    ©
-  ©       # #                             #   #    # #    #         /[] _ _\   ©
-  ©       # #                                 #    # #             _|_o_LII|_  ©
-  © ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ©
-  © #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ©
-  © #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ©
-  © #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ©
-  © '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ©
-  ©                                                               /__|    |__\ ©
-  ©                                                                            ©
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-*/
+/*  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Library General Public License for more details.
+ *
+ *  Read the full text in the LICENSE.GPL file in the doc directory.
+ */
 
+#include "roboshape.h"
 
-/* ******************************************************************** */
-/*                                                                      */
-/* $Id$           */
-/*                                                                      */
-/* Description: This is the roboshape class implementation.             */
-/*                                                                      */
-/* Author:   Stefan Jacobs                                              */
-/* Contact:  <Stefan_J@gmx.de>                                          */
-/*                                                                      */
-/*                                                                      */
-/*                                                                      */
-/* last modified: $Date$                          */
-/*            by: $Author$                                    */
-/*                                                                      */
-/* ******************************************************************** */
-
-
-#ifndef _UTIL_ROBOSHAPE_CPP_
-#define _UTIL_ROBOSHAPE_CPP_
-
-
-
-#include <cmath>
+#include <logging/logger.h>
+#include <config/config.h>
+#include <utils/math/angle.h>
 
 //#include <utils/configfile/configfile.h>
 //#include <utils/utils.h>
 
 //#include <blackboard/bb.h>
 
-#include "roboshape.h"
+#include <iostream>
+#include <cmath>
 
+using namespace std;
 
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
 
 // initialize RoboShape
-RoboShape::RoboShape( Logger* logger, Configuration *config ) 
+RoboShape::RoboShape( Logger* logger, Configuration *config )
 {
   // shape description file
   loggerRobo = logger;
@@ -109,7 +85,7 @@ RoboShape::RoboShape( Logger* logger, Configuration *config )
     m_isAngular = true;
     m_isRound = false;
     m_widthX = config->get_float("/plugins/colli/Roboshape/WIDTH_X");
-    m_widthY = config->get_float("/plugins/colli/Roboshape/WIDTH_Y"); 
+    m_widthY = config->get_float("/plugins/colli/Roboshape/WIDTH_Y");
     m_widthAddFront = config->get_float("/plugins/colli/Roboshape/WIDTH_ADD_FRONT");
     m_widthAddRight = config->get_float("/plugins/colli/Roboshape/WIDTH_ADD_RIGHT");
     m_widthAddBack = config->get_float("/plugins/colli/Roboshape/WIDTH_ADD_BACK");
@@ -168,8 +144,8 @@ RoboShape::RoboShape( Logger* logger, Configuration *config )
 }
 
 
-// destruct RoboShape 
-RoboShape::~RoboShape() 
+// destruct RoboShape
+RoboShape::~RoboShape()
 {
 }
 
@@ -192,11 +168,11 @@ bool RoboShape::IsRobotReadingforRad( float anglerad, float length )
 {
     if ( length < GetRobotLengthforRad( anglerad ) )
     {
-	return true;
+        return true;
     }
     else
     {
-	return false;
+        return false;
     }
 }
 
@@ -219,20 +195,20 @@ float RoboShape::GetRobotLengthforRad( float anglerad )
 
     if ( anglerad > 0 )
     {
-	length_left_right = m_robotToRight;
+        length_left_right = m_robotToRight;
     }
     else
-    {   
-	length_left_right = -m_robotToLeft;
+    {
+        length_left_right = -m_robotToLeft;
     }
 
     if ( fabs( anglerad ) > M_PI/2.0 )
     {
-	length_front_back = -m_robotToBack;
+        length_front_back = -m_robotToBack;
     }
     else
     {
-	length_front_back =  m_robotToFront;
+        length_front_back =  m_robotToFront;
     }
 
     alpha = atan2( length_left_right, length_front_back );
@@ -241,11 +217,11 @@ float RoboShape::GetRobotLengthforRad( float anglerad )
 //    cout << "                You want to have length for angle " << anglerad << endl;
 //    cout << "                My lengths are X = " << length_front_back << " and Y = " << length_left_right << endl;
 //    cout << "                My distinguishing alpha is " << alpha << endl;
-    
-    
+
+
     if ( IsRoundRobot() == true )
     {
-	// TODO
+        // TODO
       loggerRobo->log_error("RoboShape","RoboShape ERROR: GetRobotLengthforRad is NOT IMPLEMENTED YET for round robots\n");
       exit(0);
     }
@@ -253,63 +229,63 @@ float RoboShape::GetRobotLengthforRad( float anglerad )
     else if ( IsAngularRobot() == true )
     {
 
-	if ( (alpha >= -M_PI) && (alpha < -M_PI_2) )
-	{
-	    if ( anglerad < alpha )
-	    {
-	      //		cout << "RoboShape Note: CASE 1 ||| Calculating with base LFB " << length_front_back << endl;
-		return ( fabs( length_front_back / cos( M_PI + anglerad) ) );
-	    }
-	    else  
-	    {
-	      //		cout << "RoboShape Note: CASE 2 ||| Calculating with base LLR " << length_left_right << endl;
-		return ( fabs( length_left_right / cos( M_PI_2 + anglerad) ) );
-	    }
-	}
-	else if ( (alpha >= -M_PI_2) && (alpha < 0.0) )
-	{
-	    if ( anglerad < alpha )
-	    {
-	      //		cout << "RoboShape Note: CASE 3 ||| Calculating with base LLR " << length_left_right << endl;
-		return ( fabs( length_left_right / cos( M_PI_2 + anglerad) ) );
-	    }
-	    else
-	    {
-	      //		cout << "RoboShape Note: CASE 4 ||| Calculating with base LFB " << length_front_back << endl;
-		return ( fabs( length_front_back / cos( anglerad) ) );
-	    }
-	}
-	else if ( (alpha >= 0.0) && (alpha < M_PI_2) )
-	{
-	    if ( anglerad < alpha )
-	    {
-	      //		cout << "RoboShape Note: CASE 5 ||| Calculating with base LFB " << length_front_back << endl;
-		return ( fabs( length_front_back / cos( anglerad) ) );
-	    }
-	    else
-	    {
-	      //		cout << "RoboShape Note: CASE 6 ||| Calculating with base LLR " << length_left_right << endl;
-		return ( fabs( length_left_right / cos( M_PI_2 - anglerad) ) );
-	    }
-	}
-	else if ( (alpha >= M_PI_2) && (alpha < M_PI) )
-	{
-	    if ( anglerad < alpha )
-	    {
-	      //		cout << "RoboShape Note: CASE 7 ||| Calculating with base LLR " << length_left_right << endl;
-		return ( fabs( length_left_right / cos( M_PI_2 - anglerad) ) );
-	    }
-	    else
-	    {
-	      //		cout << "RoboShape Note: CASE 8 ||| Calculating with base LFB " << length_front_back << endl;
-		return ( fabs( length_front_back / cos( M_PI - anglerad) ) );
-	    }
-	}    
-	else 
-	{
+        if ( (alpha >= -M_PI) && (alpha < -M_PI_2) )
+        {
+            if ( anglerad < alpha )
+            {
+              //                cout << "RoboShape Note: CASE 1 ||| Calculating with base LFB " << length_front_back << endl;
+                return ( fabs( length_front_back / cos( M_PI + anglerad) ) );
+            }
+            else
+            {
+              //                cout << "RoboShape Note: CASE 2 ||| Calculating with base LLR " << length_left_right << endl;
+                return ( fabs( length_left_right / cos( M_PI_2 + anglerad) ) );
+            }
+        }
+        else if ( (alpha >= -M_PI_2) && (alpha < 0.0) )
+        {
+            if ( anglerad < alpha )
+            {
+              //                cout << "RoboShape Note: CASE 3 ||| Calculating with base LLR " << length_left_right << endl;
+                return ( fabs( length_left_right / cos( M_PI_2 + anglerad) ) );
+            }
+            else
+            {
+              //                cout << "RoboShape Note: CASE 4 ||| Calculating with base LFB " << length_front_back << endl;
+                return ( fabs( length_front_back / cos( anglerad) ) );
+            }
+        }
+        else if ( (alpha >= 0.0) && (alpha < M_PI_2) )
+        {
+            if ( anglerad < alpha )
+            {
+              //                cout << "RoboShape Note: CASE 5 ||| Calculating with base LFB " << length_front_back << endl;
+                return ( fabs( length_front_back / cos( anglerad) ) );
+            }
+            else
+            {
+              //                cout << "RoboShape Note: CASE 6 ||| Calculating with base LLR " << length_left_right << endl;
+                return ( fabs( length_left_right / cos( M_PI_2 - anglerad) ) );
+            }
+        }
+        else if ( (alpha >= M_PI_2) && (alpha < M_PI) )
+        {
+            if ( anglerad < alpha )
+            {
+              //                cout << "RoboShape Note: CASE 7 ||| Calculating with base LLR " << length_left_right << endl;
+                return ( fabs( length_left_right / cos( M_PI_2 - anglerad) ) );
+            }
+            else
+            {
+              //                cout << "RoboShape Note: CASE 8 ||| Calculating with base LFB " << length_front_back << endl;
+                return ( fabs( length_front_back / cos( M_PI - anglerad) ) );
+            }
+        }
+        else
+        {
           loggerRobo->log_error("RoboShape","RoboShape ERROR: alpha has no valid value\n");
           exit(0);
-	}
+        }
     }
     else
     {
@@ -326,27 +302,27 @@ float RoboShape::GetRobotLengthforDegree( float angledeg )
 }
 
 
-// return if it is a rod (1), if it is not (0) or unsure(3) 
+// return if it is a rod (1), if it is not (0) or unsure(3)
 //  for a specific angle
 int RoboShape::IsRodforRad( float anglerad )
 {
     anglerad = normalize_mirror_rad( anglerad );
 
     if ( (normalize_mirror_rad( deg2rad(  28 )) < anglerad ) && ( anglerad < normalize_mirror_rad( deg2rad(  35 ))) )
-	return 3;
+        return 3;
     else if ( (normalize_mirror_rad( deg2rad(  99 )) < anglerad ) && ( anglerad < normalize_mirror_rad( deg2rad( 113 ))) )
-	return 3;
+        return 3;
     else if ( (normalize_mirror_rad( deg2rad( 249 )) < anglerad ) && ( anglerad < normalize_mirror_rad( deg2rad( 260 ))) )
-	return 3;
+        return 3;
     else if ( (normalize_mirror_rad( deg2rad( 325 )) < anglerad ) && ( anglerad < normalize_mirror_rad( deg2rad( 331 ))) )
-	return 3;
-    else 
-	return 0;
-    
+        return 3;
+    else
+        return 0;
+
 }
 
 
-// return if it is a rod (1), if it is not (0) or unsure(3) 
+// return if it is a rod (1), if it is not (0) or unsure(3)
 //  for a specific angle
 int RoboShape::IsRodforDegree( float angledeg )
 {
@@ -371,8 +347,8 @@ float RoboShape::GetRadius()
 float RoboShape::GetCompleteRadius()
 {
   if ( IsRoundRobot() == true )
-    return ( max( m_radius + m_widthAddFront + m_widthAddBack, 
-		  m_radius + m_widthAddRight + m_widthAddLeft ) );
+    return ( max( m_radius + m_widthAddFront + m_widthAddBack,
+                  m_radius + m_widthAddRight + m_widthAddLeft ) );
   else
     {
       cout << "RoboShape Error: The Robot is not round!" << endl;
@@ -465,5 +441,4 @@ float RoboShape::GetLaserOffsetY()
   return 0.0;
 }
 
-
-#endif
+} // namespace fawkes

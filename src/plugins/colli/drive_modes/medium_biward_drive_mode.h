@@ -61,25 +61,27 @@
 #include "medium_forward_drive_mode.h"
 #include "medium_backward_drive_mode.h"
 
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
 
-
-//
 class CMediumBiwardDriveModule : public CAbstractDriveMode
 {
 public:
 
-  /** Constructor. 
+  /** Constructor.
    */
   CMediumBiwardDriveModule( Logger* logger, Configuration *config, CMediumForwardDriveModule*  forward_module,
-			    CMediumBackwardDriveModule* backward_module );
+          CMediumBackwardDriveModule* backward_module );
 
-  
+
   /** Destructor. Does nothing, because nothing was created in this module.
    */
   ~CMediumBiwardDriveModule();
 
 
-  /** This Routine is called. Afterwards the m_proposedTranslation and 
+  /** This Routine is called. Afterwards the m_proposedTranslation and
    *    m_proposedRotation have to be filled. Here they are
    *    set to zero.
    */
@@ -98,6 +100,6 @@ private:
   Logger* loggerMedBi;
 };
 
-
+} // namespace fawkes
 
 #endif

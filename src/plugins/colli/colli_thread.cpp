@@ -27,6 +27,10 @@
 
 #include "common/defines.h"
 
+#include "search/og_laser.h"
+#include "search/astar_search.h"
+#include "robo-utils/rob/robo_laser.h"
+
 #include <interfaces/MotorInterface.h>
 #include <interfaces/Laser360Interface.h>
 #include <interfaces/NavigatorInterface.h>
@@ -667,11 +671,11 @@ ColliThread::InitializeModules()
   // set the cell width and heigth to 5 cm and the grid size to 7.5 m x 7.5 m.
   // this are 750/5 x 750/5 grid cells -> (750x750)/5 = 22500 grid cells
 
-  m_pLaserOccGrid = new CLaserOccupancyGrid( logger, config, m_pLaser, (int) ((m_OccGridWidth*100)/m_OccGridCellWidth),
+  m_pLaserOccGrid = new ColliLaserOccupancyGrid( logger, config, m_pLaser, (int) ((m_OccGridWidth*100)/m_OccGridCellWidth),
                                             (int)((m_OccGridHeight*100)/m_OccGridCellHeight),
                                             m_OccGridCellWidth, m_OccGridCellHeight);
   // THIRD(!): the search component (it uses the occ grid (without the laser)
-  m_pSearch = new CSearch( logger, config, m_pLaserOccGrid );
+  m_pSearch = new ColliSearch( logger, config, m_pLaserOccGrid );
 
   // BEFORE DRIVE MODE: the motorinstruction set
   m_pMotorInstruct = (CBaseMotorInstruct *)new CQuadraticMotorInstruct( motor_des, m_pMopoObj,m_ColliFrequency, logger, config );

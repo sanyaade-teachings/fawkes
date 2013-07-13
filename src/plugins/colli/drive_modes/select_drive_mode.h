@@ -57,23 +57,25 @@
 #ifndef _COLLI_SELECT_DRIVE_MODE_H_
 #define _COLLI_SELECT_DRIVE_MODE_H_
 
-#include <interfaces/NavigatorInterface.h>
-#include <interfaces/MotorInterface.h>
-#include <interfaces/Laser360Interface.h>
-#include <logging/logger.h>
-
-#include <vector>
-#include "../robo-utils/rob/robo_laser.h"
 #include "abstract_drive_mode.h"
 
-using namespace fawkes;
-using namespace std;
+#include <vector>
+
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
+
+class NavigatorInterface;
+class MotorInterface;
+class Logger;
+class Laser;
 
 /// This class selects the correct drive mode and calls the appopriate drive component
 class CSelectDriveMode
 {
 public:
-  
+
   /// laser + target wird hier gebraucht
   CSelectDriveMode(MotorInterface* motor, Laser* laser, NavigatorInterface* target, Logger* logger, Configuration *config );
 
@@ -116,7 +118,7 @@ private:
   MotorInterface*     m_pMotor;
   Laser*  m_pLaser;
   // Vector of drive modes
-  vector< CAbstractDriveMode * > m_vDriveModeList;
+  std::vector< CAbstractDriveMode * > m_vDriveModeList;
 
 
   // local copies of current local target values
@@ -134,9 +136,9 @@ private:
   /* ************************************************************************ */
   /* PRIVATE METHODS                                                          */
   /* ************************************************************************ */
-  Logger* loggerSelect; 
+  Logger* loggerSelect;
 };
 
-
+} // namespace fawkes
 
 #endif

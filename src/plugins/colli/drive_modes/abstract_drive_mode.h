@@ -52,11 +52,9 @@
 /*                                                                      */
 /* ******************************************************************** */
 
-
 #ifndef _COLLI_ABSTRACT_DRIVE_MODE_H_
 #define _COLLI_ABSTRACT_DRIVE_MODE_H_
 
-#include <interfaces/NavigatorInterface.h>
 #include <logging/logger.h>
 #include <config/config.h>
 
@@ -66,8 +64,11 @@
 #include <stdlib.h>
 #include <iostream>
 #include "colli_modes.h"
-using namespace fawkes;
-using namespace std;
+
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
 
 /** This is the base class which calculates drive modes. Drive modes
  *    are the proposed settings for the drive-realization out of the
@@ -81,7 +82,7 @@ public:
    *    to your derived drive mode.
    */
   CAbstractDriveMode(Logger *logger, Configuration *config);
-  
+
 
   /** Destructor.
    */
@@ -93,7 +94,7 @@ public:
    */
   void SetCurrentTarget( float targetX, float targetY, float targetOri );
 
-  
+
   /** Sets the current robo position.
    *  Has to be set before Update!
    */
@@ -110,7 +111,7 @@ public:
    *  Has to be set before Update!
    */
   void SetLocalTrajec( float localTrajecX, float localTrajecY );
-  
+
 
   /** Sets the current robo speed.
    *  Has to be set before Update!
@@ -159,7 +160,7 @@ public:
   {
     return (x*x);
   }
- 
+
   inline double sqr( double x )
   {
     return (x*x);
@@ -176,7 +177,7 @@ protected:
   float LinInterpol( float x, float left, float right, float bot, float top );
 
   float GuaranteeTransStop( float distance, float current_trans, float desired_trans );
-  
+
 
   float m_TargetX, m_TargetY, m_TargetOri;  // current target
   float m_RoboX, m_RoboY, m_RoboOri;        // current robo pos
@@ -198,10 +199,10 @@ private:
 
   float m_cMaxTransDec;
   float m_cMaxRotDec;
-  
+
   Logger *loggerDrive;
   std::string m_sHostname;
-  
+
 };
 
 
@@ -228,33 +229,33 @@ inline CAbstractDriveMode::CAbstractDriveMode(Logger *logger, Configuration *con
 /*
   // read m_cMaxTransDec and m_cMaxRotDec
   string confFileName = "../cfg/robocup/colli.cfg";
-  
-  try 
+
+  try
     {
       ConfigFile * m_pConf = new ConfigFile( confFileName );
       if ( m_sHostname == "hector_rc.informatik.rwth-aachen.de" )
-	{
-	  m_cMaxTransDec = m_pConf->floating( "CQuadraticMotorInstruct_BASIC_TRANS_DEC" );
-	  m_cMaxRotDec   = m_pConf->floating( "CQuadraticMotorInstruct_BASIC_ROT_DEC" );
-	}
+  {
+    m_cMaxTransDec = m_pConf->floating( "CQuadraticMotorInstruct_BASIC_TRANS_DEC" );
+    m_cMaxRotDec   = m_pConf->floating( "CQuadraticMotorInstruct_BASIC_ROT_DEC" );
+  }
       else
-	{
-	  m_cMaxTransDec = 0.75*m_pConf->floating( "CQuadraticMotorInstruct_BASIC_TRANS_DEC" );
-	  m_cMaxRotDec   = 0.75*m_pConf->floating( "CQuadraticMotorInstruct_BASIC_ROT_DEC" );
-	}
+  {
+    m_cMaxTransDec = 0.75*m_pConf->floating( "CQuadraticMotorInstruct_BASIC_TRANS_DEC" );
+    m_cMaxRotDec   = 0.75*m_pConf->floating( "CQuadraticMotorInstruct_BASIC_ROT_DEC" );
+  }
       delete m_pConf;
     }
   catch (...)
     {
-      cout << "***** ERROR *****: Could not open: " << confFileName 
-	   << " --> ABORTING!" << endl << endl;
+      cout << "***** ERROR *****: Could not open: " << confFileName
+     << " --> ABORTING!" << endl << endl;
       exit( 0 );
     }
   */
   if(!config->exists("/plugins/colli/CQuadraticMotorInstruct/CQuadraticMotorInstruct_BASIC_TRANS_DEC") )
   {
-    cout << "***** ERROR *****: Could not find: CQuadraticMotorInstruct_BASIC_TRANS_DEC "
-         << " --> ABORTING!" << endl << endl;
+    std::cout << "***** ERROR *****: Could not find: CQuadraticMotorInstruct_BASIC_TRANS_DEC "
+         << " --> ABORTING!" << std::endl << std::endl;
 
   }
   else
@@ -271,8 +272,8 @@ inline CAbstractDriveMode::CAbstractDriveMode(Logger *logger, Configuration *con
   }
   if(!config->exists("/plugins/colli/CQuadraticMotorInstruct/CQuadraticMotorInstruct_BASIC_ROT_DEC") )
   {
-    cout << "***** ERROR *****: Could not find:  CQuadraticMotorInstruct_BASIC_ROT_DEC "
-         << " --> ABORTING!" << endl << endl;
+    std::cout << "***** ERROR *****: Could not find:  CQuadraticMotorInstruct_BASIC_ROT_DEC "
+         << " --> ABORTING!" << std::endl << std::endl;
 
   }
   else
@@ -286,7 +287,7 @@ inline CAbstractDriveMode::CAbstractDriveMode(Logger *logger, Configuration *con
       m_cMaxRotDec = 0.75*config->get_float("/plugins/colli/CQuadraticMotorInstruct/CQuadraticMotorInstruct_BASIC_ROT_DEC");
     }
   //  cout << "CQuadraticMotorInstruct_BASIC_ROT_DEC: " << m_cMaxRotDec << endl;
-  } 
+  }
   loggerDrive->log_info("CAbstractDriveMode","CAbstractDriveMode(Constructor): Exiting...\n");
 }
 
@@ -317,7 +318,7 @@ inline void CAbstractDriveMode::SetCurrentTarget( float targetX, float targetY, 
   m_TargetOri = targetOri;
 }
 
-  
+
 inline void CAbstractDriveMode::SetCurrentRoboPos( float roboX, float roboY, float roboOri )
 {
   m_RoboX   = roboX;
@@ -360,16 +361,16 @@ inline ColliModes CAbstractDriveMode::GetDriveModeName()
 }
 
 
-inline float CAbstractDriveMode::LinInterpol( float x, float x1, float x2, 
-					      float y1, float y2 )
+inline float CAbstractDriveMode::LinInterpol( float x, float x1, float x2,
+                float y1, float y2 )
 {
   return ( ((x-x1)*(y2-y1))/(x2-x1) + y1 );
 }
 
 
-inline float CAbstractDriveMode::GuaranteeTransStop( float distance, 
-						     float current_trans,
-						     float desired_trans )
+inline float CAbstractDriveMode::GuaranteeTransStop( float distance,
+                 float current_trans,
+                 float desired_trans )
 {
   distance = fabs( distance );
   current_trans = fabs( current_trans );
@@ -390,22 +391,23 @@ inline float CAbstractDriveMode::GuaranteeTransStop( float distance,
     {
       ++time_needed_to_stop;
       if ( m_sHostname == "hector_rc.informatik.rwth-aachen.de" )
-	tmp_trans += 1.5*m_cMaxTransDec;
+  tmp_trans += 1.5*m_cMaxTransDec;
       else
-	tmp_trans += m_cMaxTransDec;
+  tmp_trans += m_cMaxTransDec;
     }
 
   if ( time_needed_to_stop >= time_needed_to_distance )
     {
-      float value = max( 0.0, current_trans - (1.0 * m_cMaxTransDec) );
+      float value = std::max( 0.0, current_trans - (1.0 * m_cMaxTransDec) );
       return value;
     }
   else
     {
-      float value = min( current_trans + m_cMaxTransDec, desired_trans );
+      float value = std::min( current_trans + m_cMaxTransDec, desired_trans );
       return value;
     }
 }
 
+} // namespace fawkes
 
 #endif

@@ -1,78 +1,55 @@
-//     A* Collision Avoidance Algorithm by Stefan Jacobs
-//     Copyright (C) 2002  Stefan Jacobs <Stefan_J@gmx.de>
-//
-//     This program is free software; you can redistribute it and/or modify
-//     it under the terms of the GNU General Public License as published by
-//     the Free Software Foundation; either version 2 of the License, or
-//     (at your option) any later version.
-//
-//     This program is distributed in the hope that it will be useful,
-//     but WITHOUT ANY WARRANTY; without even the implied warranty of
-//     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//     GNU General Public License for more details.
-//
-//     You should have received a copy of the GNU General Public License
-//     along with this program; if not, write to the Free Software
-//     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
 
+/***************************************************************************
+ *  astar_search.cpp - Interpretation class interface for A* for Colli-A*
+ *
+ *  Created: Sat Jul 13 18:06:21 2013
+ *  Copyright  2002  Stefan Jacobs
+ *             2012  Safoura Rezapour Lakani
+ *             2013  Bahram Maleki-Fard, AllemaniACs RoboCup Team
+ *
+ ****************************************************************************/
 
-/*
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-  ©                                                                            ©
-  ©                                            ####   ####           .-""-.    ©
-  ©       # #                             #   #    # #    #         /[] _ _\   ©
-  ©       # #                                 #    # #             _|_o_LII|_  ©
-  © ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ©
-  © #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ©
-  © #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ©
-  © #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ©
-  © '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ©
-  ©                                                               /__|    |__\ ©
-  ©                                                                            ©
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-*/
-
-
-/* ******************************************************************** */
-/*                                                                      */
-/* $Id$           */
-/*                                                                      */
-/* Description: This is the interpretation class implementation for A*  */
-/*              of Colli-A*                                             */
-/*                                                                      */
-/* Author:   Stefan Jacobs                                              */
-/* Contact:  <Stefan_J@gmx.de>                                          */
-/*                                                                      */
-/* DOC.: This class tries to translate the found plan to interpreteable */
-/*       things for the rest of the program.                            */
-/*                                                                      */
-/* last modified: $Date$                          */
-/*            by: $Author$                                    */
-/*                                                                      */
-/* ******************************************************************** */
-
-
-#ifndef _COLLI_ASTARSEARCH_CPP_
-#define _COLLI_ASTARSEARCH_CPP_
-
+/*  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Library General Public License for more details.
+ *
+ *  Read the full text in the LICENSE.GPL file in the doc directory.
+ */
 
 //#include <utils/configfile/configfile.h>
 #include "astar_search.h"
 #include "../common/defines.h"
+
+//#include <utils/geometry/point.h>
+#include <utils/math/types.h>
 #include <geometry/hom_point.h>
+#include <logging/logger.h>
+#include <config/config.h>
+
+#include <cmath>
+#include <iostream>
 
 using namespace std;
 
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
 
 // Constructor. Constructs the plan, initializes an A* Object and
 //  makes a reference to the OccupancyGrid.
-CSearch::CSearch( Logger* logger, Configuration *config, CLaserOccupancyGrid * occGrid ) :
-  CAbstractSearch( logger, occGrid )
+ColliSearch::ColliSearch( Logger* logger, Configuration *config, ColliLaserOccupancyGrid * occGrid ) :
+  ColliAbstractSearch( logger, occGrid )
 {
   loggerAstar = logger;
-  loggerAstar->log_info("CSearch","CSearch(Constructor): Entering \n");
-  m_pAStar = new CAStar( logger, config, occGrid );
+  loggerAstar->log_info("ColliSearch","ColliSearch(Constructor): Entering \n");
+  m_pAStar = new ColliAStar( logger, config, occGrid );
 
   /*string confFileName = "../cfg/robocup/colli.cfg";
   try
@@ -136,12 +113,12 @@ CSearch::CSearch( Logger* logger, Configuration *config, CLaserOccupancyGrid * o
 
 
 // Destructor
-CSearch::~CSearch()
+ColliSearch::~ColliSearch()
 {
   delete m_pAStar;
 }
 
-std::vector< HomPoint >  CSearch::GetPlan()
+std::vector< HomPoint >  ColliSearch::GetPlan()
 {
 
   return m_vPlan;
@@ -150,7 +127,7 @@ std::vector< HomPoint >  CSearch::GetPlan()
 
 // Perform an Update by searching in the occgrid for a plan
 //   from robopos to targetpos
-void CSearch::Update( int roboX, int roboY, int targetX, int targetY)
+void ColliSearch::Update( int roboX, int roboY, int targetX, int targetY)
 {
   m_UpdatedSuccessful = false;
   int min_roboX = roboX;
@@ -214,12 +191,12 @@ void CSearch::Update( int roboX, int roboY, int targetX, int targetY)
 }
 
 // Return, if the previous called update performed successfully
-bool CSearch::UpdatedSuccessful()
+bool ColliSearch::UpdatedSuccessful()
 {
   return m_UpdatedSuccessful;
 }
 
-HomPoint CSearch::get_adjust_robo()
+HomPoint ColliSearch::get_adjust_robo()
 {
   return m_RoboPosition;
 }
@@ -232,7 +209,7 @@ HomPoint CSearch::get_adjust_robo()
 
 
 
-HomPoint CSearch::CalculateLocalTarget()
+HomPoint ColliSearch::CalculateLocalTarget()
 {
   HomPoint target = m_RoboPosition;
   HomPoint prev   = m_RoboPosition;
@@ -268,7 +245,7 @@ HomPoint CSearch::CalculateLocalTarget()
 }
 
 
-HomPoint CSearch::AdjustWaypoint( const HomPoint &local_target )
+HomPoint ColliSearch::AdjustWaypoint( const HomPoint &local_target )
 {
   return local_target;
 }
@@ -277,7 +254,7 @@ HomPoint CSearch::AdjustWaypoint( const HomPoint &local_target )
 
 // forward and backward plans should no longer make a difference in
 //   trajectory searching
-HomPoint CSearch::CalculateLocalTrajectoryPoint( )
+HomPoint ColliSearch::CalculateLocalTrajectoryPoint( )
 {
   int x = (int)m_RoboPosition.x();
   int y = (int)m_RoboPosition.y();
@@ -320,7 +297,7 @@ HomPoint CSearch::CalculateLocalTrajectoryPoint( )
 
 
 // checks per raytracing, if an obstacle is between two points.
-bool CSearch::IsObstacleBetween( const HomPoint &a, const HomPoint &b,
+bool ColliSearch::IsObstacleBetween( const HomPoint &a, const HomPoint &b,
                                  const int maxcount )
 {
   if (a.x() == b.x() && a.y() == b.y() )
@@ -366,7 +343,7 @@ bool CSearch::IsObstacleBetween( const HomPoint &a, const HomPoint &b,
           else if ( prob == _COLLI_CELL_NEAR_ )
             count += 4;
           else
-            loggerAstar->log_error("CSearch","AStar_Search Line 541: ERROR IN RAYTRACER!\n");
+            loggerAstar->log_error("ColliSearch","AStar_Search Line 541: ERROR IN RAYTRACER!\n");
 
           if ( count > maxcount )
             return true;
@@ -401,7 +378,7 @@ bool CSearch::IsObstacleBetween( const HomPoint &a, const HomPoint &b,
           else if ( prob == _COLLI_CELL_NEAR_ )
             count += 4;
           else
-            loggerAstar->log_error("CSearch","AStar_Search Line 576: ERROR IN RAYTRACER!\n");
+            loggerAstar->log_error("ColliSearch","AStar_Search Line 576: ERROR IN RAYTRACER!\n");
 
           if ( count > maxcount )
             return true;
@@ -413,4 +390,4 @@ bool CSearch::IsObstacleBetween( const HomPoint &a, const HomPoint &b,
 }
 
 
-#endif
+} // namespace fawkes

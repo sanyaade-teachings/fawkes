@@ -53,15 +53,17 @@
 /* ******************************************************************** */
 
 
-#ifndef _COLLI_ESCAPE_DRIVE_MODE_CPP_
-#define _COLLI_ESCAPE_DRIVE_MODE_CPP_
-
-
 #include "escape_drive_mode.h"
 
+#include "../robo-utils/rob/robo_laser.h"
+#include "../robo-utils/roboshape_colli.h"
 
 using namespace std;
 
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
 
 /** Initialize your local values here.
  */
@@ -73,7 +75,7 @@ CEscapeDriveModule::CEscapeDriveModule( Logger* logger, Configuration *config, L
   m_DriveModeName = ESCAPE;
   m_pLaser = laser;
  /* string confFileName = "../cfg/navigation/colli.cfg";
-  try 
+  try
     {
       ConfigFile * m_pConf = new ConfigFile( confFileName );
       m_MaxTranslation = m_pConf->floating( "CEscapeForwardDriveModule_MAX_TRANS" );
@@ -82,24 +84,24 @@ CEscapeDriveModule::CEscapeDriveModule( Logger* logger, Configuration *config, L
     }
   catch (...)
     {
-      cout << "***** ERROR *****: Could not open: " << confFileName 
-	   << " --> ABORTING!" << endl << endl;
+      cout << "***** ERROR *****: Could not open: " << confFileName
+     << " --> ABORTING!" << endl << endl;
       exit( 0 );
     }
 */
 //  confFileName = "../cfg/navigation/robot_shape.cfg";
-  m_pRoboShape = new CRoboShape_Colli( logger, config, 2) ; 
+  m_pRoboShape = new CRoboShape_Colli( logger, config, 2) ;
   if(!config->exists("/plugins/colli/CEscapeDriveModule/EscapeForwardDriveModule_MAX_TRANS") )
   {
     cout << "***** ERROR *****: Could not find: EscapeForwardDriveModule_MAX_TRANS "
          << " --> ABORTING!" << endl << endl;
     return;
-  }  
+  }
   else
   {
     m_MaxTranslation = config->get_float("/plugins/colli/CEscapeDriveModule/EscapeForwardDriveModule_MAX_TRANS");
   }
- 
+
   if(!config->exists("/plugins/colli/CEscapeDriveModule/CEscapeForwardDriveModule_MAX_ROT") )
   {
     cout << "***** ERROR *****: Could not find: CEscapeForwardDriveModule_MAX_ROT "
@@ -126,8 +128,8 @@ CEscapeDriveModule::~CEscapeDriveModule()
 /* ************************************************************************** */
 
 /** Calculate here your desired settings. What you desire is checked afterwards to the current
- *    settings of the physical boundaries, but take care also. 
- * 
+ *    settings of the physical boundaries, but take care also.
+ *
  *  How you do this is up to you, but be careful, our hardware is expensive!!!!
  *
  *  All values of the other drive modes inherited by the abstract-drive-mode are
@@ -144,7 +146,7 @@ CEscapeDriveModule::~CEscapeDriveModule()
 void CEscapeDriveModule::Update()
 {
   // This is only called, if we recently stopped...
-  loggerEscape->log_info("EscapeDriveModule","CEscapeDriveModule( Update ): Calculating ESCAPING...\n"); 
+  loggerEscape->log_info("EscapeDriveModule","CEscapeDriveModule( Update ): Calculating ESCAPING...\n");
   m_ProposedTranslation = 0.0;
   m_ProposedRotation    = 0.0;
 
@@ -191,15 +193,15 @@ void CEscapeDriveModule::Update()
   if (!dangerFront && dangerBack)
     {
       m_ProposedTranslation = m_MaxTranslation;
-      
+
       if ( (turnRightAllowed) && (m_LocalTargetY >= m_RoboY) )
-	{
-	  m_ProposedRotation =  m_MaxRotation;
-	}
+  {
+    m_ProposedRotation =  m_MaxRotation;
+  }
       else if ( (turnLeftAllowed) && (m_LocalTargetY <= m_RoboY) )
-	{
-	  m_ProposedRotation = -m_MaxRotation;
-	}
+  {
+    m_ProposedRotation = -m_MaxRotation;
+  }
     }
 
   if (dangerFront && !dangerBack)
@@ -207,35 +209,35 @@ void CEscapeDriveModule::Update()
       m_ProposedTranslation = -m_MaxTranslation;
 
       if ( (turnRightAllowed) && (m_LocalTargetY >= m_RoboY) )
-	{
-	  m_ProposedRotation =  m_MaxRotation;
-	}
+  {
+    m_ProposedRotation =  m_MaxRotation;
+  }
       else if ( (turnLeftAllowed) && (m_LocalTargetY <= m_RoboY) )
-	{
-	  m_ProposedRotation = -m_MaxRotation;
-	}
+  {
+    m_ProposedRotation = -m_MaxRotation;
+  }
     }
 
   if ( !dangerFront && !dangerBack )
     {
       // entscheide ueber die zielkoordinaten welche richtung einzuschlagen ist
       if ( m_TargetX > m_RoboX )
-	{
-	  m_ProposedTranslation = m_MaxTranslation;
-    	}
+  {
+    m_ProposedTranslation = m_MaxTranslation;
+      }
       else
-	{
-	  m_ProposedTranslation = -m_MaxTranslation;
-	}
+  {
+    m_ProposedTranslation = -m_MaxTranslation;
+  }
 
       if ( (turnRightAllowed) && (m_LocalTargetY >= m_RoboY) )
-	{
-	  m_ProposedRotation =  m_MaxRotation;
-	}
+  {
+    m_ProposedRotation =  m_MaxRotation;
+  }
       else if ( (turnLeftAllowed) && (m_LocalTargetY <= m_RoboY) )
-	{
-	  m_ProposedRotation = -m_MaxRotation;
-	}
+  {
+    m_ProposedRotation = -m_MaxRotation;
+  }
 
       return;
     }
@@ -275,34 +277,34 @@ void CEscapeDriveModule::SortNormalizedReadings()
   while ( i < m_pLaser->GetNumberOfReadings() )
     {
       if ( (pipe == 0) && !m_pLaser->IsPipe( rad ) )
-	m_vFront.push_back( m_vNormalizedReadings[i] );
+  m_vFront.push_back( m_vNormalizedReadings[i] );
 
       else if ( (pipe == 1) && !m_pLaser->IsPipe( rad ) && (rad < M_PI_2) )
-	m_vRightFront.push_back( m_vNormalizedReadings[i] );
+  m_vRightFront.push_back( m_vNormalizedReadings[i] );
       else if ( (pipe == 1) && !m_pLaser->IsPipe( rad ) && (rad > M_PI_2) )
-	m_vRightBack.push_back( m_vNormalizedReadings[i] );
+  m_vRightBack.push_back( m_vNormalizedReadings[i] );
 
       else if ( (pipe == 2) && !m_pLaser->IsPipe( rad ) )
-	m_vBack.push_back( m_vNormalizedReadings[i] );
+  m_vBack.push_back( m_vNormalizedReadings[i] );
 
       else if ( (pipe == 3) && !m_pLaser->IsPipe( rad ) && (rad > 3*M_PI_2) )
-	m_vLeftFront.push_back( m_vNormalizedReadings[i] );
+  m_vLeftFront.push_back( m_vNormalizedReadings[i] );
       else if ( (pipe == 3) && !m_pLaser->IsPipe( rad ) && (rad < 3*M_PI_2) )
-	m_vLeftBack.push_back( m_vNormalizedReadings[i] );
+  m_vLeftBack.push_back( m_vNormalizedReadings[i] );
 
       else if ( (pipe == 4) && !m_pLaser->IsPipe( rad ) )
-	m_vFront.push_back( m_vNormalizedReadings[i] );
-	
+  m_vFront.push_back( m_vNormalizedReadings[i] );
+
       rad = m_pLaser->GetRadiansForReading( ++i );
 
       if ( m_pLaser->IsOnlyPipe( rad ) )
-	{
-	  ++pipe;
-	  while (m_pLaser->IsOnlyPipe( rad ))
-	    {
-	      rad = m_pLaser->GetRadiansForReading( ++i );
-	    }
-	}
+  {
+    ++pipe;
+    while (m_pLaser->IsOnlyPipe( rad ))
+      {
+        rad = m_pLaser->GetRadiansForReading( ++i );
+      }
+  }
     }
 }
 
@@ -326,7 +328,7 @@ bool CEscapeDriveModule::TurnLeftAllowed()
   for ( unsigned int i = 0; i < m_vRightFront.size(); i++ )
     if ( m_vRightFront[i] < 0.06 )
       return false;
-    
+
   for ( unsigned int i = 0; i < m_vBack.size(); i++ )
     if ( m_vBack[i] < 0.07 )
       return false;
@@ -349,7 +351,7 @@ bool CEscapeDriveModule::TurnRightAllowed()
   for ( unsigned int i = 0; i < m_vLeftFront.size(); i++ )
     if ( m_vLeftFront[i] < 0.06 )
       return false;
-    
+
   for ( unsigned int i = 0; i < m_vBack.size(); i++ )
     if ( m_vBack[i] < 0.07 )
       return false;
@@ -361,5 +363,4 @@ bool CEscapeDriveModule::TurnRightAllowed()
   return true;
 }
 
-
-#endif
+} // namespace fawkes

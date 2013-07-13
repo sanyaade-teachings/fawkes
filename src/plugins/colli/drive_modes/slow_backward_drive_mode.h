@@ -56,9 +56,13 @@
 #ifndef _COLLI_SLOW_BACKWARD_DRIVE_MODE_H_
 #define _COLLI_SLOW_BACKWARD_DRIVE_MODE_H_
 
-
 #include "abstract_drive_mode.h"
 #include <utils/math/angle.h>
+
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
 
 class CSlowBackwardDriveModule : public CAbstractDriveMode
 {
@@ -67,7 +71,7 @@ public:
   ///
   CSlowBackwardDriveModule(Logger* logger, Configuration *config);
 
-  
+
   ///
   ~CSlowBackwardDriveModule();
 
@@ -80,17 +84,17 @@ public:
 private:
 
   float SlowBackward_Translation ( float dist_to_target, float dist_to_front, float alpha,
-				   float trans_0, float rot_0, float rot_1 );
-  
-  float SlowBackward_Curvature( float dist_to_target, float dist_to_trajec, float alpha, 
-				float trans_0, float rot_0 );
-  
+           float trans_0, float rot_0, float rot_1 );
+
+  float SlowBackward_Curvature( float dist_to_target, float dist_to_trajec, float alpha,
+        float trans_0, float rot_0 );
+
   float m_MaxTranslation, m_MaxRotation;
 
   Logger* loggerSlowBack;
 
 };
 
-
+} // namespace fawkes
 
 #endif

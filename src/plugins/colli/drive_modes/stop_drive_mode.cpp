@@ -52,17 +52,16 @@
 /*                                                                      */
 /* ******************************************************************** */
 
-
-#ifndef _COLLI_STOP_DRIVE_MODE_CPP_
-#define _COLLI_STOP_DRIVE_MODE_CPP_
-
-
 #include "stop_drive_mode.h"
 //#include <utils/utils.h>
 
 
 using namespace std;
 
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
 
 /** Initialize your local values here.
  */
@@ -81,7 +80,7 @@ CStopDriveModule::CStopDriveModule(Logger* logger,Configuration *config) :
 CStopDriveModule::~CStopDriveModule()
 {
   loggerStop->log_info("CStopDriveModule","CStopDriveModule(Destructor): Entering...\n");
-  loggerStop->log_info("CStopDriveModule","CStopDriveModule(Destructor): Exiting...\n"); 
+  loggerStop->log_info("CStopDriveModule","CStopDriveModule(Destructor): Exiting...\n");
 }
 
 
@@ -91,17 +90,17 @@ CStopDriveModule::~CStopDriveModule()
 /* ************************************************************************** */
 
 /** Calculate here your desired settings. What you desire is checked afterwards to the current
- *    settings of the physical boundaries, but take care also. 
- * 
+ *    settings of the physical boundaries, but take care also.
+ *
  *  How you do this is up to you, but be careful, our hardware is expensive!!!!
- * 
- *  Available are:  
+ *
+ *  Available are:
  *
  *     m_TargetX, m_TargetY, m_TargetOri  --> current Target to drive to
  *     m_RoboX, m_RoboY, m_RoboOri        --> current Robot coordinates
  *     m_RoboTrans, m_RoboRot             --> current Motor values
- *     
- *     m_LocalTargetX, m_LocalTargetY     --> our local target found by the search component we want to reach      
+ *
+ *     m_LocalTargetX, m_LocalTargetY     --> our local target found by the search component we want to reach
  *     m_LocalTrajecX, m_LocalTrajecY     --> The point we would collide with, if we would drive WITHOUT Rotation
  *
  *     m_OrientAtTarget                   --> Do we have to orient ourself at the target?
@@ -120,12 +119,4 @@ void CStopDriveModule::Update()
   m_ProposedRotation    = 0.0;
 }
 
-
-
-#endif
-
-
-
-
-
-
+} // namespace fawkes

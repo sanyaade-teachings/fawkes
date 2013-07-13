@@ -52,30 +52,31 @@
 /*                                                                      */
 /* ******************************************************************** */
 
-
 #ifndef _COLLI_FAST_BACKWARD_DRIVE_MODE_H_
 #define _COLLI_FAST_BACKWARD_DRIVE_MODE_H_
 
-
 #include "abstract_drive_mode.h"
 
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
 
-//
 class CFastBackwardDriveModule : public CAbstractDriveMode
 {
 public:
 
-  /** Constructor. 
+  /** Constructor.
    */
   CFastBackwardDriveModule( Logger* logger, Configuration *config );
 
-  
+
   /** Destructor. Does nothing, because nothing was created in this module.
    */
   ~CFastBackwardDriveModule();
 
 
-  /** This Routine is called. Afterwards the m_proposedTranslation and 
+  /** This Routine is called. Afterwards the m_proposedTranslation and
    *    m_proposedRotation have to be filled. Here they are
    *    set to zero.
    */
@@ -85,16 +86,16 @@ public:
 private:
 
   float FastBackward_Translation ( float dist_to_target, float dist_to_front, float alpha,
-				   float trans_0, float rot_0, float rot_1 );
-  
+           float trans_0, float rot_0, float rot_1 );
+
   float FastBackward_Curvature( float dist_to_target, float dist_to_trajec, float alpha,
-				float trans_0, float rot_0 );
-  
+        float trans_0, float rot_0 );
+
   float m_MaxTranslation, m_MaxRotation;
 
   Logger* loggerFastBack;
 };
 
-
+} // namespace fawkes
 
 #endif

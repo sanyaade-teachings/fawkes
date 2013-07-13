@@ -1,71 +1,61 @@
-//     A* Collision Avoidance Algorithm by Stefan Jacobs
-//     Copyright (C) 2002  Stefan Jacobs <Stefan_J@gmx.de>
-//
-//     This program is free software; you can redistribute it and/or modify
-//     it under the terms of the GNU General Public License as published by
-//     the Free Software Foundation; either version 2 of the License, or
-//     (at your option) any later version.
-//
-//     This program is distributed in the hope that it will be useful,
-//     but WITHOUT ANY WARRANTY; without even the implied warranty of
-//     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//     GNU General Public License for more details.
-//
-//     You should have received a copy of the GNU General Public License
-//     along with this program; if not, write to the Free Software
-//     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
 
+/***************************************************************************
+ *  og_laser.cpp - occ-grid interface for colli_a* search algorithm
+ *
+ *  Created: Sat Jul 13 18:06:21 2013
+ *  Copyright  2002  Stefan Jacobs
+ *             2012  Safoura Rezapour Lakani
+ *             2013  Bahram Maleki-Fard, AllemaniACs RoboCup Team
+ *
+ ****************************************************************************/
 
-/*
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-  ©                                                                            ©
-  ©                                            ####   ####           .-""-.    ©
-  ©       # #                             #   #    # #    #         /[] _ _\   ©
-  ©       # #                                 #    # #             _|_o_LII|_  ©
-  © ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ©
-  © #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ©
-  © #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ©
-  © #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ©
-  © '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ©
-  ©                                                               /__|    |__\ ©
-  ©                                                                            ©
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-*/
-
-
-/* ******************************************************************** */
-/*                                                                      */
-/* $Id$           */
-/*                                                                      */
-/* Description: This is the occ-grid implementation for colli_a*,       */
-/*              the search algorithm searches on.                       */
-/*                                                                      */
-/* Author:   Stefan Jacobs                                              */
-/* Contact:  <Stefan_J@gmx.de>                                          */
-/*                                                                      */
-/* DOC.: This interface is mainly out of implementation reasons given   */
-/*       here. It includes a occ-grid and the laserinterface, so no one */
-/*       else has to care about.                                        */
-/*                                                                      */
-/* last modified: $Date$                          */
-/*            by: $Author$                                    */
-/*                                                                      */
-/* ******************************************************************** */
-
-
-#ifndef _C_COLLI_LASEROCCUPANCY_GRID_CPP_
-#define _C_COLLI_LASEROCCUPANCY_GRID_CPP_
-
+/*  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Library General Public License for more details.
+ *
+ *  Read the full text in the LICENSE.GPL file in the doc directory.
+ */
 
 #include "og_laser.h"
+
+#include "ellipse_map.h"
 #include "../common/defines.h"
 
-using namespace std;
-using namespace fawkes;
+//#include <utils/roboshape/roboshape.h>
+//#include <utils/geometry/ellipse.h>
+//#include <utils/geometry/circle.h>
+//#include <utils/geometry/trig_table.h>
+#include "../robo-utils/rob/robo_laser.h"
+#include "../robo-utils/roboshape.h"
+#include "../robo-utils/geometry/ellipse.h"
+#include "../robo-utils/geometry/trig_table.h"
 
-// Constructor
-CLaserOccupancyGrid::CLaserOccupancyGrid( Logger* logger, Configuration *config, Laser * laser, int width, int height,int cell_width, int cell_height ):
+
+#include <logging/logger.h>
+#include <config/config.h>
+#include <interfaces/Laser360Interface.h>
+
+#include <utils/math/angle.h>
+#include <geometry/hom_point.h>
+
+#include <stdio.h>
+#include <iostream>
+
+using namespace std;
+
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
+
+/** Constructor. */
+ColliLaserOccupancyGrid::ColliLaserOccupancyGrid( Logger* logger, Configuration *config, Laser * laser, int width, int height,int cell_width, int cell_height ):
 OccupancyGrid( width, height, cell_width, cell_height )
 {
   ref_obstacle = false;
@@ -76,48 +66,48 @@ OccupancyGrid( width, height, cell_width, cell_height )
 
   loggerGrid = logger;
   loggerGrid->log_info("laser occupancy grid","grid width: %d , grid height: %d , cell width: %d , cell height: %d\n",width,height,cell_width,cell_height);
-  loggerGrid->log_info("CLaserOccupancyGrid","CLaserOccupancyGrid(Constructor): Entering\n");
+  loggerGrid->log_info("ColliLaserOccupancyGrid","ColliLaserOccupancyGrid(Constructor): Entering\n");
   m_pLaser = laser;
   m_pRoboShape = new RoboShape(logger,config);
   m_vOldReadings.clear();
   initGrid();
 
-  if(!config->exists("/plugins/colli/CLaserOccupancyGrid/CLaserOccupancyGrid_MAX_HISTORY_LENGTH") )
+  if(!config->exists("/plugins/colli/ColliLaserOccupancyGrid/ColliLaserOccupancyGrid_MAX_HISTORY_LENGTH") )
   {
-      cout << "***** ERROR *****: Could not find: " << "CLaserOccupancyGrid_MAX_HISTORY_LENGTH"
+      cout << "***** ERROR *****: Could not find: " << "ColliLaserOccupancyGrid_MAX_HISTORY_LENGTH"
            << " --> ABORTING!" << endl << endl;
       return;
   }
   else
   {
-    m_MaxHistoryLength = config->get_int("/plugins/colli/CLaserOccupancyGrid/CLaserOccupancyGrid_MAX_HISTORY_LENGTH");
+    m_MaxHistoryLength = config->get_int("/plugins/colli/ColliLaserOccupancyGrid/ColliLaserOccupancyGrid_MAX_HISTORY_LENGTH");
   }
 
-  if(!config->exists("/plugins/colli/CLaserOccupancyGrid/CLaserOccupancyGrid_MIN_HISTORY_LENGTH"))
+  if(!config->exists("/plugins/colli/ColliLaserOccupancyGrid/ColliLaserOccupancyGrid_MIN_HISTORY_LENGTH"))
   {
-      cout << "***** ERROR *****: Could not find: " << "CLaserOccupancyGrid_MIN_HISTORY_LENGTH"
-           << " --> ABORTING!" << endl << endl;
-      return;
-
-  }
-  else
-  {
-    m_MinHistoryLength = config->get_int("/plugins/colli/CLaserOccupancyGrid/CLaserOccupancyGrid_MIN_HISTORY_LENGTH");
-  }
-
-  if(!config->exists("/plugins/colli/CLaserOccupancyGrid/CLaserOccupancyGrid_INITIAL_HISTORY_SIZE"))
-  {
-      cout << "***** ERROR *****: Could not find: " << "CLaserOccupancyGrid_INITIAL_HISTORY_SIZE"
+      cout << "***** ERROR *****: Could not find: " << "ColliLaserOccupancyGrid_MIN_HISTORY_LENGTH"
            << " --> ABORTING!" << endl << endl;
       return;
 
   }
   else
   {
-    m_InitialHistorySize = 3*config->get_int("/plugins/colli/CLaserOccupancyGrid/CLaserOccupancyGrid_INITIAL_HISTORY_SIZE");
+    m_MinHistoryLength = config->get_int("/plugins/colli/ColliLaserOccupancyGrid/ColliLaserOccupancyGrid_MIN_HISTORY_LENGTH");
   }
 
-  if(!config->exists("/plugins/colli/CLaserOccupancyGrid/TrigTable_RESOLUTION"))
+  if(!config->exists("/plugins/colli/ColliLaserOccupancyGrid/ColliLaserOccupancyGrid_INITIAL_HISTORY_SIZE"))
+  {
+      cout << "***** ERROR *****: Could not find: " << "ColliLaserOccupancyGrid_INITIAL_HISTORY_SIZE"
+           << " --> ABORTING!" << endl << endl;
+      return;
+
+  }
+  else
+  {
+    m_InitialHistorySize = 3*config->get_int("/plugins/colli/ColliLaserOccupancyGrid/ColliLaserOccupancyGrid_INITIAL_HISTORY_SIZE");
+  }
+
+  if(!config->exists("/plugins/colli/ColliLaserOccupancyGrid/TrigTable_RESOLUTION"))
   {
       cout << "***** ERROR *****: Could not find: " << "TrigTable_RESOLUTION"
            << " --> ABORTING!" << endl << endl;
@@ -126,10 +116,10 @@ OccupancyGrid( width, height, cell_width, cell_height )
   }
   else
   {
-    m_TrigTableResolution = config->get_int("/plugins/colli/CLaserOccupancyGrid/TrigTable_RESOLUTION");
+    m_TrigTableResolution = config->get_int("/plugins/colli/ColliLaserOccupancyGrid/TrigTable_RESOLUTION");
   }
 
-  if(!config->exists("/plugins/colli/CLaserOccupancyGrid/Laser_MINIMUM_READING_LENGTH"))
+  if(!config->exists("/plugins/colli/ColliLaserOccupancyGrid/Laser_MINIMUM_READING_LENGTH"))
   {
       cout << "***** ERROR *****: Could not find: " << "Laser_MINIMUM_READING_LENGTH"
            << " --> ABORTING!" << endl << endl;
@@ -137,22 +127,22 @@ OccupancyGrid( width, height, cell_width, cell_height )
   }
   else
   {
-    m_MinimumLaserLength = config->get_float("/plugins/colli/CLaserOccupancyGrid/Laser_MINIMUM_READING_LENGTH");
+    m_MinimumLaserLength = config->get_float("/plugins/colli/ColliLaserOccupancyGrid/Laser_MINIMUM_READING_LENGTH");
   }
 
-  if(!config->exists("/plugins/colli/CLaserOccupancyGrid/CLaserOccupancyGrid_DISTANCE_ACCOUNT"))
+  if(!config->exists("/plugins/colli/ColliLaserOccupancyGrid/ColliLaserOccupancyGrid_DISTANCE_ACCOUNT"))
   {
-      cout << "***** ERROR *****: Could not find: " << "CLaserOccupancyGrid_DISTANCE_ACCOUNT"
+      cout << "***** ERROR *****: Could not find: " << "ColliLaserOccupancyGrid_DISTANCE_ACCOUNT"
            << " --> ABORTING!" << endl << endl;
       return;
 
   }
   else
   {
-    m_EllipseDistance = config->get_float("/plugins/colli/CLaserOccupancyGrid/CLaserOccupancyGrid_DISTANCE_ACCOUNT");
+    m_EllipseDistance = config->get_float("/plugins/colli/ColliLaserOccupancyGrid/ColliLaserOccupancyGrid_DISTANCE_ACCOUNT");
   }
 
-  if(!config->exists("/plugins/colli/CLaserOccupancyGrid/Colli_ROBOCUP_MODE"))
+  if(!config->exists("/plugins/colli/ColliLaserOccupancyGrid/Colli_ROBOCUP_MODE"))
   {
       cout << "***** ERROR *****: Could not find: " << "Colli_ROBOCUP_MODE"
            << " --> ABORTING!" << endl << endl;
@@ -161,7 +151,7 @@ OccupancyGrid( width, height, cell_width, cell_height )
   }
   else
   {
-    m_RobocupMode = config->get_int("/plugins/colli/CLaserOccupancyGrid/Colli_ROBOCUP_MODE");
+    m_RobocupMode = config->get_int("/plugins/colli/ColliLaserOccupancyGrid/Colli_ROBOCUP_MODE");
   }
 
   if(!config->exists("/plugins/colli/ColliMaxCellExtension"))
@@ -197,20 +187,20 @@ OccupancyGrid( width, height, cell_width, cell_height )
   }
 
 
-  loggerGrid->log_info("CLaserOccupancyGrid","Generating trigonometry table\n");
+  loggerGrid->log_info("ColliLaserOccupancyGrid","Generating trigonometry table\n");
   m_pTrigTable = new TrigTable( m_TrigTableResolution );
-  loggerGrid->log_info("CLaserOccupancyGrid","Generating trigonometry table done\n");
-  loggerGrid->log_info("CLaserOccupancyGrid","Generating ellipse map\n");
-  ellipse_map = new CEllipseMap();
+  loggerGrid->log_info("ColliLaserOccupancyGrid","Generating trigonometry table done\n");
+  loggerGrid->log_info("ColliLaserOccupancyGrid","Generating ellipse map\n");
+  ellipse_map = new ColliEllipseMap();
 
-  loggerGrid->log_info("CLaserOccupancyGrid","Generating ellipse map done\n");
-  loggerGrid->log_info("CLaserOccupancyGrid","CLaserOccupancyGrid(Constructor): Exiting\n");
+  loggerGrid->log_info("ColliLaserOccupancyGrid","Generating ellipse map done\n");
+  loggerGrid->log_info("ColliLaserOccupancyGrid","ColliLaserOccupancyGrid(Constructor): Exiting\n");
 }
 
 
 
 // Destructor
-CLaserOccupancyGrid::~CLaserOccupancyGrid()
+ColliLaserOccupancyGrid::~ColliLaserOccupancyGrid()
 {
   delete m_pTrigTable;
   delete m_pRoboShape;
@@ -218,7 +208,7 @@ CLaserOccupancyGrid::~CLaserOccupancyGrid()
 
 
 // ** just as help function ** //
-inline float CLaserOccupancyGrid::normalize_degree(float angle_deg)
+inline float ColliLaserOccupancyGrid::normalize_degree(float angle_deg)
 {
     while ( (angle_deg < 0) || (angle_deg > 360) )
     {
@@ -232,7 +222,7 @@ inline float CLaserOccupancyGrid::normalize_degree(float angle_deg)
     return angle_deg;
 }
 
-void CLaserOccupancyGrid::ResetOld( int max_age )
+void ColliLaserOccupancyGrid::ResetOld( int max_age )
 {
   if ( max_age == -1 )
     {
@@ -267,7 +257,7 @@ void CLaserOccupancyGrid::ResetOld( int max_age )
 // update the occ grid by putting the laser readings in it.
 // the current robopos is the midx and the midy
 // and the inc variable is the increase of the obstacles
-void CLaserOccupancyGrid::UpdateOccGrid( int midX, int midY, float inc, float vel,
+void ColliLaserOccupancyGrid::UpdateOccGrid( int midX, int midY, float inc, float vel,
                                          float xdiff, float ydiff, float oridiff )
 {
   for ( int y = 0; y < m_Height; ++y )
@@ -279,7 +269,7 @@ void CLaserOccupancyGrid::UpdateOccGrid( int midX, int midY, float inc, float ve
 }
 
 
-void CLaserOccupancyGrid::IntegrateOldReadings( int midX, int midY, float inc, float vel,
+void ColliLaserOccupancyGrid::IntegrateOldReadings( int midX, int midY, float inc, float vel,
                                                 float xdiff, float ydiff, float oridiff )
 {
   std::vector< float > old_readings;
@@ -349,7 +339,7 @@ inline HomPoint transformLaser2Motor( const HomPoint &laser_point )
   return HomPoint( laser_point.x()-0.2, laser_point.y() );
 }
 
-void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
+void ColliLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
                                                 float inc, float vel )
 {
   int numberOfReadings = m_pLaser->GetNumberOfReadings();
@@ -418,7 +408,7 @@ void CLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
 }
 
 
-bool CLaserOccupancyGrid::Contained( float p_x, float p_y )
+bool ColliLaserOccupancyGrid::Contained( float p_x, float p_y )
 {
   for ( unsigned int i = 0; i < m_vOldReadings.size(); i+=3 )
     if ( sqr(p_x - m_vOldReadings[i]) + sqr(p_y - m_vOldReadings[i+1]) < sqr( m_EllipseDistance ) )
@@ -430,7 +420,7 @@ bool CLaserOccupancyGrid::Contained( float p_x, float p_y )
 
 
 
-void CLaserOccupancyGrid::integrateObstacle( Ellipse ellipse )
+void ColliLaserOccupancyGrid::integrateObstacle( Ellipse ellipse )
 {
   int centerx = (int)(ellipse.GetCenter().x());
   int centery = (int)(ellipse.GetCenter().y());
@@ -458,5 +448,4 @@ void CLaserOccupancyGrid::integrateObstacle( Ellipse ellipse )
 
 
 
-
-#endif
+} // end of namespace fawkes

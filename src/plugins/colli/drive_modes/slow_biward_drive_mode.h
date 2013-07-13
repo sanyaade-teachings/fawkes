@@ -61,6 +61,10 @@
 #include "slow_forward_drive_mode.h"
 #include "slow_backward_drive_mode.h"
 
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
 
 /** This is the slow-biward drive-module. It is inherited from
  *    the abstract drive mode and uses the other both modes.
@@ -70,39 +74,39 @@
 class CSlowBiwardDriveModule : public CAbstractDriveMode
 {
 public:
-  
+
   /** Constructor does set name and gets the two other drive
    *    modes.
    */
-  CSlowBiwardDriveModule( Logger* logger, Configuration *config, CSlowForwardDriveModule*  slow_forward, 
-			  CSlowBackwardDriveModule* slow_backward );
-  
-  
+  CSlowBiwardDriveModule( Logger* logger, Configuration *config, CSlowForwardDriveModule*  slow_forward,
+        CSlowBackwardDriveModule* slow_backward );
+
+
   /** Destructor does nothing, because nothing is created in here.
    */
   ~CSlowBiwardDriveModule();
-  
-  
-  /** This Routine is called. Afterwards the m_proposedTranslation and 
+
+
+  /** This Routine is called. Afterwards the m_proposedTranslation and
    *    m_proposedRotation have to be filled. Here they are
    *    filled up in between -1 m/s to 1 m/s and M_PI rad/s.
    */
   void Update();
-  
-  
+
+
 private:
 
   CSlowForwardDriveModule*  m_pSlowForwardDriveModule;
   CSlowBackwardDriveModule* m_pSlowBackwardDriveModule;
-  
+
   float m_MaxTranslation, m_MaxRotation;
 
 
   int   m_CountForward;
-   
+
   Logger* loggerSlowBi;
 };
 
-
+} // namespace fawkes
 
 #endif

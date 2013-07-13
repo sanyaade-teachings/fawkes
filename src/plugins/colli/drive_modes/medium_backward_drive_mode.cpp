@@ -52,11 +52,6 @@
 /*                                                                      */
 /* ******************************************************************** */
 
-
-#ifndef _COLLI_MEDIUM_BACKWARD_DRIVE_MODE_CPP_
-#define _COLLI_MEDIUM_BACKWARD_DRIVE_MODE_CPP_
-
-
 //#include <utils/utils.h>
 //#include <utils/configfile/configfile.h>
 #include "medium_backward_drive_mode.h"
@@ -64,6 +59,10 @@
 
 using namespace std;
 
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
 
 /** Initialize your local values here.
  */
@@ -75,7 +74,7 @@ CMediumBackwardDriveModule::CMediumBackwardDriveModule( Logger* logger, Configur
   m_DriveModeName = ModerateBackward;
 
  /* string confFileName = "../cfg/robocup/colli.cfg";
-  try 
+  try
     {
       ConfigFile * m_pConf = new ConfigFile( confFileName );
       m_MaxTranslation = m_pConf->floating( "CMediumDriveModule_MAX_TRANS" );
@@ -84,8 +83,8 @@ CMediumBackwardDriveModule::CMediumBackwardDriveModule( Logger* logger, Configur
     }
   catch (...)
     {
-      BB_DBG(0) << "***** ERROR *****: Could not open: " << confFileName 
-		<< " --> ABORTING!" << endl << endl;
+      BB_DBG(0) << "***** ERROR *****: Could not open: " << confFileName
+    << " --> ABORTING!" << endl << endl;
       exit( 0 );
     }*/
   if(!config->exists("/plugins/colli/CMediumForwardDriveModule/CMediumDriveModule_MAX_TRANS") )
@@ -134,7 +133,7 @@ CMediumBackwardDriveModule::~CMediumBackwardDriveModule()
  *        I have to calculate a rotation I want to achieve in an optimal way.
  *        Here this is solved in an interesting way:
  *        First, check how long the curvature is, we want to drive to the target. This is done by
- *        approximating the size of the triangle around this curvature given by collision and 
+ *        approximating the size of the triangle around this curvature given by collision and
  *        and targetpoint and the angle between those both. Afterwards the time we have to drive
  *        with constant speed is calculated. Now we have the time we want to turn the angle. By
  *        multiplying this with a high constant (here 4), we rotate faster than we want to, but
@@ -143,8 +142,8 @@ CMediumBackwardDriveModule::~CMediumBackwardDriveModule()
  *
  *  @return A desired rotation.
  */
-float CMediumBackwardDriveModule::MediumBackward_Curvature( float dist_to_target, float dist_to_trajec, float alpha, 
-							    float trans_0, float rot_0 )
+float CMediumBackwardDriveModule::MediumBackward_Curvature( float dist_to_target, float dist_to_trajec, float alpha,
+                  float trans_0, float rot_0 )
 {
   return 1.4*alpha;
 }
@@ -152,7 +151,7 @@ float CMediumBackwardDriveModule::MediumBackward_Curvature( float dist_to_target
 
 
 
-/** Calculate by given variables a new translation to give for the motor to 
+/** Calculate by given variables a new translation to give for the motor to
  *    minimize distance to the target.
  *
  *  DOC.: This here is a fairly easy routine after the previous one ;-). It calculates
@@ -162,7 +161,7 @@ float CMediumBackwardDriveModule::MediumBackward_Curvature( float dist_to_target
  *  @return A desired translation.
  */
 float CMediumBackwardDriveModule::MediumBackward_Translation ( float dist_to_target, float dist_to_front, float alpha,
-							       float trans_0, float rot_0, float rot_1 )
+                     float trans_0, float rot_0, float rot_1 )
 {
   float trans_1 = 0.0;
 
@@ -195,9 +194,9 @@ float CMediumBackwardDriveModule::MediumBackward_Translation ( float dist_to_tar
   //   if ( fabs( dist_to_target - dist_to_front ) < 0.2 )
   //     {
   //       if (m_StopAtTarget == true)
-  // 	trans_1 = min( trans_1, dist_to_target*1.5 );
+  //  trans_1 = min( trans_1, dist_to_target*1.5 );
   //       else
-  // 	; // do not stop, so drive behind the target with full power
+  //  ; // do not stop, so drive behind the target with full power
   //     }
   //   else
   //     {
@@ -208,19 +207,19 @@ float CMediumBackwardDriveModule::MediumBackward_Translation ( float dist_to_tar
   // NEW STUFF
   float trans_target = 10000.0;
   float trans_front  = 10000.0;
-  
+
   if ( m_StopAtTarget == true )
     {
       trans_target = GuaranteeTransStop( dist_to_target, trans_0, trans_1 );
     }
-  
+
   // And the next collision point
   if ( dist_to_front < dist_to_target )
     {
       trans_front = GuaranteeTransStop( dist_to_front, trans_0, trans_1 );
     }
   // NEW STUFF END HERE
-  
+
   trans_1 = min( trans_1, min( trans_target, trans_front ) );
 
   return trans_1;
@@ -234,17 +233,17 @@ float CMediumBackwardDriveModule::MediumBackward_Translation ( float dist_to_tar
 /* ************************************************************************** */
 
 /** Calculate here your desired settings. What you desire is checked afterwards to the current
- *    settings of the physical boundaries, but take care also. 
- * 
+ *    settings of the physical boundaries, but take care also.
+ *
  *  How you do this is up to you, but be careful, our hardware is expensive!!!!
- * 
- *  Available are:  
+ *
+ *  Available are:
  *
  *     m_TargetX, m_TargetY, m_TargetOri  --> current Target to drive to
  *     m_RoboX, m_RoboY, m_RoboOri        --> current Robot coordinates
  *     m_RoboTrans, m_RoboRot             --> current Motor values
- *     
- *     m_LocalTargetX, m_LocalTargetY     --> our local target found by the search component we want to reach      
+ *
+ *     m_LocalTargetX, m_LocalTargetY     --> our local target found by the search component we want to reach
  *     m_LocalTrajecX, m_LocalTrajecY     --> The point we would collide with, if we would drive WITHOUT Rotation
  *
  *     m_OrientAtTarget                   --> Do we have to orient ourself at the target?
@@ -268,8 +267,8 @@ void CMediumBackwardDriveModule::Update()
   //float dist_to_trajec = sqrt( pow((m_LocalTrajecX),2) + pow((m_LocalTrajecY),2) );
   float dist_to_trajec = sqrt( sqr(m_LocalTrajecX) + sqr(m_LocalTrajecY) );
 
-  m_ProposedRotation = MediumBackward_Curvature( dist_to_target, dist_to_trajec, 
-						 alpha, -m_RoboTrans, -m_RoboRot );
+  m_ProposedRotation = MediumBackward_Curvature( dist_to_target, dist_to_trajec,
+             alpha, -m_RoboTrans, -m_RoboRot );
 
 
   if ( fabs( alpha ) > M_PI_2+0.2 )
@@ -278,8 +277,8 @@ void CMediumBackwardDriveModule::Update()
     }
   else
     {
-      m_ProposedTranslation = MediumBackward_Translation( dist_to_target, dist_to_trajec, alpha, 
-							  m_RoboTrans, m_RoboRot, m_ProposedRotation);
+      m_ProposedTranslation = MediumBackward_Translation( dist_to_target, dist_to_trajec, alpha,
+                m_RoboTrans, m_RoboRot, m_ProposedRotation);
     }
 
 
@@ -297,25 +296,24 @@ void CMediumBackwardDriveModule::Update()
       m_ProposedTranslation *= -1;
 
       if (m_ProposedRotation >  m_MaxRotation)
-	m_ProposedRotation =  m_MaxRotation;
+  m_ProposedRotation =  m_MaxRotation;
 
       if (m_ProposedRotation < -m_MaxRotation)
-	m_ProposedRotation = -m_MaxRotation;
+  m_ProposedRotation = -m_MaxRotation;
 
 
       if ( m_StopAtTarget == false && dist_to_target < 1.5 )
-	{
-	  // Reduziere die rotationsgeschwindigkeiten, damit keine wilden lenkmanoever kommen
-	  if ( m_ProposedRotation > 0.6 )
-	    m_ProposedRotation =  0.6;
-	  else if ( m_ProposedRotation < -0.6 )
-	    m_ProposedRotation = -0.6;
-	  else
-	    ;
-	}
+  {
+    // Reduziere die rotationsgeschwindigkeiten, damit keine wilden lenkmanoever kommen
+    if ( m_ProposedRotation > 0.6 )
+      m_ProposedRotation =  0.6;
+    else if ( m_ProposedRotation < -0.6 )
+      m_ProposedRotation = -0.6;
+    else
+      ;
+  }
 
     }
 }
 
-
-#endif
+} // namespace fawkes

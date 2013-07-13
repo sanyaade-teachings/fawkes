@@ -54,10 +54,6 @@
 
 
 
-#ifndef _COLLI_SELECT_DRIVE_MODE_CPP_
-#define _COLLI_SELECT_DRIVE_MODE_CPP_
-
-
 
 #include "select_drive_mode.h"
 
@@ -76,14 +72,23 @@
 
 // YOUR CHANGES SHOULD END HERE!!!
 
+#include "../robo-utils/rob/robo_laser.h"
 
+#include <interfaces/NavigatorInterface.h>
+#include <interfaces/MotorInterface.h>
+
+#include <logging/logger.h>
 
 using namespace std;
 
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
 
 /*CSelectDriveMode::CSelectDriveMode( MotorControl* motor,
-				    Laser* laser,
-				    bbClients::Colli_Target_Client* target )*/
+            Laser* laser,
+            bbClients::Colli_Target_Client* target )*/
 CSelectDriveMode::CSelectDriveMode(MotorInterface* motor, Laser* laser, NavigatorInterface* target, Logger* logger, Configuration *config)
 {
   loggerSelect = logger;
@@ -94,7 +99,7 @@ CSelectDriveMode::CSelectDriveMode(MotorInterface* motor, Laser* laser, Navigato
   m_pColliTarget = target;
   m_vDriveModeList.clear();
 
-  loggerSelect->log_info("CSelectDriveMode","Creating Drive Mode Objects\n"); 
+  loggerSelect->log_info("CSelectDriveMode","Creating Drive Mode Objects\n");
 
   // ============================
   // APPEND YOUR DRIVE MODE HERE!
@@ -118,21 +123,21 @@ CSelectDriveMode::CSelectDriveMode(MotorInterface* motor, Laser* laser, Navigato
   m_vDriveModeList.push_back( (CAbstractDriveMode *) slow_backward );
 
   // slow biward drive mode (takes both forward and backward drive modes as argument!
-  m_vDriveModeList.push_back( (CAbstractDriveMode *) new CSlowBiwardDriveModule( logger, config, slow_forward, 
-										 slow_backward ) );
+  m_vDriveModeList.push_back( (CAbstractDriveMode *) new CSlowBiwardDriveModule( logger, config, slow_forward,
+                     slow_backward ) );
 
   // MEDIUM MODES
   // medium forward drive mode (have to remember for biward driving!
   CMediumForwardDriveModule* medium_forward = new CMediumForwardDriveModule( logger, config );
   m_vDriveModeList.push_back( (CAbstractDriveMode *) medium_forward );
-  
+
   // medium backward drive mode (have to remember for biward driving!
   CMediumBackwardDriveModule* medium_backward = new CMediumBackwardDriveModule( logger, config);
   m_vDriveModeList.push_back( (CAbstractDriveMode *) medium_backward );
 
   // medium biward drive mode (takes both forward and backward drive modes as argument!
-  m_vDriveModeList.push_back( (CAbstractDriveMode *) new CMediumBiwardDriveModule( logger, config, medium_forward, 
- 										   medium_backward ) );
+  m_vDriveModeList.push_back( (CAbstractDriveMode *) new CMediumBiwardDriveModule( logger, config, medium_forward,
+                       medium_backward ) );
 
   // FAST MODES
   // fast forward drive mode (have to remember for biward driving!
@@ -144,12 +149,12 @@ CSelectDriveMode::CSelectDriveMode(MotorInterface* motor, Laser* laser, Navigato
   m_vDriveModeList.push_back( (CAbstractDriveMode *) fast_backward );
 
   // fast biward drive mode (takes both forward and backward drive modes as argument!
-  m_vDriveModeList.push_back( (CAbstractDriveMode *) new CFastBiwardDriveModule( logger, config, fast_forward, 
-										 fast_backward ) );
-  
+  m_vDriveModeList.push_back( (CAbstractDriveMode *) new CFastBiwardDriveModule( logger, config, fast_forward,
+                     fast_backward ) );
+
   // YOUR CHANGES SHOULD END HERE!
   // =============================
-  
+
   loggerSelect->log_info("CSelectDriveMode","CSelectDriveMode(Constructor): Exiting\n");
 }
 
@@ -214,27 +219,27 @@ void CSelectDriveMode::Update( bool escape )
 //    loggerSelect->log_info("select drive","colli mode is: %s",desiredMode);
 /*  if ( escape == true )
     {
-      if ( m_EscapeFlag == 0 && 
-	   m_pMotor->GetMotorDesiredTranslation() != 0 &&
-	   m_pMotor->GetMotorDesiredRotation() != 0 )
-	{
-	  desiredMode = MovingNotAllowed; // we have not yet stopped!
-	}
+      if ( m_EscapeFlag == 0 &&
+     m_pMotor->GetMotorDesiredTranslation() != 0 &&
+     m_pMotor->GetMotorDesiredRotation() != 0 )
+  {
+    desiredMode = MovingNotAllowed; // we have not yet stopped!
+  }
       else
-	{
-	  m_EscapeFlag = 1;               // we have stopped recently, so do escape!
-	  desiredMode = ESCAPE;
-	}
+  {
+    m_EscapeFlag = 1;               // we have stopped recently, so do escape!
+    desiredMode = ESCAPE;
+  }
     }
   else
     {
       m_EscapeFlag = 0;
       desiredMode  = (ColliModes)(m_pColliTarget->GetColliMode());
     }
-*/ 
+*/
   if ( escape == true )
     {
-      if ( m_EscapeFlag == 0 && 
+      if ( m_EscapeFlag == 0 &&
            m_pMotor->vx() != 0 &&
            m_pMotor->omega() != 0 )
         {
@@ -258,20 +263,20 @@ void CSelectDriveMode::Update( bool escape )
     {
       // error checking
       if ( m_vDriveModeList[i]->GetDriveModeName() == desiredMode &&
-	   m_pDriveMode != 0 )
-	{
+     m_pDriveMode != 0 )
+  {
           loggerSelect->log_info("CSelectDriveMode", "Error while selecting drive mode. There is more than one mode with the same name!!!\nStopping!\n");
 
-	  m_pDriveMode = 0;
-	  break;
-	}
+    m_pDriveMode = 0;
+    break;
+  }
 
       // drive mode checking
       if ( m_vDriveModeList[i]->GetDriveModeName() == desiredMode &&
-	   m_pDriveMode == 0 )
-	{
-	  m_pDriveMode = m_vDriveModeList[i];
-	}
+     m_pDriveMode == 0 )
+  {
+    m_pDriveMode = m_vDriveModeList[i];
+  }
     }
 
 
@@ -300,10 +305,10 @@ void CSelectDriveMode::Update( bool escape )
       m_pDriveMode->SetLocalTrajec( m_LocalTrajecX, m_LocalTrajecY );
       m_pDriveMode->SetCurrentColliMode( m_pColliTarget->dest_ori(), !m_pColliTarget->is_escaping_enabled()  ); // ** NOT SURE
 
-      
+
       // update the drive mode
       m_pDriveMode->Update();
-      
+
       // get the values from the drive mode
       m_ProposedTranslation = m_pDriveMode->GetProposedTranslation();
       m_ProposedRotation    = m_pDriveMode->GetProposedRotation();
@@ -343,7 +348,7 @@ void CSelectDriveMode::Update( bool escape )
 
 
 float CSelectDriveMode::GetMotorTranslation(float vtrans, float vori)
-{ 
+{
   float m_vx = vtrans *cos(vori);
   if (  m_vx > 0 )
     return vtrans;
@@ -356,4 +361,4 @@ float CSelectDriveMode::GetMotorOri(float odom_ori)
   return normalize_mirror_rad(odom_ori);
 }
 
-#endif
+} // namespace fawkes

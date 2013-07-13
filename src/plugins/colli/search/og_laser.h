@@ -1,102 +1,72 @@
-//     A* Collision Avoidance Algorithm by Stefan Jacobs
-//     Copyright (C) 2002  Stefan Jacobs <Stefan_J@gmx.de>
-//
-//     This program is free software; you can redistribute it and/or modify
-//     it under the terms of the GNU General Public License as published by
-//     the Free Software Foundation; either version 2 of the License, or
-//     (at your option) any later version.
-//
-//     This program is distributed in the hope that it will be useful,
-//     but WITHOUT ANY WARRANTY; without even the implied warranty of
-//     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//     GNU General Public License for more details.
-//
-//     You should have received a copy of the GNU General Public License
-//     along with this program; if not, write to the Free Software
-//     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
 
+/***************************************************************************
+ *  og_laser.h - occ-grid interface for colli_a* search algorithm
+ *
+ *  Created: Sat Jul 13 18:06:21 2013
+ *  Copyright  2002  Stefan Jacobs
+ *             2012  Safoura Rezapour Lakani
+ *             2013  Bahram Maleki-Fard, AllemaniACs RoboCup Team
+ *
+ ****************************************************************************/
 
-/*
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-  ©                                                                            ©
-  ©                                            ####   ####           .-""-.    ©
-  ©       # #                             #   #    # #    #         /[] _ _\   ©
-  ©       # #                                 #    # #             _|_o_LII|_  ©
-  © ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ©
-  © #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ©
-  © #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ©
-  © #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ©
-  © '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ©
-  ©                                                               /__|    |__\ ©
-  ©                                                                            ©
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-*/
+/*  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Library General Public License for more details.
+ *
+ *  Read the full text in the LICENSE.GPL file in the doc directory.
+ */
 
-
-/* ******************************************************************** */
-/*                                                                      */
-/* $Id$             */
-/*                                                                      */
-/* Description: This is the occ-grid interface for colli_a*,            */
-/*              the search algorithm searches on.                       */
-/*                                                                      */
-/* Author:   Stefan Jacobs                                              */
-/* Contact:  <Stefan_J@gmx.de>                                          */
-/*                                                                      */
-/* DOC.: This interface is mainly out of implementation reasons given   */
-/*       here. It includes a occ-grid and the laserinterface, so no one */
-/*       else has to care about.                                        */
-/*                                                                      */
-/* last modified: $Date$                          */
-/*            by: $Author$                                    */
-/*                                                                      */
-/* ******************************************************************** */
-
-
-#ifndef _C_COLLI_LASEROCCUPANCY_GRID_H_
-#define _C_COLLI_LASEROCCUPANCY_GRID_H_
-
+#ifndef _PLUGINS_COLLI_SEARCH_OG_LASER_H_
+#define _PLUGINS_COLLI_SEARCH_OG_LASER_H_
 
 //#include <utils/occupancygrid/occupancygrid.h>
-//#include <utils/roboshape/roboshape.h>
-//#include <utils/geometry/ellipse.h>
-//#include <utils/geometry/circle.h>
-//#include <utils/geometry/trig_table.h>
-#include "../robo-utils/rob/robo_laser.h"
-#include <logging/logger.h>
-#include <config/config.h>
-#include <interfaces/Laser360Interface.h>
-#include <utils/math/angle.h>
-#include <geometry/hom_point.h>
-
-#include "../robo-utils/roboshape.h"
-#include "../robo-utils/geometry/trig_table.h"
-#include "../robo-utils/geometry/ellipse.h"
-#include "ellipse_map.h"
 #include "../robo-utils/occupancygrid/occupancygrid.h"
 
-#include <stdio.h>
-#include <iostream>
+#include <vector>
 
-using namespace fawkes;
-using namespace std;
 
-/** CLaserOccupancyGrid.
- *  This OccGrid is derived by the Occupancy Grid originally from Andreas Strack,
- *    but modified for speed purposes.
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
+
+class Logger;
+class Configuration;
+//class Laser360Interface;
+class ColliEllipseMap;
+
+class Ellipse;
+class Laser;
+class RoboShape;
+class TrigTable;
+
+/** @class ColliLaserOccupancyGrid <plugins/colli/search/og_laser.h>
+ * This OccGrid is derived by the Occupancy Grid originally from Andreas Strack,
+ * but modified for speed purposes.
+ *
+ * This interface is mainly out of implementation reasons given
+ * here. It includes a occ-grid and the laserinterface, so no one
+ * else has to care about.
+ *
+ * @author Stefan Jacobs
  */
-class CLaserOccupancyGrid : public OccupancyGrid
+class ColliLaserOccupancyGrid : public OccupancyGrid
 {
 public:
 
   // Constructor.
-  CLaserOccupancyGrid( Logger* logger, Configuration *config, Laser * laser, int width = 150, int height = 150,
+  ColliLaserOccupancyGrid( Logger* logger, Configuration *config, Laser * laser, int width = 150, int height = 150,
            int cell_width = 5, int cell_height = 5 );
 
 
   // Destructor
-  ~CLaserOccupancyGrid();
+  ~ColliLaserOccupancyGrid();
 
 
   /** Put the laser readings in the occupancy grid
@@ -150,7 +120,7 @@ public:
 
   // pointer to the laser
    Laser * m_pLaser;
-  //Laser360Interface *m_pLaser;
+  //fawkes::Laser360Interface *m_pLaser;
 
   // my roboshape
   RoboShape * m_pRoboShape;
@@ -175,7 +145,7 @@ public:
   float m_MaxCellExt;
   float m_MaxOldCellExt;
 
-  CEllipseMap * ellipse_map;
+  ColliEllipseMap * ellipse_map;
 
   Logger* loggerGrid;
   bool ref_obstacle;
@@ -189,5 +159,7 @@ public:
 
 
 };
+
+} // end of namespace fawkes
 
 #endif

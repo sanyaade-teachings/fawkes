@@ -52,13 +52,14 @@
 /*                                                                      */
 /* ******************************************************************** */
 
-
-#ifndef _COLLI_SLOW_BACKWARD_DRIVE_MODE_CPP_
-#define _COLLI_SLOW_BACKWARD_DRIVE_MODE_CPP_
-
-
 #include "slow_backward_drive_mode.h"
 
+using namespace std;
+
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
 
 /** Initialize your local values here!
  */
@@ -70,7 +71,7 @@ CSlowBackwardDriveModule::CSlowBackwardDriveModule(Logger* logger, Configuration
   m_DriveModeName = SlowBackward;
 /*
   string confFileName = "../cfg/robocup/colli.cfg";
-  try 
+  try
     {
       ConfigFile * m_pConf = new ConfigFile( confFileName );
       m_MaxTranslation = m_pConf->floating( "CSlowDriveModule_MAX_TRANS" );
@@ -79,8 +80,8 @@ CSlowBackwardDriveModule::CSlowBackwardDriveModule(Logger* logger, Configuration
     }
   catch (...)
     {
-      BB_DBG(0) << "***** ERROR *****: Could not open: " << confFileName 
-		<< " --> ABORTING!" << endl << endl;
+      BB_DBG(0) << "***** ERROR *****: Could not open: " << confFileName
+    << " --> ABORTING!" << endl << endl;
       exit( 0 );
     }
   */
@@ -113,7 +114,7 @@ CSlowBackwardDriveModule::CSlowBackwardDriveModule(Logger* logger, Configuration
 
 /** Destruct your local values here!
  */
-CSlowBackwardDriveModule::~CSlowBackwardDriveModule() 
+CSlowBackwardDriveModule::~CSlowBackwardDriveModule()
 {
   loggerSlowBack->log_info("CSlowBackwardDriveModule","CSlowBackwardDriveModule(Destructor): Entering...\n");
   m_DriveModeName = MovingNotAllowed;
@@ -128,7 +129,7 @@ CSlowBackwardDriveModule::~CSlowBackwardDriveModule()
  *        I have to calculate a rotation I want to achieve in an optimal way.
  *        Here this is solved in an interesting way:
  *        First, check how long the curvature is, we want to drive to the target. This is done by
- *        approximating the size of the triangle around this curvature given by collision and 
+ *        approximating the size of the triangle around this curvature given by collision and
  *        and targetpoint and the angle between those both. Afterwards the time we have to drive
  *        with constant speed is calculated. Now we have the time we want to turn the angle. By
  *        multiplying this with a high constant (here 4), we rotate faster than we want to, but
@@ -137,14 +138,14 @@ CSlowBackwardDriveModule::~CSlowBackwardDriveModule()
  *
  *  @return A desired rotation.
  */
-float CSlowBackwardDriveModule::SlowBackward_Curvature( float dist_to_target, float dist_to_trajec, float alpha, 
-							float trans_0, float rot_0 )
+float CSlowBackwardDriveModule::SlowBackward_Curvature( float dist_to_target, float dist_to_trajec, float alpha,
+              float trans_0, float rot_0 )
 {
   return 1.2*alpha;
 }
 
 
-/** Calculate by given variables a new translation to give for the motor to 
+/** Calculate by given variables a new translation to give for the motor to
  *    minimize distance to the target.
  *
  *  DOC.: This here is a fairly easy routine after the previous one ;-). It calculates
@@ -154,13 +155,13 @@ float CSlowBackwardDriveModule::SlowBackward_Curvature( float dist_to_target, fl
  *  @return A desired translation.
  */
 float CSlowBackwardDriveModule::SlowBackward_Translation ( float dist_to_target, float dist_to_front, float alpha,
-							   float trans_0, float rot_0, float rot_1 )
+                 float trans_0, float rot_0, float rot_1 )
 {
   float trans_1 = 0.0;
 
   if ( fabs( rot_1 ) >= 0.0 && fabs( rot_1 ) <= 1.0 )
     trans_1 = LinInterpol( fabs( rot_1 ), 0.0, 1.0, 0.7, fabs(m_MaxTranslation+0.1) );
-  
+
   else if ( fabs( rot_1 ) > 1.0 )
     trans_1 = LinInterpol( fabs( rot_1 ), M_PI, 1.0, 0.0, 0.7 );
 
@@ -173,9 +174,9 @@ float CSlowBackwardDriveModule::SlowBackward_Translation ( float dist_to_target,
   //   if ( fabs( dist_to_target - dist_to_front ) < 0.2 )
   //     {
   //       if (m_StopAtTarget == true)
-  // 	trans_1 = min( trans_1, dist_to_target*1.5 );
+  //  trans_1 = min( trans_1, dist_to_target*1.5 );
   //       else
-  // 	; // do not stop, so drive behind the target with full power
+  //  ; // do not stop, so drive behind the target with full power
   //     }
   //   else
   //     {
@@ -210,18 +211,18 @@ float CSlowBackwardDriveModule::SlowBackward_Translation ( float dist_to_target,
 /* ***********************        U P D A T E       ************************* */
 /* ************************************************************************** */
 
-/** Calculate here your desired settings. What you desire is checked afterwards to the current 
- *    settings of the physical boundaries, but take care also. 
- * 
+/** Calculate here your desired settings. What you desire is checked afterwards to the current
+ *    settings of the physical boundaries, but take care also.
+ *
  *  How you do this is up to you, but be careful, our hardware is expensive!!!!
- * 
- *  Available are:  
+ *
+ *  Available are:
  *
  *     m_TargetX, m_TargetY, m_TargetOri  --> current Target to drive to
  *     m_RoboX, m_RoboY, m_RoboOri        --> current Robot coordinates
  *     m_RoboTrans, m_RoboRot             --> current Motor values
- *     
- *     m_LocalTargetX, m_LocalTargetY     --> our local target found by the search component we want to reach      
+ *
+ *     m_LocalTargetX, m_LocalTargetY     --> our local target found by the search component we want to reach
  *     m_LocalTrajecX, m_LocalTrajecY     --> The point we would collide with, if we would drive WITHOUT Rotation
  *
  *     m_OrientAtTarget                   --> Do we have to orient ourself at the target?
@@ -238,13 +239,13 @@ void CSlowBackwardDriveModule::Update()
 {
   m_ProposedTranslation = 0.0;
   m_ProposedRotation    = 0.0;
-  
+
   float dist_to_target = sqrt( sqr(m_LocalTargetX) + sqr(m_LocalTargetY) );
   float alpha          = normalize_mirror_rad(atan2( m_LocalTargetY, m_LocalTargetX ) + M_PI);
   float dist_to_trajec = sqrt( sqr(m_LocalTrajecX) + sqr(m_LocalTrajecY) );
 
-  m_ProposedRotation = SlowBackward_Curvature( dist_to_target, dist_to_trajec, 
-					       alpha, -m_RoboTrans, -m_RoboRot );
+  m_ProposedRotation = SlowBackward_Curvature( dist_to_target, dist_to_trajec,
+                 alpha, -m_RoboTrans, -m_RoboRot );
 
 
   if ( fabs( alpha ) > M_PI_2+0.1 )
@@ -253,8 +254,8 @@ void CSlowBackwardDriveModule::Update()
     }
   else
     {
-      m_ProposedTranslation = SlowBackward_Translation( dist_to_target, dist_to_trajec, alpha, 
-							-m_RoboTrans, -m_RoboRot, m_ProposedRotation);
+      m_ProposedTranslation = SlowBackward_Translation( dist_to_target, dist_to_trajec, alpha,
+              -m_RoboTrans, -m_RoboRot, m_ProposedRotation);
     }
 
 
@@ -272,25 +273,24 @@ void CSlowBackwardDriveModule::Update()
       m_ProposedTranslation *= -1;
 
       if (m_ProposedRotation >  m_MaxRotation)
-	m_ProposedRotation =  m_MaxRotation;
+  m_ProposedRotation =  m_MaxRotation;
 
       if (m_ProposedRotation < -m_MaxRotation)
-	m_ProposedRotation = -m_MaxRotation;
+  m_ProposedRotation = -m_MaxRotation;
 
-      
+
       if ( (m_StopAtTarget == false) && (dist_to_target < 1.0) )
-	{
-	  // Reduziere die rotationsgeschwindigkeiten, damit keine wilden lenkmanoever kommen
-	  if ( m_ProposedRotation > 0.5 )
-	    m_ProposedRotation =  0.5;
-	  else if ( m_ProposedRotation < -0.5 )
-	    m_ProposedRotation = -0.5;
-	  else
-	    ;
-	}
+  {
+    // Reduziere die rotationsgeschwindigkeiten, damit keine wilden lenkmanoever kommen
+    if ( m_ProposedRotation > 0.5 )
+      m_ProposedRotation =  0.5;
+    else if ( m_ProposedRotation < -0.5 )
+      m_ProposedRotation = -0.5;
+    else
+      ;
+  }
 
     }
 }
 
-
-#endif
+} // namespace fawkes

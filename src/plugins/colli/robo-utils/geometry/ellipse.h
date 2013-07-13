@@ -1,21 +1,50 @@
-//#ifndef ELLIPSE_H
-//#define ELLIPSE_H
+
+/***************************************************************************
+ *  ellipse.h -
+ *
+ *  Created: Sat Jul 13 18:06:21 2013
+ *  Copyright  2002  Stefan Jacobs
+ *             2012  Safoura Rezapour Lakani
+ *             2013  Bahram Maleki-Fard, AllemaniACs RoboCup Team
+ *
+ ****************************************************************************/
+
+/*  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Library General Public License for more details.
+ *
+ *  Read the full text in the LICENSE.GPL file in the doc directory.
+ */
+
+#ifndef _PLUGINS_COLLI_ROBO_UTILS_GEOMETRY_ELLIPSE_H
+#define _PLUGINS_COLLI_ROBO_UTILS_GEOMETRY_ELLIPSE_H
 
 #include <utils/math/types.h>
 #include <utils/math/angle.h>
 #include <geometry/hom_point.h>
+
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
 
 class Ellipse
 {
  public:
   Ellipse();
 
-  Ellipse( const HomPoint & center, 
-	   const float width, 
-	   const float height, 
-	   const float angle);
+  Ellipse( const HomPoint & center,
+     const float width,
+     const float height,
+     const float angle);
   ~Ellipse();
-  
+
   const HomPoint & GetCenter() const;
   void SetCenter( const HomPoint & center);
   const float GetWidth() const;
@@ -44,10 +73,10 @@ inline Ellipse::Ellipse()
   m_Height = 2.0;
 }
 
-inline Ellipse::Ellipse( const HomPoint & center, 
-			 const float width, 
-			 const float height, 
-			 const float angle)
+inline Ellipse::Ellipse( const HomPoint & center,
+       const float width,
+       const float height,
+       const float angle)
 {
   m_Center = center;
   m_Width = width;
@@ -69,7 +98,7 @@ inline void Ellipse::SetCenter( const HomPoint & center)
   m_Center = center;
 }
 
-inline const float Ellipse::GetWidth() const 
+inline const float Ellipse::GetWidth() const
 {
   return m_Width;
 }
@@ -84,7 +113,7 @@ inline const float Ellipse::GetHeight() const
   return m_Height;
 }
 
-inline void Ellipse::SetHeight( const float height ) 
+inline void Ellipse::SetHeight( const float height )
 {
   m_Height = height;
 }
@@ -106,10 +135,10 @@ inline const HomPoint Ellipse::GetBorderPoint( float angle ) const
   float x,y;
 
   angle = normalize_rad(angle - m_Angle);
-  
+
   x = cos(angle) * xw + m_Center.x();
   y = sin(angle) * yh + m_Center.y();
- 
+
   HomPoint p(x - m_Center.x(), y - m_Center.y());
   float x_tmp = x * cos(m_Angle) - y * sin(m_Angle);
   p.y() = p.x() * sin(m_Angle) + p.y() * cos(m_Angle);
@@ -117,8 +146,8 @@ inline const HomPoint Ellipse::GetBorderPoint( float angle ) const
 
   p.x() += m_Center.x();
   p.y() += m_Center.y();
-  
-  return p;  
+
+  return p;
 }
 
 inline const float Ellipse::GetSquaredDistanceTo( const HomPoint  p1, const HomPoint  p2) const
@@ -131,9 +160,11 @@ inline const float Ellipse::GetAngleTo( const HomPoint  p1 ,const HomPoint  p2) 
   return atan2f( p2.y() - p1.y(),p2.x() - p1.x() );
 }
 
-inline const bool Ellipse::IsInside( const HomPoint & p ) const 
+inline const bool Ellipse::IsInside( const HomPoint & p ) const
 {
   return (GetSquaredDistanceTo(m_Center,p) <= GetSquaredDistanceTo(m_Center,GetBorderPoint(GetAngleTo(m_Center,p))));
 }
 
-//#endif
+} // namespace fawkes
+
+#endif

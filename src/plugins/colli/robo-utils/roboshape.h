@@ -1,70 +1,37 @@
-//     Roboshape class by Stefan Jacobs
-//     Copyright (C) 2002  Stefan Jacobs <Stefan_J@gmx.de>
-//
-//     This program is free software; you can redistribute it and/or modify
-//     it under the terms of the GNU General Public License as published by
-//     the Free Software Foundation; either version 2 of the License, or
-//     (at your option) any later version.
-//
-//     This program is distributed in the hope that it will be useful,
-//     but WITHOUT ANY WARRANTY; without even the implied warranty of
-//     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//     GNU General Public License for more details.
-//
-//     You should have received a copy of the GNU General Public License
-//     along with this program; if not, write to the Free Software
-//     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
 
+/***************************************************************************
+ *  roboshape.h - Roboshape class
+ *
+ *  Created: Sat Jul 13 18:06:21 2013
+ *  Copyright  2002  Stefan Jacobs
+ *             2012  Safoura Rezapour Lakani
+ *             2013  Bahram Maleki-Fard, AllemaniACs RoboCup Team
+ *
+ ****************************************************************************/
 
-/*
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-  ©                                                                            ©
-  ©                                            ####   ####           .-""-.    ©
-  ©       # #                             #   #    # #    #         /[] _ _\   ©
-  ©       # #                                 #    # #             _|_o_LII|_  ©
-  © ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ©
-  © #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ©
-  © #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ©
-  © #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ©
-  © '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ©
-  ©                                                               /__|    |__\ ©
-  ©                                                                            ©
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-*/
+/*  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Library General Public License for more details.
+ *
+ *  Read the full text in the LICENSE.GPL file in the doc directory.
+ */
 
+#ifndef _PLUGINS_COLLI_ROBO_UTILS_ROBOSHAPE_H_
+#define _PLUGINS_COLLI_ROBO_UTILS_ROBOSHAPE_H_
 
-/* ******************************************************************** */
-/*                                                                      */
-/* $Id$             */
-/*                                                                      */
-/* Description: This is the roboshape class.                            */
-/*                                                                      */
-/* Author:   Stefan Jacobs                                              */
-/* Contact:  <Stefan_J@gmx.de>                                          */
-/*                                                                      */
-/*                                                                      */
-/*                                                                      */
-/* last modified: $Date$                          */
-/*            by: $Author$                                    */
-/*                                                                      */
-/* ******************************************************************** */
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
 
-
-//#ifndef _UTIL_ROBOSHAPE_H_
-//#define _UTIL_ROBOSHAPE_H_
-
-#include <logging/logger.h>
-#include <config/config.h>
-#include <utils/math/angle.h>
-#include <utils/math/types.h>
-
-#include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
-
-using namespace fawkes;
-using namespace std;
+class Logger;
+class Configuration;
 
 /** My RoboShape class.
  *  This is a class containing all roboshape information.
@@ -73,26 +40,26 @@ using namespace std;
 class RoboShape
 {
 public:
-    
+
     // =============================== //
     // CLASS METHODS                   //
     // =============================== //
-    
+
     /**  This is the constructor. Has to be called with the
      *   name, of the shape description file.
-     *  @param shapeFileName is the name of the shape 
+     *  @param shapeFileName is the name of the shape
      *         description file
      */
     RoboShape( Logger* logger, Configuration *config );
-    
+
     /** Destructor.
      */
     ~RoboShape();
-    
+
     // =============================== //
     // CLASS GETTER METHODS            //
     // =============================== //
-    
+
     /** Returns if the robot is round.
      *  @return bool indicating if the robot is round.
      */
@@ -119,7 +86,7 @@ public:
      *  @return if the reading is in the robot.
      */
     bool IsRobotReadingforDegree( float angledeg, float length );
-    
+
 
     /** Returns the robots length for a specific angle.
      *  @param anglerad is the angle in radians.
@@ -132,22 +99,22 @@ public:
      *  @return the length in this direction.
      */
     float GetRobotLengthforDegree( float angledeg );
-    
+
 
     /** Returns if there is a rod waiting in this direction.
      *  @param anglerad is an angle in radians.
-     *  @return 0 if there is no rod, 1 if there is, 
+     *  @return 0 if there is no rod, 1 if there is,
      *      and 3 if unsure (for now all rods are unsure).
      */
     static int IsRodforRad( float anglerad );
 
     /** Returns if there is a rod waiting in this direction.
      *  @param angledeg is an angle in degree.
-     *  @return 0 if there is no rod, 1 if there is, 
+     *  @return 0 if there is no rod, 1 if there is,
      *      and 3 if unsure (for now all rods are unsure).
      */
     int IsRodforDegree( float angledeg );
-    
+
     /** Returns the radius of the robot if its round.
      *  @return radius of the round robot
      */
@@ -157,7 +124,7 @@ public:
      *  @return maximumradius of the round robot
      */
     float GetCompleteRadius();
-    
+
     /** Returns the widthx of the angular robot.
      *  @return only the robot x width.
      */
@@ -167,7 +134,7 @@ public:
      *  @return only the robot y width.
      */
     float GetWidthY();
-    
+
     /** Returns the complete x width of the angular robot.
      *  @return the complete x width.
      */
@@ -177,7 +144,7 @@ public:
      *  @return the complete y width.
      */
     float GetCompleteWidthY();
-    
+
     /** Returns the laser offset in x direction of the robot.
      *  @return the laser offset in x direction.
      */
@@ -187,18 +154,18 @@ public:
      *  @return the laser offset in y direction.
      */
     float GetLaserOffsetY();
-    
+
 
     // ======================================================= //
-  
+
 
 private:
-    
+
     // VARIABLES
 
     // flag if the robot is round or not
     bool m_isRound, m_isAngular;
-    
+
     // several variables containing information about the robot.
     float m_radius, m_widthX, m_widthY;
     float m_laserOffsetX, m_laserOffsetY;
@@ -209,5 +176,6 @@ private:
 };
 
 
+} // namespace fawkes
 
-//#endif
+#endif

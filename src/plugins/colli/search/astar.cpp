@@ -1,68 +1,47 @@
-//     A* Collision Avoidance Algorithm by Stefan Jacobs
-//     Copyright (C) 2002  Stefan Jacobs <Stefan_J@gmx.de>
-//
-//     This program is free software; you can redistribute it and/or modify
-//     it under the terms of the GNU General Public License as published by
-//     the Free Software Foundation; either version 2 of the License, or
-//     (at your option) any later version.
-//
-//     This program is distributed in the hope that it will be useful,
-//     but WITHOUT ANY WARRANTY; without even the implied warranty of
-//     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//     GNU General Public License for more details.
-//
-//     You should have received a copy of the GNU General Public License
-//     along with this program; if not, write to the Free Software
-//     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
 
+/***************************************************************************
+ *  astar.cpp - AStar-interface for A* of Colli-A*
+ *
+ *  Created: Sat Jul 13 18:06:21 2013
+ *  Copyright  2002  Stefan Jacobs
+ *             2012  Safoura Rezapour Lakani
+ *             2013  Bahram Maleki-Fard, AllemaniACs RoboCup Team
+ *
+ ****************************************************************************/
 
-/*
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-  ©                                                                            ©
-  ©                                            ####   ####           .-""-.    ©
-  ©       # #                             #   #    # #    #         /[] _ _\   ©
-  ©       # #                                 #    # #             _|_o_LII|_  ©
-  © ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ©
-  © #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ©
-  © #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ©
-  © #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ©
-  © '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ©
-  ©                                                               /__|    |__\ ©
-  ©                                                                            ©
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-*/
-
-
-/* ******************************************************************** */
-/*                                                                      */
-/* $Id$               */
-/*                                                                      */
-/* Description: This is the AStar-implementation for A* of Colli-A*     */
-/*                                                                      */
-/* Author:   Stefan Jacobs                                              */
-/* Contact:  <Stefan_J@gmx.de>                                          */
-/*                                                                      */
-/* DOC.: This is a high efficient implementation. Therefore this code   */
-/*       does not always look very nice here. So be patient and try to  */
-/*       understand what I was trying to implement here.                */
-/*                                                                      */
-/*                                                                      */
-/* last modified: $Date$                          */
-/*            by: $Author$                                    */
-/*                                                                      */
-/* ******************************************************************** */
-
-
-#ifndef _COLLI_ASTAR_CPP_
-#define _COLLI_ASTAR_CPP_
-
+/*  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Library General Public License for more details.
+ *
+ *  Read the full text in the LICENSE.GPL file in the doc directory.
+ */
 
 #include "astar.h"
 #include "../common/defines.h"
 
+#include <logging/logger.h>
+#include <config/config.h>
+
+#include <iostream>
 
 using namespace std;
+
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
+
+/** @class ColliAStar <plugins/colli/search/astar.h>
+ * This is a high efficient implementation. Therefore this code
+ * does not always look very nice here. So be patient and try to
+ * understand what I was trying to implement here
+ */
 
 
 /** Constructor.
@@ -73,10 +52,10 @@ using namespace std;
  *   again, cause only here new is called in this code..
  *  Afterwards the Openlist, closedlist and states for A* are initialized.
  */
-CAStar::CAStar( Logger* logger, Configuration *config, OccupancyGrid * occGrid )
+ColliAStar::ColliAStar( Logger* logger, Configuration *config, OccupancyGrid * occGrid )
 {
   loggerASS = logger;
-  loggerASS->log_info("CAStar","AStar(Constructor): Initializing AStar\n");
+  loggerASS->log_info("ColliAStar","AStar(Constructor): Initializing AStar\n");
 
   /*string confFileName = "../cfg/robocup/colli.cfg";
   try
@@ -111,14 +90,14 @@ CAStar::CAStar( Logger* logger, Configuration *config, OccupancyGrid * occGrid )
 
   for( int i = 0; i < m_MaxStates; i++)
     {
-      CAStarState * state = new CAStarState();
+      ColliAStarState * state = new ColliAStarState();
       m_vAStarStates[i] = state;
     }
   while ( m_pOpenList.size() > 0 )
     m_pOpenList.pop();
   m_hClosedList.clear();
 
-  loggerASS->log_info("CAStar","AStar(Constructor): Initializing AStar done\n");
+  loggerASS->log_info("ColliAStar","AStar(Constructor): Initializing AStar done\n");
 }
 
 
@@ -126,12 +105,12 @@ CAStar::CAStar( Logger* logger, Configuration *config, OccupancyGrid * occGrid )
 /** Destructor.
  *  This destructor deletes all the states allocated during construction.
  */
-CAStar::~CAStar()
+ColliAStar::~ColliAStar()
 {
-  loggerASS->log_info("CAStar","AStar(Destructor): Destroying AStar\n");
+  loggerASS->log_info("ColliAStar","AStar(Destructor): Destroying AStar\n");
   for( int i = 0; i < m_MaxStates; i++ )
     delete m_vAStarStates[i];
-  loggerASS->log_info("CAStar","AStar(Destructor): Destroying AStar done\n");
+  loggerASS->log_info("ColliAStar","AStar(Destructor): Destroying AStar done\n");
 }
 
 
@@ -144,7 +123,7 @@ CAStar::~CAStar()
  *    the search is called, after which the solution
  *    sequence is generated by the pointers in all states.
  */
-void CAStar::Solve( const HomPoint &RoboPos, const HomPoint &TargetPos,vector< HomPoint > &solution )
+void ColliAStar::Solve( const HomPoint &RoboPos, const HomPoint &TargetPos,vector< HomPoint > &solution )
 {
   seen_states.clear();
   occ_cells.clear();
@@ -161,7 +140,7 @@ void CAStar::Solve( const HomPoint &RoboPos, const HomPoint &TargetPos,vector< H
   m_pTargetState.m_Y = (int)TargetPos.y();
 
   // generating initialstate
-  CAStarState * initialState = m_vAStarStates[++m_AStarStateCount];
+  ColliAStarState * initialState = m_vAStarStates[++m_AStarStateCount];
   initialState->m_X = m_pRoboPos.m_X;
   initialState->m_Y = m_pRoboPos.m_Y;
   initialState->m_pFather   = 0;
@@ -174,7 +153,7 @@ void CAStar::Solve( const HomPoint &RoboPos, const HomPoint &TargetPos,vector< H
   get_grid();
 }
 
-void CAStar::get_grid()
+void ColliAStar::get_grid()
 {
   occ_cells.clear();
   for ( int gridX = 0; gridX < m_pOccGrid->getWidth(); gridX++ )
@@ -200,11 +179,11 @@ void CAStar::get_grid()
  *  This is the magic A* algorithm.
  *  Its really easy, you can find it like this everywhere.
  */
-CAStarState * CAStar::Search( )
+ColliAStarState * ColliAStar::Search( )
 {
-  register CAStarState * best = 0;
+  register ColliAStarState * best = 0;
 /*  int best_cost = 10000000;
-  register CAStarState * best_state = 0;*/
+  register ColliAStarState * best_state = 0;*/
   // while the openlist not is empty
   while ( m_pOpenList.size() > 0 )
     {
@@ -240,7 +219,7 @@ CAStarState * CAStar::Search( )
           m_vAStarStates.resize( m_MaxStates );
           for( int i = 0; i < m_MaxStates; i++)
             {
-              best = new CAStarState();
+              best = new ColliAStarState();
               m_vAStarStates[i] = best;
             }
           loggerASS->log_info("ASTAR","**** Increasing done!\n");
@@ -263,7 +242,7 @@ CAStarState * CAStar::Search( )
  *    because first it does a bit shift for 14 bits, and adds (or)
  *    afterwards a number that is smaller tham 14 bits!
  */
-int CAStar::CalculateKey( int x, int y )
+int ColliAStar::CalculateKey( int x, int y )
 {
   return (x << 15) | y;  // This line is a crime! But fast ;-)
 }
@@ -274,9 +253,9 @@ int CAStar::CalculateKey( int x, int y )
  *   This is done with a little range checking and rule checking.
  *   Afterwards these children are put on the openlist.
  */
-void CAStar::GenerateChildren( CAStarState * father )
+void ColliAStar::GenerateChildren( ColliAStarState * father )
 {
-  register CAStarState * child;
+  register ColliAStarState * child;
   register int key;
 
   register float prob;
@@ -381,7 +360,7 @@ void CAStar::GenerateChildren( CAStarState * father )
  *    state. This is done by the manhatten distance here,
  *    because we are calculating on a grid...
  */
-int CAStar::Heuristic( CAStarState * state )
+int ColliAStar::Heuristic( ColliAStarState * state )
 {
   //  return (int)( abs( state->m_X - m_pTargetState.m_X ));
   return (int)( abs( state->m_X - m_pTargetState.m_X ) +
@@ -392,7 +371,7 @@ int CAStar::Heuristic( CAStarState * state )
 /** IsGoal.
  *  This method checks, if a state is a goal state.
  */
-bool CAStar::IsGoal( CAStarState * state )
+bool ColliAStar::IsGoal( ColliAStarState * state )
 {
   return ( (m_pTargetState.m_X == state->m_X) &&
            (m_pTargetState.m_Y == state->m_Y) );
@@ -403,9 +382,9 @@ bool CAStar::IsGoal( CAStarState * state )
  *  This one enqueues the way of a node back to its root through the
  *    tree into the solution/plan vector.
  */
-void CAStar::GetSolutionSequence( CAStarState * node, vector< HomPoint > &solution )
+void ColliAStar::GetSolutionSequence( ColliAStarState * node, vector< HomPoint > &solution )
 {
-  register CAStarState * state = node;
+  register ColliAStarState * state = node;
   while ( state != 0 )
     {
       solution.insert( solution.begin(), HomPoint(state->m_X, state->m_Y) );
@@ -421,7 +400,7 @@ void CAStar::GetSolutionSequence( CAStarState * node, vector< HomPoint > &soluti
 /* =========================================================================== */
 /* =========================================================================== */
 
-HomPoint CAStar::RemoveTargetFromObstacle( int targetX, int targetY, int stepX, int stepY )
+HomPoint ColliAStar::RemoveTargetFromObstacle( int targetX, int targetY, int stepX, int stepY )
 {
   // initializing lists...
   while ( m_pOpenList.size() > 0 )
@@ -429,14 +408,14 @@ HomPoint CAStar::RemoveTargetFromObstacle( int targetX, int targetY, int stepX, 
   m_hClosedList.clear();
   m_AStarStateCount = 0;
   // starting fill algorithm by putting first state in openlist
-  CAStarState * initialState = m_vAStarStates[++m_AStarStateCount];
+  ColliAStarState * initialState = m_vAStarStates[++m_AStarStateCount];
   initialState->m_X = targetX;
   initialState->m_Y = targetY;
   initialState->m_TotalCost = 0;
   m_pOpenList.push( initialState );
   // search algorithm by gridfilling
-  register CAStarState * child;
-  register CAStarState * father;
+  register ColliAStarState * child;
+  register ColliAStarState * father;
   register int key;
   while ( !(m_pOpenList.empty()) && (m_AStarStateCount < m_MaxStates - 6) )
     {
@@ -480,8 +459,8 @@ HomPoint CAStar::RemoveTargetFromObstacle( int targetX, int targetY, int stepX, 
             }
         }
     }
-  loggerASS->log_error("CAStar", "Failed to get a modified targetpoint\n");
+  loggerASS->log_error("ColliAStar", "Failed to get a modified targetpoint\n");
   return HomPoint( targetX, targetY );
 }
 
-#endif
+} // namespace fawkes

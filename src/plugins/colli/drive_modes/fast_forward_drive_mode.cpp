@@ -52,11 +52,6 @@
 /*                                                                      */
 /* ******************************************************************** */
 
-
-#ifndef _COLLI_FAST_FORWARD_DRIVE_MODE_CPP_
-#define _COLLI_FAST_FORWARD_DRIVE_MODE_CPP_
-
-
 //#include <utils/utils.h>
 //#include <utils/configfile/configfile.h>
 #include "fast_forward_drive_mode.h"
@@ -64,6 +59,10 @@
 
 using namespace std;
 
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
 
 /** Initialize your local values here.
  */
@@ -75,7 +74,7 @@ CFastForwardDriveModule::CFastForwardDriveModule( Logger* logger, Configuration 
   m_DriveModeName = FastForward;
 /*
   string confFileName = "../cfg/robocup/colli.cfg";
-  try 
+  try
     {
       ConfigFile * m_pConf = new ConfigFile( confFileName );
       m_MaxTranslation = m_pConf->floating( "CFastDriveModule_MAX_TRANS" );
@@ -84,8 +83,8 @@ CFastForwardDriveModule::CFastForwardDriveModule( Logger* logger, Configuration 
     }
   catch (...)
     {
-      BB_DBG(0) << "***** ERROR *****: Could not open: " << confFileName 
-		<< " --> ABORTING!" << endl << endl;
+      BB_DBG(0) << "***** ERROR *****: Could not open: " << confFileName
+    << " --> ABORTING!" << endl << endl;
       exit( 0 );
     }
 */
@@ -136,7 +135,7 @@ CFastForwardDriveModule::~CFastForwardDriveModule()
  *        I have to calculate a rotation I want to achieve in an optimal way.
  *        Here this is solved in an interesting way:
  *        First, check how long the curvature is, we want to drive to the target. This is done by
- *        approximating the size of the triangle around this curvature given by collision and 
+ *        approximating the size of the triangle around this curvature given by collision and
  *        and targetpoint and the angle between those both. Afterwards the time we have to drive
  *        with constant speed is calculated. Now we have the time we want to turn the angle. By
  *        multiplying this with a high constant (here 4), we rotate faster than we want to, but
@@ -145,14 +144,14 @@ CFastForwardDriveModule::~CFastForwardDriveModule()
  *
  *  @return A desired rotation.
  */
-float CFastForwardDriveModule::FastForward_Curvature( float dist_to_target, float dist_to_trajec, float alpha, 
-							  float trans_0, float rot_0 )
+float CFastForwardDriveModule::FastForward_Curvature( float dist_to_target, float dist_to_trajec, float alpha,
+                float trans_0, float rot_0 )
 {
   return 1.5*alpha;
 }
 
 
-/** Calculate by given variables a new translation to give for the motor to 
+/** Calculate by given variables a new translation to give for the motor to
  *    minimize distance to the target.
  *
  *  DOC.: This here is a fairly easy routine after the previous one ;-). It calculates
@@ -162,10 +161,10 @@ float CFastForwardDriveModule::FastForward_Curvature( float dist_to_target, floa
  *  @return A desired translation.
  */
 float CFastForwardDriveModule::FastForward_Translation ( float dist_to_target, float dist_to_front, float alpha,
-							 float trans_0, float rot_0, float rot_1 )
+               float trans_0, float rot_0, float rot_1 )
 {
   float trans_1 = 0.0;
-  
+
   if ( fabs( rot_1 ) >= 0.0 && fabs( rot_1 ) <= 0.3 )
     {
       trans_1 = LinInterpol( fabs( rot_1 ), 0.3, 0.0, 2.5, m_MaxTranslation+0.1 );
@@ -191,20 +190,20 @@ float CFastForwardDriveModule::FastForward_Translation ( float dist_to_target, f
       loggerFastFor->log_error("CFastForwardDriveModule","************ FAST DRIVE MODES:::NOT DEFINED STATE!!!!! STOPPING\n");
       trans_1 = 0;
     }
-  
-  
+
+
   // test the borders (no agressive behaviour!)
   if ( trans_1 < 0.0 ) trans_1 = 0.0;
   if ( trans_1 > m_MaxTranslation ) trans_1 = m_MaxTranslation;
-  
+
   // OLD STUFF
   //   // check stopping on target and compare distances with choosen velocities
   //   if ( fabs( dist_to_target - dist_to_front ) < 0.2 )
   //     {
   //       if (m_StopAtTarget == true)
-  // 	trans_1 = min( trans_1, dist_to_target*1.5 );
+  //  trans_1 = min( trans_1, dist_to_target*1.5 );
   //       else
-  // 	; // do not stop, so drive behind the target with full power
+  //  ; // do not stop, so drive behind the target with full power
   //     }
   //   else
   //     {
@@ -214,21 +213,21 @@ float CFastForwardDriveModule::FastForward_Translation ( float dist_to_target, f
   // NEW STUFF
   float trans_target = 10000.0;
   float trans_front  = 10000.0;
-  
+
   if ( m_StopAtTarget == true )
     {
       trans_target = GuaranteeTransStop( dist_to_target, trans_0, trans_1 );
     }
-  
+
   // And the next collision point
   if ( dist_to_front < dist_to_target )
     {
       trans_front = GuaranteeTransStop( dist_to_front, trans_0, trans_1 );
     }
   // NEW STUFF END HERE
-  
+
   trans_1 = min( trans_1, min( trans_target, trans_front ) );
-  
+
   return trans_1;
 }
 
@@ -240,17 +239,17 @@ float CFastForwardDriveModule::FastForward_Translation ( float dist_to_target, f
 /* ************************************************************************** */
 
 /** Calculate here your desired settings. What you desire is checked afterwards to the current
- *    settings of the physical boundaries, but take care also. 
- * 
+ *    settings of the physical boundaries, but take care also.
+ *
  *  How you do this is up to you, but be careful, our hardware is expensive!!!!
- * 
- *  Available are:  
+ *
+ *  Available are:
  *
  *     m_TargetX, m_TargetY, m_TargetOri  --> current Target to drive to
  *     m_RoboX, m_RoboY, m_RoboOri        --> current Robot coordinates
  *     m_RoboTrans, m_RoboRot             --> current Motor values
- *     
- *     m_LocalTargetX, m_LocalTargetY     --> our local target found by the search component we want to reach      
+ *
+ *     m_LocalTargetX, m_LocalTargetY     --> our local target found by the search component we want to reach
  *     m_LocalTrajecX, m_LocalTrajecY     --> The point we would collide with, if we would drive WITHOUT Rotation
  *
  *     m_OrientAtTarget                   --> Do we have to orient ourself at the target?
@@ -272,9 +271,9 @@ void CFastForwardDriveModule::Update()
   float alpha  = atan2( m_LocalTargetY, m_LocalTargetX );
   float dist_to_trajec  = sqrt(  sqr(m_LocalTrajecX) + sqr(m_LocalTrajecY) );
 
-  m_ProposedRotation = FastForward_Curvature( dist_to_target, dist_to_trajec, 
-					      alpha, m_RoboTrans, m_RoboRot );
-  
+  m_ProposedRotation = FastForward_Curvature( dist_to_target, dist_to_trajec,
+                alpha, m_RoboTrans, m_RoboRot );
+
   if ( fabs( alpha ) > M_PI_2 )
     {
       m_ProposedTranslation = 0.0;
@@ -282,7 +281,7 @@ void CFastForwardDriveModule::Update()
   else
     {
       m_ProposedTranslation = FastForward_Translation( dist_to_target, dist_to_trajec, alpha,
-						       m_RoboTrans, m_RoboRot, m_ProposedRotation );
+                   m_RoboTrans, m_RoboRot, m_ProposedRotation );
     }
 
 
@@ -299,25 +298,23 @@ void CFastForwardDriveModule::Update()
       m_ProposedTranslation = max ( m_ProposedTranslation, (float)0.0 );
 
       if (m_ProposedRotation >  m_MaxRotation)
-	m_ProposedRotation =  m_MaxRotation;
+  m_ProposedRotation =  m_MaxRotation;
 
       if (m_ProposedRotation < -m_MaxRotation)
-	m_ProposedRotation = -m_MaxRotation;
+  m_ProposedRotation = -m_MaxRotation;
 
       if ( m_StopAtTarget == false && dist_to_target < 2.0 )
-	{
-	  // Reduziere die rotationsgeschwindigkeiten, damit keine wilden lenkmanoever kommen
-	  if ( m_ProposedRotation > 0.6 )
-	    m_ProposedRotation =  0.6;
-	  else if ( m_ProposedRotation < -0.6 )
-	    m_ProposedRotation = -0.6;
-	  else
-	    ;
-	}
+  {
+    // Reduziere die rotationsgeschwindigkeiten, damit keine wilden lenkmanoever kommen
+    if ( m_ProposedRotation > 0.6 )
+      m_ProposedRotation =  0.6;
+    else if ( m_ProposedRotation < -0.6 )
+      m_ProposedRotation = -0.6;
+    else
+      ;
+  }
 
     }
 }
 
-
-
-#endif
+} // namespace fawkes

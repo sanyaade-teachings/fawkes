@@ -1,121 +1,92 @@
-//     A* Collision Avoidance Algorithm by Stefan Jacobs
-//     Copyright (C) 2002  Stefan Jacobs <Stefan_J@gmx.de>
-//
-//     This program is free software; you can redistribute it and/or modify
-//     it under the terms of the GNU General Public License as published by
-//     the Free Software Foundation; either version 2 of the License, or
-//     (at your option) any later version.
-//
-//     This program is distributed in the hope that it will be useful,
-//     but WITHOUT ANY WARRANTY; without even the implied warranty of
-//     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//     GNU General Public License for more details.
-//
-//     You should have received a copy of the GNU General Public License
-//     along with this program; if not, write to the Free Software
-//     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
 
+/***************************************************************************
+ *  ellipse_map.h - A colli implementation of a collection offast ellipse
+ *
+ *  Created: Sat Jul 13 18:06:21 2013
+ *  Copyright  2002  Stefan Jacobs
+ *             2012  Safoura Rezapour Lakani
+ *             2013  Bahram Maleki-Fard, AllemaniACs RoboCup Team
+ *
+ ****************************************************************************/
 
-/*
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-  ©                                                                            ©
-  ©                                            ####   ####           .-""-.    ©
-  ©       # #                             #   #    # #    #         /[] _ _\   ©
-  ©       # #                                 #    # #             _|_o_LII|_  ©
-  © ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ©
-  © #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ©
-  © #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ©
-  © #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ©
-  © '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ©
-  ©                                                               /__|    |__\ ©
-  ©                                                                            ©
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-*/
+/*  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Library General Public License for more details.
+ *
+ *  Read the full text in the LICENSE.GPL file in the doc directory.
+ */
 
+#ifndef _PLUGINS_COLLI_SEARCH_ELLIPSE_MAP_H_
+#define _PLUGINS_COLLI_SEARCH_ELLIPSE_MAP_H_
 
-/* ******************************************************************** */
-/*                                                                      */
-/* $Id$          */
-/*                                                                      */
-/* Description: This is the colli implementation of a collection e      */
-/*                of fast ellipses.                                     */
-/*                                                                      */
-/* Author:   Stefan Jacobs                                              */
-/* Contact:  <Stefan_J@gmx.de>                                          */
-/*                                                                      */
-/*                                                                      */
-/*                                                                      */
-/*                                                                      */
-/* last modified: $Date$                          */
-/*            by: $Author$                                    */
-/*                                                                      */
-/* ******************************************************************** */
-
-#ifndef _COLLI_FAST_ELLIPSE_MAP_
-#define _COLLI_FAST_ELLIPSE_MAP
-
-
+#include "ellipse.h"
 
 #include <vector>
 #include <map>
 
-//#include <utils/utils.h>
-#include "ellipse.h"
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
 
-
-class CEllipseMap
+class ColliEllipseMap
 {
- public:  
+ public:
 
-  //  CEllipseMap( int max_radius_width, int max_radius_height, int robocup_mode );
+  //  ColliEllipseMap( int max_radius_width, int max_radius_height, int robocup_mode );
 
-  CEllipseMap( );
+  ColliEllipseMap( );
 
-  ~CEllipseMap() { m_mEllipses.clear(); }
+  ~ColliEllipseMap() { m_mEllipses.clear(); }
 
-  
+
   const std::vector< int > GetEllipse( int width, int height, int robocup_mode );
 
 
  private:
 
-  std::map< unsigned int, CFastEllipse * > m_mEllipses;
+  std::map< unsigned int, ColliFastEllipse * > m_mEllipses;
 
 };
 
 
 
-//inline CEllipseMap::CEllipseMap( int max_radius_width, int max_radius_height,
-//				 int robocup_mode )
+//inline ColliEllipseMap::ColliEllipseMap( int max_radius_width, int max_radius_height,
+//         int robocup_mode )
 
-inline CEllipseMap::CEllipseMap()
+inline ColliEllipseMap::ColliEllipseMap()
 {
 //   for ( unsigned int x = 0; x < (unsigned int)max_radius_width; x++ )
 //     {
 //       for ( unsigned int y = 0; y < (unsigned int)max_radius_height; y++ )
-// 	{
-// 	  CFastEllipse * ellipse = new CFastEllipse( x, y, robocup_mode );
+//  {
+//    ColliFastEllipse * ellipse = new ColliFastEllipse( x, y, robocup_mode );
 
-// 	  // What it does is the following: x * 2^16 + y. This is unique,
-// 	  //   because first it does a bit shift for 16 bits, and adds (or) 
-// 	  //   afterwards a number that is smaller tham 16 bits!
-// 	  unsigned int key = (x << 16) | y;
-// 	  ellipse->SetKey( key );
-// 	  m_mEllipses[ key ] = ellipse;
-// 	}
+//    // What it does is the following: x * 2^16 + y. This is unique,
+//    //   because first it does a bit shift for 16 bits, and adds (or)
+//    //   afterwards a number that is smaller tham 16 bits!
+//    unsigned int key = (x << 16) | y;
+//    ellipse->SetKey( key );
+//    m_mEllipses[ key ] = ellipse;
+//  }
 //     }
 }
 
 
-inline const std::vector< int > CEllipseMap::GetEllipse( int width, int height, int robocup_mode )
+inline const std::vector< int > ColliEllipseMap::GetEllipse( int width, int height, int robocup_mode )
 {
   unsigned int key = ((unsigned int)width << 16) | (unsigned int)height;
 
-  std::map< unsigned int, CFastEllipse * >::iterator p = m_mEllipses.find( key );
+  std::map< unsigned int, ColliFastEllipse * >::iterator p = m_mEllipses.find( key );
   if ( p == m_mEllipses.end() ) // ellipse nicht gefunden!
     {
-      CFastEllipse * ellipse = new CFastEllipse( width, height, robocup_mode );
+      ColliFastEllipse * ellipse = new ColliFastEllipse( width, height, robocup_mode );
       ellipse->SetKey( key );
       m_mEllipses[ key ] = ellipse;
       return ellipse->GetEllipse();
@@ -126,5 +97,6 @@ inline const std::vector< int > CEllipseMap::GetEllipse( int width, int height, 
     }
 }
 
+} // end of namespace fawkes
 
 #endif

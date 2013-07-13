@@ -1,82 +1,57 @@
-//     Roboshape class for colli A* by Stefan Jacobs
-//     Copyright (C) 2002  Stefan Jacobs <Stefan_J@gmx.de>
-//
-//     This program is free software; you can redistribute it and/or modify
-//     it under the terms of the GNU General Public License as published by
-//     the Free Software Foundation; either version 2 of the License, or
-//     (at your option) any later version.
-//
-//     This program is distributed in the hope that it will be useful,
-//     but WITHOUT ANY WARRANTY; without even the implied warranty of
-//     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//     GNU General Public License for more details.
-//
-//     You should have received a copy of the GNU General Public License
-//     along with this program; if not, write to the Free Software
-//     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
 
+/***************************************************************************
+ *  roboshape_colli.h - Roboshape colli class
+ *
+ *  Created: Sat Jul 13 18:06:21 2013
+ *  Copyright  2002  Stefan Jacobs
+ *             2012  Safoura Rezapour Lakani
+ *             2013  Bahram Maleki-Fard, AllemaniACs RoboCup Team
+ *
+ ****************************************************************************/
 
-/*
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-  ©                                                                            ©
-  ©                                            ####   ####           .-""-.    ©
-  ©       # #                             #   #    # #    #         /[] _ _\   ©
-  ©       # #                                 #    # #             _|_o_LII|_  ©
-  © ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ©
-  © #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ©
-  © #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ©
-  © #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ©
-  © '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ©
-  ©                                                               /__|    |__\ ©
-  ©                                                                            ©
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-*/
+/*  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Library General Public License for more details.
+ *
+ *  Read the full text in the LICENSE.GPL file in the doc directory.
+ */
 
+#ifndef _PLUGINS_COLLI_ROBO_UTILS_ROBOSHAPE_COLLI_H_
+#define _PLUGINS_COLLI_ROBO_UTILS_ROBOSHAPE_COLLI_H_
 
-/* ******************************************************************** */
-/*                                                                      */
-/* $Id$       */
-/*                                                                      */
-/* Description: This is the roboshape colli class.                      */
-/*                                                                      */
-/* Author:   Stefan Jacobs                                              */
-/* Contact:  <Stefan_J@gmx.de>                                          */
-/*                                                                      */
-/* DOC.: The special about this class is, that all data is calculated   */
-/*        during initialization time. All data that is not precalculated*/
-/*        is estimated.                                                 */
-/*                                                                      */
-/* last modified: $Date$                          */
-/*            by: $Author$                                    */
-/*                                                                      */
-/* ******************************************************************** */
-
-
-#ifndef _UTIL_ROBOSHAPE_COLLI_H_
-#define _UTIL_ROBOSHAPE_COLLI_H_
-
-
-#include <cmath>
-#include <vector>
-//#include "utils/utils.h"
 #include "roboshape.h"
 
 #include <logging/logger.h>
 #include <config/config.h>
 #include <utils/math/angle.h>
 
-using namespace fawkes;
+#include <cmath>
+#include <vector>
+
 using namespace std;
+
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
 
 /** My RoboShape Colli class.
  *  This class is mainly the same as the basic class with the difference
  *    that all data is precalculated or estimated.
+ *  The special about this class is, that all data is calculated
+ *        during initialization time. All data that is not precalculated
+ *        is estimated.
  */
 class CRoboShape_Colli : public RoboShape
 {
 public:
-    
+
     /// Constructor
     ///  First param is a file name
     ///  Second param is the readings per degree constant.
@@ -86,7 +61,7 @@ public:
     /// Destructor
     ~CRoboShape_Colli();
 
-    
+
     /** Returns the robots length for a specific angle.
      *  @param anglerad is the angle in radians.
      *  @return the length in this direction.
@@ -98,7 +73,7 @@ public:
      *  @return the length in this direction.
      */
     float GetRobotLengthforDegree( float angledeg );
-    
+
 
 
 private:
@@ -124,8 +99,8 @@ inline CRoboShape_Colli::CRoboShape_Colli( Logger* logger, Configuration* config
     m_Resolution = readings_per_degree;
     for ( int i = 0; i < 360*readings_per_degree; i++ )
     {
-	float anglerad = (i / readings_per_degree) * M_PI / 180;
-	m_vRobotLength.push_back( this->RoboShape::GetRobotLengthforRad( anglerad ) );
+    float anglerad = (i / readings_per_degree) * M_PI / 180;
+    m_vRobotLength.push_back( this->RoboShape::GetRobotLengthforRad( anglerad ) );
     }
 }
 
@@ -148,5 +123,6 @@ inline float CRoboShape_Colli::GetRobotLengthforDegree( float angledeg )
     return m_vRobotLength[number];
 }
 
+} // namespace fawkes
 
 #endif

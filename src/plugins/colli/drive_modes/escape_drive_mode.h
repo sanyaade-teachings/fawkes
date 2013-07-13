@@ -57,15 +57,18 @@
 #ifndef _COLLI_ESCAPE_DRIVE_MODE_H_
 #define _COLLI_ESCAPE_DRIVE_MODE_H_
 
+#include "abstract_drive_mode.h"
 
 #include <vector>
-//#include <utils/roboshape/roboshape_colli.h>
-#include "../robo-utils/rob/robo_laser.h"
-#include "abstract_drive_mode.h"
-#include <interfaces/Laser360Interface.h>
-#include "../robo-utils/roboshape_colli.h"
-using namespace fawkes;
-using namespace std;
+
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
+
+class Laser;
+class CRoboShape_Colli;
+
 /** Class Escape-Drive-Module. This module is called, if an escape is
  *    neccessary. It should try to maximize distance to the disturbing
  *    obstacle.
@@ -78,13 +81,13 @@ public:
      */
     CEscapeDriveModule( Logger* logger, Configuration *config, Laser* laser );
 
-  
+
     /** Destructor. Does nothing, because nothing was created in this module.
      */
     ~CEscapeDriveModule();
 
 
-    /** This Routine is called. Afterwards the m_proposedTranslation and 
+    /** This Routine is called. Afterwards the m_proposedTranslation and
      *    m_proposedRotation have to be filled. Here they are
      *    set to zero.
      */
@@ -98,10 +101,10 @@ private:
     CRoboShape_Colli*  m_pRoboShape;
 
     /// Readings without robolength in it
-    vector< float > m_vNormalizedReadings;
-    vector< float > m_vFront, m_vBack;
-    vector< float > m_vLeftFront,  m_vLeftBack;
-    vector< float > m_vRightFront, m_vRightBack;
+    std::vector< float > m_vNormalizedReadings;
+    std::vector< float > m_vFront, m_vBack;
+    std::vector< float > m_vLeftFront,  m_vLeftBack;
+    std::vector< float > m_vRightFront, m_vRightBack;
 
 
     /// absolute values are the maximum values. do not act faster!
@@ -112,12 +115,13 @@ private:
     void FillNormalizedReadings();
     void SortNormalizedReadings();
 
-    bool CheckDanger( vector< float > readings );
+    bool CheckDanger( std::vector< float > readings );
     bool TurnLeftAllowed();
     bool TurnRightAllowed();
 
     Logger* loggerEscape;
 };
 
+} // namespace fawkes
 
 #endif

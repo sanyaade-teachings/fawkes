@@ -52,19 +52,19 @@
 /*                                                                      */
 /* ******************************************************************** */
 
-
-#ifndef _COLLI_SLOW_BIWARD_DRIVE_MODE_CPP_
-#define _COLLI_SLOW_BIWARD_DRIVE_MODE_CPP_
-
-
 #include "slow_biward_drive_mode.h"
 
+using namespace std;
 
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
 
 /** Initialize your local values here.
  */
 CSlowBiwardDriveModule::CSlowBiwardDriveModule( Logger* logger, Configuration *config, CSlowForwardDriveModule*  slow_forward,
-						CSlowBackwardDriveModule* slow_backward ) :
+            CSlowBackwardDriveModule* slow_backward ) :
   CAbstractDriveMode( logger, config )
 {
   loggerSlowBi = logger;
@@ -76,7 +76,7 @@ CSlowBiwardDriveModule::CSlowBiwardDriveModule( Logger* logger, Configuration *c
   m_CountForward = 1;
 /*
   string confFileName = "../cfg/robocup/colli.cfg";
-  try 
+  try
     {
       ConfigFile * m_pConf = new ConfigFile( confFileName );
       m_MaxTranslation = m_pConf->floating( "CSlowDriveModule_MAX_TRANS" );
@@ -85,8 +85,8 @@ CSlowBiwardDriveModule::CSlowBiwardDriveModule( Logger* logger, Configuration *c
     }
   catch (...)
     {
-      BB_DBG(0) << "***** ERROR *****: Could not open: " << confFileName 
-		<< " --> ABORTING!" << endl << endl;
+      BB_DBG(0) << "***** ERROR *****: Could not open: " << confFileName
+    << " --> ABORTING!" << endl << endl;
       exit( 0 );
     }
 */
@@ -132,17 +132,17 @@ CSlowBiwardDriveModule::~CSlowBiwardDriveModule()
 /* ************************************************************************** */
 
 /** Calculate here your desired settings. What you desire is checked afterwards to the current
- *    settings of the physical boundaries, but take care also. 
- * 
+ *    settings of the physical boundaries, but take care also.
+ *
  *  How you do this is up to you, but be careful, our hardware is expensive!!!!
- * 
- *  Available are:  
+ *
+ *  Available are:
  *
  *     m_TargetX, m_TargetY, m_TargetOri  --> current Target to drive to
  *     m_RoboX, m_RoboY, m_RoboOri        --> current Robot coordinates
  *     m_RoboTrans, m_RoboRot             --> current Motor values
- *     
- *     m_LocalTargetX, m_LocalTargetY     --> our local target found by the search component we want to reach      
+ *
+ *     m_LocalTargetX, m_LocalTargetY     --> our local target found by the search component we want to reach
  *     m_LocalTrajecX, m_LocalTrajecY     --> The point we would collide with, if we would drive WITHOUT Rotation
  *
  *     m_OrientAtTarget                   --> Do we have to orient ourself at the target?
@@ -167,7 +167,7 @@ void CSlowBiwardDriveModule::Update()
   // Search the correct drive mode
   float angle_to_target = atan2( m_LocalTargetY, m_LocalTargetX );
 
-  if ( m_CountForward == 1 && 
+  if ( m_CountForward == 1 &&
        fabs( angle_to_target ) > M_PI_2+0.1 )
     {
       m_CountForward = -1;
@@ -176,8 +176,8 @@ void CSlowBiwardDriveModule::Update()
     {
       m_CountForward = 1;
     }
-  else if ( m_CountForward == -1 && 
-	    fabs( angle_to_target ) < M_PI_2-0.1 )
+  else if ( m_CountForward == -1 &&
+      fabs( angle_to_target ) < M_PI_2-0.1 )
     {
       m_CountForward = 1;
     }
@@ -195,11 +195,11 @@ void CSlowBiwardDriveModule::Update()
     {
       driveMode = m_pSlowForwardDriveModule;
     }
-  else 
+  else
     {
       driveMode = m_pSlowBackwardDriveModule;
     }
-  
+
   // set the current info to the drive mode
   driveMode->SetCurrentRoboPos( m_RoboX, m_RoboY, m_RoboOri );
   driveMode->SetCurrentRoboSpeed( m_RoboTrans, m_RoboRot );
@@ -207,15 +207,13 @@ void CSlowBiwardDriveModule::Update()
   driveMode->SetLocalTarget( m_LocalTargetX, m_LocalTargetY );
   driveMode->SetLocalTrajec( m_LocalTrajecX, m_LocalTrajecY );
   driveMode->SetCurrentColliMode( m_OrientAtTarget, m_StopAtTarget );
-      
+
   // update the drive mode
   driveMode->Update();
-  
+
   // get the values from the drive mode
   m_ProposedTranslation = driveMode->GetProposedTranslation();
   m_ProposedRotation    = driveMode->GetProposedRotation();
 }
 
-
-
-#endif
+} // namespace fawkes

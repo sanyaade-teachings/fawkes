@@ -1,12 +1,40 @@
 
+/***************************************************************************
+ *  occupancygrid.cpp -
+ *
+ *  Created: Sat Jul 13 18:06:21 2013
+ *  Copyright  2002  Stefan Jacobs
+ *             2012  Safoura Rezapour Lakani
+ *             2013  Bahram Maleki-Fard, AllemaniACs RoboCup Team
+ *
+ ****************************************************************************/
+
+/*  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Library General Public License for more details.
+ *
+ *  Read the full text in the LICENSE.GPL file in the doc directory.
+ */
+
+#include "occupancygrid.h"
 //#include <utils/occupancygrid/occupancygrid.h>
+
 #include <cstdlib>
 #include <vector>
 
-#include "occupancygrid.h"
+namespace fawkes {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
 
 OccupancyGrid::OccupancyGrid(int width, int height,
-			       int cell_width, int cell_height)
+             int cell_width, int cell_height)
 {
   m_Width = width;
   m_Height = height;
@@ -66,7 +94,7 @@ int OccupancyGrid::getHeight()
 
 void OccupancyGrid::setProb(int x, int y, Probability prob)
 {
-  if((x < m_Width) && (y < m_Height) 
+  if((x < m_Width) && (y < m_Height)
      && ( (isProb(prob)) || (prob == 2.0) ) )
     {
       m_OccupancyProb[x][y] = prob;
@@ -78,12 +106,12 @@ void OccupancyGrid::fill(Probability prob)
   if((isProb(prob)) || (prob == -1))
     {
       for(int x = 0; x < m_Width; x++)
-	{
-	  for(int y = 0; y < m_Height; y++)
-	    {
-	      m_OccupancyProb[x][y] = prob; 
-	    }
-	}
+  {
+    for(int y = 0; y < m_Height; y++)
+      {
+        m_OccupancyProb[x][y] = prob;
+      }
+  }
     }
 }
 
@@ -101,3 +129,5 @@ void OccupancyGrid::initGrid()
   m_OccupancyProb.resize(m_Width, row);
   fill( 0.0 );
 }
+
+} // namespace fawkes
