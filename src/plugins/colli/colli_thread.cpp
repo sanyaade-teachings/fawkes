@@ -22,23 +22,30 @@
 
 #include "colli_thread.h"
 #ifdef HAVE_VISUAL_DEBUGGING
-#  include "visualization_thread_base.h"
-//#  include "navigation_thread_base.h"
+ #include "visualization_thread_base.h"
 #endif
+
+using namespace fawkes;
+using namespace std;
+
+
 ColliThread::ColliThread()
   : Thread("ColliThread", Thread::OPMODE_CONTINUOUS)
 {
  #ifdef HAVE_VISUAL_DEBUGGING
   visthread_ = NULL;
- #endif
+#endif
 
 }
-//--------------------------------------------------------------
+
+
 ColliThread::~ColliThread()
 {
 }
-//-------------------------------------------------------------
-void ColliThread::init()
+
+
+void
+ColliThread::init()
 {
   logger->log_info(name(),"COLLI (Constructor): Constructing...\n");
   if (!config->exists("/plugins/colli/Colli_FREQUENCY") )
@@ -228,8 +235,10 @@ void ColliThread::init()
   logger->log_info(name(),"COLLI (Constructor): Initialization done.\n");
   laser_frame = "/base_laser";
 }
-//-------------------------------------------------------------
-void ColliThread::finalize()
+
+
+void
+ColliThread::finalize()
 {
   logger->log_info(name(),"COLLI (Destructor): Entering destructing ...\n");
   delete m_pSearch;
@@ -247,7 +256,8 @@ void ColliThread::finalize()
   logger->log_info(name(),"COLLI (Destructor): Destructing done.\n");
 
 }
-//------------------------------------------------------------------
+
+
 /* **************************************************************************** */
 /* **************************************************************************** */
 /* ******************************  L O O P  *********************************** */
@@ -290,9 +300,11 @@ void ColliThread::finalize()
 // ============================================================================ //
 // ============================================================================ //
 //
-//--------------------------------------------------------------------------------------------
+
+
  #ifdef HAVE_VISUAL_DEBUGGING
-void ColliThread::visualize_cells()
+void
+ColliThread::visualize_cells()
 {
   vector<HomPoint > occ_cells;
   vector<HomPoint > near_cells;
@@ -382,8 +394,10 @@ void ColliThread::visualize_cells()
                        search_occ_cells,astar_found_occ,free_cells,seen_states,modTarget);
 }
 #endif
-//-------------------------------------------------------------------------------------------
-void ColliThread::loop()
+
+
+void
+ColliThread::loop()
 {
   #ifdef HAVE_VISUAL_DEBUGGING
   visualize_cells();
@@ -606,8 +620,9 @@ void ColliThread::loop()
 
 }
 
-//-----------------------------------------------------------
-void ColliThread::RegisterAtBlackboard()
+
+void
+ColliThread::RegisterAtBlackboard()
 {
   m_tf_pub_odom = new tf::TransformPublisher(blackboard, "colli odometry");
 
@@ -629,10 +644,11 @@ void ColliThread::RegisterAtBlackboard()
 
   ninit = blackboard->open_for_writing<NavigatorInterface>(naviface_id.c_str());
 }
-//--------------------------------------------------------------------------
-//Initialize all modules used by the Colli
 
-void ColliThread::InitializeModules()
+
+/** Initialize all modules used by the Colli. */
+void
+ColliThread::InitializeModules()
 {
   laser_frame = m_pLaserScannerObj->frame();
   // FIRST(!): the laserinterface (uses the laserscanner)
@@ -676,9 +692,11 @@ void ColliThread::InitializeModules()
 
   m_vSolution.clear();
 }
-//-------------------------------------------------------------
-/// Get the newest values from the blackboard
-void ColliThread::UpdateBB()
+
+
+/** Get the newest values from the blackboard. */
+void
+ColliThread::UpdateBB()
 {
   m_pLaserScannerObj->read();
 
@@ -696,8 +714,10 @@ void ColliThread::UpdateBB()
   m_pColliTargetObj->read();
   m_pColliDataObj->read();
 }
-//---------------------------------------------------------------------------------------------
-void ColliThread::update_navi()
+
+
+void
+ColliThread::update_navi()
 {
   if((! ninit->msgq_empty()))
   {
@@ -768,8 +788,10 @@ void ColliThread::update_navi()
   //ninit->set_escaping_enabled(true);
   ninit->write();
 }
-//---------------------------------------------------------------------------------------------
-void ColliThread::UpdateColliStateMachine()
+
+
+void
+ColliThread::UpdateColliStateMachine()
 {
   // initialize
   m_ColliStatus = NothingToDo;
@@ -835,11 +857,13 @@ void ColliThread::UpdateColliStateMachine()
 
 }
 
-//--------------------------------------------------------------------------------------------------------------------
-/// Calculate all information out of the updated blackboard data
-//  m_RoboGridPos, m_LaserGridPos, m_TargetGridPos have to be updated!
-//  the targetPointX and targetPointY were calculated in the collis state machine!
-void ColliThread::UpdateOwnModules()
+
+/** Calculate all information out of the updated blackboard data.
+ * m_RoboGridPos, m_LaserGridPos, m_TargetGridPos have to be updated!
+ * the targetPointX and targetPointY were calculated in the collis state machine!
+ */
+void
+ColliThread::UpdateOwnModules()
 {
   if ( m_RobocupMode == 1 )  // Robocup mode
     {
@@ -966,9 +990,11 @@ void ColliThread::UpdateOwnModules()
   m_RoboGridPos   = HomPoint( robopos_x, robopos_y );
   m_TargetGridPos = HomPoint( targetGridX, targetGridY );
 }
-//---------------------------------------------------------------------------------------------------------------------
-/// Check if we want to escape an obstacle
-bool ColliThread::CheckEscape()
+
+
+/** Check if we want to escape an obstacle. */
+bool
+ColliThread::CheckEscape()
 {
   if ((float)m_pLaserOccGrid->getProb((int)m_RoboGridPos.x(),(int)m_RoboGridPos.y()) ==  _COLLI_CELL_OCCUPIED_ )
     {
@@ -979,8 +1005,10 @@ bool ColliThread::CheckEscape()
       return false;
     }
 }
-//----------------------------------------------------------------------------------------------------------------------
-HomPoint ColliThread::nearest_cell_to_target()
+
+
+HomPoint
+ColliThread::nearest_cell_to_target()
 {
   int cell_size = robo_widthX;
   if( robo_widthY < cell_size )
@@ -1008,16 +1036,20 @@ HomPoint ColliThread::nearest_cell_to_target()
   }
   return HomPoint(min_roboX,min_roboY);
 }
-//----------------------------------------------------------------------------------------------------------------------
+
+
 #ifdef HAVE_VISUAL_DEBUGGING
-void ColliThread::set_visualization_thread(ColliVisualizationThreadBase *visthread)
+void
+ColliThread::set_visualization_thread(ColliVisualizationThreadBase *visthread)
 {
   visthread_ = visthread;
   if(visthread_ ) cout << "visualization thread set"<< endl;
 }
 #endif
-//--------------------------------------------------------------------------------------------------------------------
-void ColliThread::publish_odom()
+
+
+void
+ColliThread::publish_odom()
 {
   tf::Quaternion o_r(-m_pMopoObj->odometry_orientation(), 0, 0);
   tf::Vector3 o_t(m_pMopoObj->odometry_position_x(),-m_pMopoObj->odometry_position_y(), 0);
@@ -1027,8 +1059,10 @@ void ColliThread::publish_odom()
   fawkes::Time o_time(o_ts->get_sec(), o_ts->get_usec());
   m_tf_pub_odom->send_transform(o_tr, o_time, "/odom", "/base_link");
 }
-//-----------------------------------------------------------------------------------------------------------------
-HomPoint ColliThread::transform_odom_to_base(HomPoint point)
+
+
+HomPoint
+ColliThread::transform_odom_to_base(HomPoint point)
 {
   HomPoint res;
   try {
@@ -1044,8 +1078,10 @@ HomPoint ColliThread::transform_odom_to_base(HomPoint point)
   }
   return res;
 }
-//---------------------------------------------------------------------------------------------------------------------
-HomPoint ColliThread::transform_base_to_odom(HomPoint point)
+
+
+HomPoint
+ColliThread::transform_base_to_odom(HomPoint point)
 {
   HomPoint res;
   try {
@@ -1061,8 +1097,9 @@ HomPoint ColliThread::transform_base_to_odom(HomPoint point)
   return res;
 }
 
-//----------------------------------------------------------------------------------------------------------------------
-float ColliThread::GetMotorTranslation(float vtrans, float vori)
+
+float
+ColliThread::GetMotorTranslation(float vtrans, float vori)
 {
   float m_vx = vtrans * cos(vori);
   if (  m_vx > 0 )
@@ -1070,8 +1107,10 @@ float ColliThread::GetMotorTranslation(float vtrans, float vori)
   else
     return -vtrans;
 }
-//---------------------------------------------------------------------------------------------------------------------
-float ColliThread::GetMotorOri(float odom_ori)
+
+
+float
+ColliThread::GetMotorOri(float odom_ori)
 {
   return normalize_mirror_rad(odom_ori);
 }

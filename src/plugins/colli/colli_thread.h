@@ -23,6 +23,12 @@
 #ifndef __PLUGINS_COLLI_COLLI_THREAD_H_
 #define __PLUGINS_COLLI_COLLI_THREAD_H_
 
+#include "drive_realization/quadratic_motor_instruct.h"
+#include "drive_modes/select_drive_mode.h"
+#include "search/og_laser.h"
+#include "search/astar_search.h"
+#include "robo-utils/rob/robo_laser.h"
+
 #include <core/threading/thread.h>
 #include <aspect/clock.h>
 #include <aspect/configurable.h>
@@ -41,11 +47,17 @@
 #include <blackboard/remote.h>
 #include <tf/transform_publisher.h>
 
-#include "drive_realization/quadratic_motor_instruct.h"
-#include "drive_modes/select_drive_mode.h"
-#include "search/og_laser.h"
-#include "search/astar_search.h"
-#include "robo-utils/rob/robo_laser.h"
+#include <iostream>
+#include <string.h>
+#include <string>
+#include <cstring>
+#include <math.h>
+#include <time.h>
+#include <vector>
+#include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #define PI 3.14159265
 
 #ifndef _COLLI_CELL_CONSTANTS_
@@ -58,28 +70,12 @@
 #endif
 
 // Colli States
-enum ColliState
-  {
-    NothingToDo,          // Indicating that nothing is to do
-    OrientAtTarget,       // Indicating that the robot is at target and has to orient
-    DriveToOrientPoint,   // Drive to the orientation point
-    DriveToTarget,        // Drive to the target
-  };
-
-#include <iostream>
-#include <string.h>
-#include <string>
-#include <cstring>
-#include <math.h>
-#include <time.h>
-#include <vector>
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-using namespace fawkes;
-using namespace std;
-
+enum ColliState {
+  NothingToDo,          // Indicating that nothing is to do
+  OrientAtTarget,       // Indicating that the robot is at target and has to orient
+  DriveToOrientPoint,   // Drive to the orientation point
+  DriveToTarget,        // Drive to the target
+};
 
 const string default_hostname = "";
 #ifdef HAVE_VISUAL_DEBUGGING
@@ -95,6 +91,16 @@ class ColliThread
   public fawkes::BlackBoardAspect
 {
  public:
+  ColliThread();
+  virtual ~ColliThread();
+
+  virtual void init();
+  virtual void loop();
+  virtual void finalize();
+
+ protected: virtual void run() { Thread::run(); }
+
+ private:
  #ifdef HAVE_VISUAL_DEBUGGING
   ColliVisualizationThreadBase *visthread_;
   void visualize_cells();
@@ -102,13 +108,6 @@ class ColliThread
   void visualize_grid();
  #endif
 
-  ColliThread();
-  virtual ~ColliThread();
-  virtual void init();
-  virtual void loop();
-
-  virtual void finalize();
- private:
   fawkes::MotorInterface  *mopo_obj;
   fawkes::MotorInterface  *m_pMopoObj;
   fawkes::MotorInterface  *motor_des;
@@ -210,7 +209,6 @@ class ColliThread
   {
     return (x*x);
   }
- protected: virtual void run() { Thread::run(); }
 
 };
 
