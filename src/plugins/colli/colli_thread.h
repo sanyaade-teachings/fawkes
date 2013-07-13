@@ -107,18 +107,13 @@ class ColliThread
   void set_visualization_thread(ColliVisualizationThreadBase *visthread);
   void visualize_grid();
  #endif
-
-  fawkes::MotorInterface  *mopo_obj;
   fawkes::MotorInterface  *m_pMopoObj;
   fawkes::MotorInterface  *motor_des;
   fawkes::Laser360Interface *m_pLaserScannerObj;
   fawkes::NavigatorInterface *m_pColliTargetObj;
   fawkes::NavigatorInterface *m_pColliDataObj;
 
-  fawkes::Laser720Interface *laser720;
   fawkes::NavigatorInterface *ninit;
-  fawkes::Laser360Interface *laserDeadSpots;
-  fawkes::BlackBoard * bb_;
 
   void init_laser();
   void update_navi();
