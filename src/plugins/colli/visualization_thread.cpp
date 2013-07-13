@@ -1,3 +1,12 @@
+
+/***************************************************************************
+ *  viaualization_thread.cpp - Visualization Thread
+ *
+ *  Created: Sat Jul 13 12:00:00 2013
+ *  Copyright  2013  AllemaniACs
+ *
+ ****************************************************************************/
+
 #include "visualization_thread.h"
 
 #include <ros/ros.h>
@@ -29,7 +38,7 @@ void ColliVisualizationThread::init()
   {
     ref_obstacle = config->get_bool("/plugins/colli/RefObstacle");
   }
- 
+
   if (!config->exists("/plugins/colli/Navigator_interface_id") )
   {
     cout << "***** ERROR *****: Could not get: Navigator_interface_id"
@@ -74,21 +83,21 @@ void ColliVisualizationThread::init()
   *targetpub_ = rosnode->advertise<nav_msgs::Path>("target_desired", 1);
   target_real_pub_ = new ros::Publisher();
   *target_real_pub_ = rosnode->advertise<nav_msgs::Path>("target_real", 1);
-  
+
   target_local_pub_ = new ros::Publisher();
   *target_local_pub_ = rosnode->advertise<nav_msgs::GridCells>("target_local", 1);
-  
+
   target_odom_pub_ = new ros::Publisher();
   *target_odom_pub_ = rosnode->advertise<nav_msgs::GridCells>("target_transformed_odom", 1);
 
   tarfixpub_ = new ros::Publisher();
-  *tarfixpub_ = rosnode->advertise<nav_msgs::GridCells>("target_fix_cell", 1);  
+  *tarfixpub_ = rosnode->advertise<nav_msgs::GridCells>("target_fix_cell", 1);
 
   tarmpub_ = new ros::Publisher();
   *tarmpub_ = rosnode->advertise<nav_msgs::GridCells>("modified_target_cell", 1);
 
   pathpub_ = new ros::Publisher();
-  *pathpub_ = rosnode->advertise<nav_msgs::Path>("robo_path",1); 
+  *pathpub_ = rosnode->advertise<nav_msgs::Path>("robo_path",1);
 
   pathpubcells_ = new ros::Publisher();
   *pathpubcells_ = rosnode->advertise<nav_msgs::GridCells>("robo_path_cells",1);
@@ -104,8 +113,8 @@ void ColliVisualizationThread::init()
 
   orig_laserpub_ = new ros::Publisher();
   *orig_laserpub_ = rosnode->advertise<nav_msgs::GridCells>("origin_laser_points", 1);
-  
-  neargridpub_ = new ros::Publisher(); 
+
+  neargridpub_ = new ros::Publisher();
   *neargridpub_ = rosnode->advertise<nav_msgs::GridCells>("near_occupancy_grid", 1);
 
   fargridpub_ = new ros::Publisher();
@@ -116,7 +125,7 @@ void ColliVisualizationThread::init()
 
   soccpub_ = new ros::Publisher();
   *soccpub_ = rosnode->advertise<nav_msgs::GridCells>("search_occ_grid", 1);
-  
+
   found_occ_pub_ = new ros::Publisher();
   *found_occ_pub_ = rosnode->advertise<nav_msgs::GridCells>("astar_found_occ_grid", 1);
 
@@ -125,10 +134,10 @@ void ColliVisualizationThread::init()
 
   states_pub_ = new ros::Publisher();
   *states_pub_ = rosnode->advertise<nav_msgs::GridCells>("seen_states_cells", 1);
-  
+
   drive_mode_pub_ = new ros::Publisher();
   *drive_mode_pub_ = rosnode->advertise<visualization_msgs::InteractiveMarker>("drive_mode", 100);
- 
+
   server = new interactive_markers::InteractiveMarkerServer("colli_params_marker");
   drive_mode_sub_ = new ros::Subscriber();
   *drive_mode_sub_ = rosnode->subscribe("colli_params_marker/feedback", 100,&ColliVisualizationThread::processFeedback,this);
@@ -136,8 +145,8 @@ void ColliVisualizationThread::init()
 
   server_robot = new interactive_markers::InteractiveMarkerServer("robot_marker");
   robot_sub_ = new ros::Subscriber();
-  *robot_sub_ = rosnode->subscribe("robot_marker/feedback", 100,&ColliVisualizationThread::robotFeedback,this);  
-  visualize_robot_icon();  
+  *robot_sub_ = rosnode->subscribe("robot_marker/feedback", 100,&ColliVisualizationThread::robotFeedback,this);
+  visualize_robot_icon();
 }
 //-----------------------------------------------------------------------------------------------------------
 void ColliVisualizationThread::finalize()
@@ -174,8 +183,8 @@ void ColliVisualizationThread::finalize()
 //-------------------------------------------------------------------------------------------------------------------
 void ColliVisualizationThread::visualize(const std::string frame_id,vector<HomPoint > cells,vector<HomPoint > near_cells,vector<HomPoint > far_cells,vector<HomPoint > middle_cells,
                                          HomPoint m_RoboGridPos,HomPoint m_LaserGridPos,
-                                         vector<HomPoint> laser_points,vector< HomPoint > plan, HomPoint motor_des, 
-                                         int cell_width, int cell_height, HomPoint target, int grid_width, int grid_height, 
+                                         vector<HomPoint> laser_points,vector< HomPoint > plan, HomPoint motor_des,
+                                         int cell_width, int cell_height, HomPoint target, int grid_width, int grid_height,
                                          HomPoint motor_real, HomPoint localTarget, HomPoint target_odom,
                                          vector<HomPoint > orig_laser_points,vector<HomPoint > search_occ,
                                          vector<HomPoint > astar_found_occ,vector<HomPoint > free_cells,vector<HomPoint > seen_states,HomPoint modTarget) throw()
@@ -222,7 +231,7 @@ void ColliVisualizationThread::visualize(const std::string frame_id,vector<HomPo
 void ColliVisualizationThread::callback( const geometry_msgs::PoseStamped::ConstPtr &msg)
 {
   HomPoint transPoint = transform(robo_pos_);
-  
+
   geometry_msgs::PoseStamped poseMsg = *msg;
   pose_frame_id = poseMsg.header.frame_id;
   nav_msgs::GridCells targ;
@@ -238,7 +247,7 @@ void ColliVisualizationThread::callback( const geometry_msgs::PoseStamped::Const
   navpub_->publish(targ);
   HomPoint rvizTarget = transform_map_to_base(poseMsg);
   rviz_target_ = rvizTarget;
-  m_navi->read(); 
+  m_navi->read();
   p_navi->read();
   if( p_navi->has_writer() )
   {
@@ -254,8 +263,8 @@ void ColliVisualizationThread::callback( const geometry_msgs::PoseStamped::Const
     nav_msg->set_y(rvizTarget.y());
     m_navi->msgq_enqueue(nav_msg);
   }
-  
-  if( m_navi->drive_mode() == NavigatorInterface::MovingNotAllowed ) 
+
+  if( m_navi->drive_mode() == NavigatorInterface::MovingNotAllowed )
   {
     NavigatorInterface::SetDriveModeMessage *drive_msg = new NavigatorInterface::SetDriveModeMessage();
     drive_msg->set_drive_mode(NavigatorInterface::SlowAllowBackward);
@@ -266,7 +275,7 @@ void ColliVisualizationThread::callback( const geometry_msgs::PoseStamped::Const
   maxvel_msg->set_max_velocity(1.5);
   m_navi->msgq_enqueue(maxvel_msg);
 
-/* NavigatorInterface::SetSecurityDistanceMessage *seq_msg = new NavigatorInterface::SetSecurityDistanceMessage(); 
+/* NavigatorInterface::SetSecurityDistanceMessage *seq_msg = new NavigatorInterface::SetSecurityDistanceMessage();
   if( ref_obstacle )
     seq_msg->set_security_distance(0);
   else
@@ -281,7 +290,7 @@ void ColliVisualizationThread::processFeedback(const visualization_msgs::Interac
   ROS_INFO_STREAM( feedback->marker_name << " is now at "
         << feedback->pose.position.x << ", " << feedback->pose.position.y
         << ", " << feedback->pose.position.z );
-  
+
   feedback_id = feedback->menu_entry_id;
   if(( feedback_id <= 8 ) && ( feedback_id > 0 ))
   {
@@ -312,7 +321,7 @@ void ColliVisualizationThread::processFeedback(const visualization_msgs::Interac
       case 8:
         drive_msg->set_drive_mode(NavigatorInterface::ModerateAllowBackward);
         break;
-          
+
     }
     m_navi->msgq_enqueue(drive_msg);
   }
@@ -360,7 +369,7 @@ void ColliVisualizationThread::processFeedback(const visualization_msgs::Interac
         break;
       case 21:
         esc_msg->set_escaping_enabled(false);
-        break;      
+        break;
     }
     m_navi->msgq_enqueue(esc_msg);
   }
@@ -412,9 +421,9 @@ void ColliVisualizationThread::loop()
   logger->log_info(name(),"rviz target point frame id is:%s\n",pose_frame_cstr);
   logger->log_info(name(),"transformed rviz target point is: %f,%f\n",rvizTarget.x(),rvizTarget.y());
   logger->log_info(name(),"drive mode marker is:%d , feedback_id is:%d \n",has_feedback,feedback_id);
-  logger->log_info(name(), "robot icon is now at : %f,%f,%f with orientation %f,%f,%f",robot_marker_pose.position.x,robot_marker_pose.position.y,robot_marker_pose.position.z,       
+  logger->log_info(name(), "robot icon is now at : %f,%f,%f with orientation %f,%f,%f",robot_marker_pose.position.x,robot_marker_pose.position.y,robot_marker_pose.position.z,
                             robot_marker_pose.orientation.x,robot_marker_pose.orientation.y,robot_marker_pose.orientation.z);
-  
+
   nav_msgs::GridCells laserc;
   laserc.header.frame_id = frame_id_;
   laserc.header.stamp = ros::Time::now();
@@ -444,7 +453,7 @@ void ColliVisualizationThread::loop()
   visualize_search_occ();
   visualize_near_cells();
   visualize_far_cells();
-  visualize_middle_cells(); 
+  visualize_middle_cells();
   visualize_grid_boundary();
   visualize_path();
   visualize_path_cells();
@@ -562,7 +571,7 @@ HomPoint ColliVisualizationThread::transform_base_to_odom(HomPoint point)
     logger->log_warn(name(),"can't transform from baselink to odometry");
     e.print_trace();
   }
-  return res;  
+  return res;
 }
 //-------------------------------------------------------------------------------------
 HomPoint ColliVisualizationThread::transform_laser_to_base(HomPoint point)
@@ -601,12 +610,12 @@ void ColliVisualizationThread::visualize_colli_params()
   box_marker.color.b = 0.0;
   box_marker.color.a = 1.0;
   box_marker.lifetime = ros::Duration(120, 0);
-  
+
   visualization_msgs::InteractiveMarkerControl box_control;
   box_control.always_visible = true;
   box_control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MENU;
   box_control.name = "menu";
-  box_control.description = "Colli Parameters Menu"; 
+  box_control.description = "Colli Parameters Menu";
   box_control.markers.push_back( box_marker );
   dmode.controls.push_back( box_control );
 
@@ -614,7 +623,7 @@ void ColliVisualizationThread::visualize_colli_params()
   vector<string > drive_modes_vec;
   drive_modes_vec.push_back("MovingNotAllowed");
   drive_modes_vec.push_back("CarefulForward");
-  drive_modes_vec.push_back("SlowForward"); 
+  drive_modes_vec.push_back("SlowForward");
   drive_modes_vec.push_back("ModerateForward");
   drive_modes_vec.push_back("FastForward");
   drive_modes_vec.push_back("CarefulAllowBackward");
@@ -635,7 +644,7 @@ void ColliVisualizationThread::visualize_colli_params()
   dmode.menu_entries.push_back(menuDrive);
 
 
-  visualization_msgs::MenuEntry menues[8]; 
+  visualization_msgs::MenuEntry menues[8];
   for( size_t i = 0; i < 8; i++ )
   {
     menues[i].title = drive_modes_vec[i];
@@ -747,7 +756,7 @@ void ColliVisualizationThread::visualize_robot_icon()
   dmode.controls.push_back( robot_control );
 
   server_robot->insert(dmode);
-  server_robot->applyChanges();   
+  server_robot->applyChanges();
 }
 //---------------------------------------------------------------------------------
 void ColliVisualizationThread::visualize_modified_target()
@@ -781,7 +790,7 @@ void ColliVisualizationThread::visualize_target_odom()
   ptarloc.z = 0.0;
   targl.cells.push_back(ptarloc);
   target_odom_pub_->publish(targl);
-    
+
 }
 //-----------------------------------------------------------------------------------
 void ColliVisualizationThread::visualize_local_target()
@@ -933,7 +942,7 @@ void ColliVisualizationThread::visualize_near_cells()
   {
     geometry_msgs::Point p;
     //HomPoint transPoint = transform_robo(near_cells_[i]);
-    HomPoint transPoint = transform(near_cells_[i]);    
+    HomPoint transPoint = transform(near_cells_[i]);
     p.x = transPoint.x();
     p.y = -transPoint.y();
     p.z = 0.0;
@@ -1107,14 +1116,14 @@ void ColliVisualizationThread::visualize_path_cells()
     gcs.cells.push_back(p);
   }
   pathpubcells_->publish(gcs);
- 
+
 }
 //----------------------------------------------------------------------------------------------------
 void ColliVisualizationThread::visualize_grid_boundary()
 {
   HomPoint transPoint = transform(robo_pos_);
   float robo_posx = transPoint.x();
-  float robo_posy = transPoint.y(); 
+  float robo_posy = transPoint.y();
   nav_msgs::Path targc1;
   targc1.header.frame_id = frame_id_;
   targc1.header.stamp = ros::Time::now();

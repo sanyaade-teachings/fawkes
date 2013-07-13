@@ -1,3 +1,25 @@
+
+/***************************************************************************
+ *  colli_thread.cpp - Colli Thread
+ *
+ *  Created: Sat Jul 13 12:00:00 2013
+ *  Copyright  2013  AllemaniACs
+ *
+ ****************************************************************************/
+
+/*  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Library General Public License for more details.
+ *
+ *  Read the full text in the LICENSE.GPL file in the doc directory.
+ */
+
 #include "colli_thread.h"
 #ifdef HAVE_VISUAL_DEBUGGING
 #  include "visualization_thread_base.h"
@@ -23,7 +45,7 @@ void ColliThread::init()
   {
     cout << "***** ERROR *****: Could not get: Colli_FREQUENCY"
          << " --> ABORTING!" << endl << endl;
-    return; 
+    return;
   }
   else
   {
@@ -54,7 +76,7 @@ void ColliThread::init()
     m_OccGridWidth  = config->get_float( "/plugins/colli/OccGrid_HEIGHT" );
     //cout << "OccGrid_HEIGHT " <<m_OccGridWidth << endl;
   }
- 
+
   if (!config->exists("/plugins/colli/OccGrid_CELL_HEIGHT") )
   {
     cout << "***** ERROR *****: Could not get: OccGrid_CELL_HEIGHT"
@@ -76,7 +98,7 @@ void ColliThread::init()
   else
   {
     m_OccGridCellWidth  = config->get_int("/plugins/colli/OccGrid_CELL_WIDTH");
-    //cout << "OccGrid_CELL_WIDTH " << m_OccGridCellWidth << endl; 
+    //cout << "OccGrid_CELL_WIDTH " << m_OccGridCellWidth << endl;
   }
 
   if (!config->exists("/plugins/colli/Colli_MAX_ROBO_INCREASE") )
@@ -102,7 +124,7 @@ void ColliThread::init()
     m_RobocupMode = config->get_int("/plugins/colli/Colli_ROBOCUP_MODE");
     //cout << "Colli_ROBOCUP_MODE " << m_RobocupMode << endl;
   }
- 
+
   if (!config->exists("/plugins/colli/Navigator_interface_id") )
   {
     cout << "***** ERROR *****: Could not get: Navigator_interface_id"
@@ -161,7 +183,7 @@ void ColliThread::init()
   if (!config->exists("/plugins/colli/adjust_robo_pos") )
   {
     cout << "***** ERROR *****: Could not get: adjust_robo_pos" << endl;
-    adjust_robopos = false; 
+    adjust_robopos = false;
   }
   else
   {
@@ -184,7 +206,7 @@ void ColliThread::init()
   srand( time( NULL ) );
 
   logger->log_info(name(),"COLLI (Constructor): Entering initialization ...\n");
-  
+
   RegisterAtBlackboard();
   InitializeModules();
 
@@ -211,7 +233,7 @@ void ColliThread::finalize()
 {
   logger->log_info(name(),"COLLI (Destructor): Entering destructing ...\n");
   delete m_pSearch;
-  delete m_pLaser; 
+  delete m_pLaser;
   delete m_pMotorInstruct;
   delete m_pSelectDriveMode;
   delete m_pLaserOccGrid;
@@ -273,7 +295,7 @@ void ColliThread::finalize()
 void ColliThread::visualize_cells()
 {
   vector<HomPoint > occ_cells;
-  vector<HomPoint > near_cells; 
+  vector<HomPoint > near_cells;
   vector<HomPoint > far_cells;
   vector<HomPoint > middle_cells;
   vector<HomPoint > laser_points;
@@ -285,7 +307,7 @@ void ColliThread::visualize_cells()
       if ( m_pLaserOccGrid->getProb( gridX, gridY ) == _COLLI_CELL_OCCUPIED_ )
       {
         HomPoint p(gridX,gridY);
-        occ_cells.push_back(p); 
+        occ_cells.push_back(p);
       }
       else if ( m_pLaserOccGrid->getProb( gridX, gridY ) == _COLLI_CELL_NEAR_ )
       {
@@ -309,7 +331,7 @@ void ColliThread::visualize_cells()
     }
   }
   vector<HomPoint > search_occ_cells;
-  OccupancyGrid * socc = m_pSearch->get_astar_grid(); 
+  OccupancyGrid * socc = m_pSearch->get_astar_grid();
   for ( int gridY = 0; gridY < m_pLaserOccGrid->getHeight(); gridY++ )
   {
     for ( int gridX = 0; gridX < m_pLaserOccGrid->getWidth(); gridX++ )
@@ -328,7 +350,7 @@ void ColliThread::visualize_cells()
     HomPoint plaser(posx,posy);
     laser_points.push_back(plaser);
   }
-  
+
   vector<HomPoint > orig_laser_points;
   m_pLaserScannerObj->read();
   for( unsigned int i = 0; i < m_pLaserScannerObj->maxlenof_distances(); i++ )
@@ -341,7 +363,7 @@ void ColliThread::visualize_cells()
   }
 
   vector< HomPoint > plan = m_pSearch->GetPlan();
-  HomPoint target = m_TargetGridPos; 
+  HomPoint target = m_TargetGridPos;
   HomPoint target_odom = HomPoint(m_pColliTargetObj->dest_x(),m_pColliTargetObj->dest_y());
   float m_des_x = m_ProposedTranslation * cos(m_ProposedRotation);
   float m_des_y = -m_ProposedTranslation * sin(m_ProposedRotation);
@@ -370,10 +392,10 @@ void ColliThread::loop()
   // to be on the sure side of life
   m_ProposedTranslation = 0.0;
   m_ProposedRotation    = 0.0;
-  // Update blackboard data 
+  // Update blackboard data
   UpdateBB();
 
-  
+
 //  BBPing();
  // BBOperate();
 /* TODO
@@ -467,7 +489,7 @@ void ColliThread::loop()
       m_pColliDataObj->set_final( false );
       if ( m_pMopoObj->motor_state () == m_pMopoObj->MOTOR_DISABLED )
       {
-        m_pMotorInstruct->Drive( 0.0, 0.0 ); 
+        m_pMotorInstruct->Drive( 0.0, 0.0 );
       }
 
       // Check, if one of our positions (robo-, laser-gridpos is not valid) => Danger!
@@ -530,7 +552,7 @@ void ColliThread::loop()
                m_pSearch->Update( (int)m_RoboGridPos.x(), (int)m_RoboGridPos.y(),
                                  (int)m_TargetGridPos.x(), (int)m_TargetGridPos.y() );
               if ( m_pSearch->UpdatedSuccessful() )
-                { //   if path exists, 
+                { //   if path exists,
                   m_vSolution.clear();
                   m_LocalGridTarget = m_pSearch->GetLocalTarget();
                   m_LocalGridTrajec = m_pSearch->GetLocalTrajec();
@@ -578,7 +600,7 @@ void ColliThread::loop()
   m_pMotorInstruct->Drive( m_ProposedTranslation, m_ProposedRotation );
 
   cout << endl << endl;
- 
+
   // Send motor and colli data away.
   m_pColliDataObj->write();
 
@@ -593,18 +615,18 @@ void ColliThread::RegisterAtBlackboard()
   motor_des = blackboard->open_for_writing<MotorInterface>("Motor Caesar");
   m_pLaserScannerObj = blackboard->open_for_reading<Laser360Interface>(laser_iface_id.c_str());
   m_pColliTargetObj = blackboard->open_for_reading<NavigatorInterface>(naviface_id.c_str());
-  m_pColliDataObj = blackboard->open_for_writing<NavigatorInterface>("Navigator Temp"); 
+  m_pColliDataObj = blackboard->open_for_writing<NavigatorInterface>("Navigator Temp");
 
 
   m_pMopoObj->read();
   m_pLaserScannerObj->read();
   m_pColliTargetObj->read();
   m_pColliDataObj->read();
-  
+
   m_pColliDataObj->set_final( true );
-  m_pColliDataObj->write(); 
+  m_pColliDataObj->write();
   m_pColliTargetObj->read();
-  
+
   ninit = blackboard->open_for_writing<NavigatorInterface>(naviface_id.c_str());
 }
 //--------------------------------------------------------------------------
@@ -615,16 +637,16 @@ void ColliThread::InitializeModules()
   laser_frame = m_pLaserScannerObj->frame();
   // FIRST(!): the laserinterface (uses the laserscanner)
   m_pLaser = new Laser( m_pLaserScannerObj, "" );
-  m_pLaser->UpdateLaser(); 
+  m_pLaser->UpdateLaser();
   m_pLaser->transform(tf_listener,laser_frame);
 
   // SECOND(!): the occupancy grid (it uses the laser)
 
   // set the cell width and heigth to 5 cm and the grid size to 7.5 m x 7.5 m.
-  // this are 750/5 x 750/5 grid cells -> (750x750)/5 = 22500 grid cells 
-  
+  // this are 750/5 x 750/5 grid cells -> (750x750)/5 = 22500 grid cells
+
   m_pLaserOccGrid = new CLaserOccupancyGrid( logger, config, m_pLaser, (int) ((m_OccGridWidth*100)/m_OccGridCellWidth),
-                                            (int)((m_OccGridHeight*100)/m_OccGridCellHeight), 
+                                            (int)((m_OccGridHeight*100)/m_OccGridCellHeight),
                                             m_OccGridCellWidth, m_OccGridCellHeight);
   // THIRD(!): the search component (it uses the occ grid (without the laser)
   m_pSearch = new CSearch( logger, config, m_pLaserOccGrid );
@@ -635,8 +657,8 @@ void ColliThread::InitializeModules()
 
 
   // AFTER MOTOR INSTRUCT: the motor propose values object
-  m_pSelectDriveMode = new CSelectDriveMode( motor_des, m_pLaser, m_pColliTargetObj, logger, config ); 
- 
+  m_pSelectDriveMode = new CSelectDriveMode( motor_des, m_pLaser, m_pColliTargetObj, logger, config );
+
   // Initialization of colli state machine:
   // Currently nothing is to accomplish
   m_ColliStatus  = NothingToDo;
@@ -659,7 +681,7 @@ void ColliThread::InitializeModules()
 void ColliThread::UpdateBB()
 {
   m_pLaserScannerObj->read();
-  
+
   m_pMopoObj->read();
   motor_des->set_odometry_position_x(m_pMopoObj->odometry_position_x());
   motor_des->set_odometry_position_y(m_pMopoObj->odometry_position_y());
@@ -669,7 +691,7 @@ void ColliThread::UpdateBB()
   motor_des->set_omega(m_pMopoObj->omega());
   motor_des->write();
 
-  motor_des->read();  
+  motor_des->read();
   update_navi();
   m_pColliTargetObj->read();
   m_pColliDataObj->read();
@@ -742,8 +764,8 @@ void ColliThread::update_navi()
       ninit->write();
       ninit->msgq_pop();
     }
-  } 
-  //ninit->set_escaping_enabled(true); 
+  }
+  //ninit->set_escaping_enabled(true);
   ninit->write();
 }
 //---------------------------------------------------------------------------------------------
@@ -807,7 +829,7 @@ void ColliThread::UpdateColliStateMachine()
       m_ColliStatus = NothingToDo;
       return;
     }
-  
+
   logger->log_info(name(),"**** COLLI ****: Here I should never never be\n");
   return;
 
@@ -849,7 +871,7 @@ void ColliThread::UpdateOwnModules()
   laserpos_x -= (int)( GetMotorTranslation(motor_des->vx(),motor_des->omega())*m_pLaserOccGrid->getWidth() / (2*3.0) );
   laserpos_x  = max ( laserpos_x, 10 );
   laserpos_x  = min ( laserpos_x, (int)(m_pLaserOccGrid->getWidth()-10) );
-  
+
   int robopos_x = laserpos_x + (int)(motor_distance/(float)m_pLaserOccGrid->getCellWidth());
   int robopos_y = laserpos_y;
 
@@ -1001,7 +1023,7 @@ void ColliThread::publish_odom()
   tf::Vector3 o_t(m_pMopoObj->odometry_position_x(),-m_pMopoObj->odometry_position_y(), 0);
   tf::Transform o_tr(o_r, o_t);
   Time *o_ts = new Time();
-  o_ts = &(o_ts->stamp()); 
+  o_ts = &(o_ts->stamp());
   fawkes::Time o_time(o_ts->get_sec(), o_ts->get_usec());
   m_tf_pub_odom->send_transform(o_tr, o_time, "/odom", "/base_link");
 }

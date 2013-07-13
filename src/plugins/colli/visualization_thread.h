@@ -1,3 +1,12 @@
+
+/***************************************************************************
+ *  viaualization_thread.h - Visualization Thread
+ *
+ *  Created: Sat Jul 13 12:00:00 2013
+ *  Copyright  2013  AllemaniACs
+ *
+ ****************************************************************************/
+
 #ifndef __PLUGINS_COLLI_VISUALIZATION_THREAD_H_
 #define __PLUGINS_COLLI_VISUALIZATION_THREAD_H_
 
@@ -125,7 +134,7 @@ class ColliVisualizationThread
   ros::Subscriber *navsub_;
   ros::Subscriber *navsub_amcl_;
   ros::Publisher  *navpub_;
- 
+
   ros::Publisher *drive_mode_pub_;
   interactive_markers::InteractiveMarkerServer *server;
   interactive_markers::InteractiveMarkerServer *server_robot;
@@ -176,6 +185,6 @@ class ColliVisualizationThread
   geometry_msgs::Pose robot_marker_pose;
   bool frame_valid_;
   string fixed_frame_;
-}; 
+};
 
 #endif
