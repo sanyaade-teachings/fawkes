@@ -100,7 +100,6 @@ class ColliThread
   void visualize_cells();
   void set_visualization_thread(ColliVisualizationThreadBase *visthread);
   void visualize_grid();
-  void update_navi();
  #endif
 
   ColliThread();
@@ -123,6 +122,7 @@ class ColliThread
   fawkes::BlackBoard * bb_;
 
   void init_laser();
+  void update_navi();
 
   fawkes::tf::TransformPublisher *m_tf_pub_odom;
 
