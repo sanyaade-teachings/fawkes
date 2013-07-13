@@ -39,6 +39,7 @@ OBJS_colli = colli_plugin.o colli_thread.o \
              search/og_laser.o -lm\
              search/astar.o \
              search/astar_search.o \
+             search/ellipse.o \
              \
              robo-utils/occupancygrid/occupancygrid.o \
              robo-utils/roboshape.o \

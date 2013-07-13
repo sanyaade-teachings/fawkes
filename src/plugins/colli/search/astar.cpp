@@ -58,8 +58,8 @@
 #define _COLLI_ASTAR_CPP_
 
 
-#include "../colli_thread.h"
 #include "astar.h"
+#include "../common/defines.h"
 
 
 using namespace std;
@@ -79,7 +79,7 @@ CAStar::CAStar( Logger* logger, Configuration *config, OccupancyGrid * occGrid )
   loggerASS->log_info("CAStar","AStar(Constructor): Initializing AStar\n");
 
   /*string confFileName = "../cfg/robocup/colli.cfg";
-  try 
+  try
     {
       ConfigFile * m_pConf = new ConfigFile( confFileName );
       m_MaxStates = m_pConf->integer( "AStar_MAX_STATES" );
@@ -88,13 +88,13 @@ CAStar::CAStar( Logger* logger, Configuration *config, OccupancyGrid * occGrid )
     }
   catch (...)
     {
-      cout << "***** ERROR *****: Could not open: " << confFileName 
-	   << " --> ABORTING!" << endl << endl;
+      cout << "***** ERROR *****: Could not open: " << confFileName
+           << " --> ABORTING!" << endl << endl;
       exit( 0 );
     }*/
   if(!config->exists("/plugins/colli/AStar_MAX_STATES"))
   {
-      cout << "***** ERROR *****: Could not find: AStar_MAX_STATES" 
+      cout << "***** ERROR *****: Could not find: AStar_MAX_STATES"
            << " --> ABORTING!" << endl << endl;
       exit( 0 );
   }
@@ -187,7 +187,7 @@ void CAStar::get_grid()
         occ_cells.push_back(HomPoint(gridX,gridY));
       }
     }
-  }  
+  }
 }
 
 
@@ -210,42 +210,42 @@ CAStarState * CAStar::Search( )
     {
       // get best state
       if ( m_pOpenList.size() > 0 )
-	{
-	  best = m_pOpenList.top();
-	  m_pOpenList.pop( );
-	}
+        {
+          best = m_pOpenList.top();
+          m_pOpenList.pop( );
+        }
       else
-	return 0;
+        return 0;
 
       // check if its a goal.
       if ( IsGoal( best ) )
-      { 
+      {
         /*if( best->m_TotalCost < best_cost )
         {
           best_cost = best->m_TotalCost;
-          best_state = best;  
+          best_state = best;
         }*/
-	return best;
+        return best;
       }
       else if ( m_AStarStateCount > m_MaxStates - 6 )
-	{
-	  loggerASS->log_error("ASTAR","**** Warning: Out of states! \n**** Increasing A* MaxStates!\n");
+        {
+          loggerASS->log_error("ASTAR","**** Warning: Out of states! \n**** Increasing A* MaxStates!\n");
 
-	  for( int i = 0; i < m_MaxStates; i++ )
-	    delete m_vAStarStates[i];
+          for( int i = 0; i < m_MaxStates; i++ )
+            delete m_vAStarStates[i];
 
-	  m_MaxStates += (int)(m_MaxStates/3.0);
+          m_MaxStates += (int)(m_MaxStates/3.0);
 
-	  m_vAStarStates.clear();
-	  m_vAStarStates.resize( m_MaxStates );
-	  for( int i = 0; i < m_MaxStates; i++)
-	    {
-	      best = new CAStarState();
-	      m_vAStarStates[i] = best;
-	    }
-	  loggerASS->log_info("ASTAR","**** Increasing done!\n");
-	  return 0;
-	}
+          m_vAStarStates.clear();
+          m_vAStarStates.resize( m_MaxStates );
+          for( int i = 0; i < m_MaxStates; i++)
+            {
+              best = new CAStarState();
+              m_vAStarStates[i] = best;
+            }
+          loggerASS->log_info("ASTAR","**** Increasing done!\n");
+          return 0;
+        }
 
       // generate all its children
       GenerateChildren( best );
@@ -258,9 +258,9 @@ CAStarState * CAStar::Search( )
 /** CalculateKey.
  *  This method produces one unique key for a state for
  *    putting this on the closed list.
- *    It has to be really fast, so the function is not so readable. 
+ *    It has to be really fast, so the function is not so readable.
  *    What it does is the following: x * 2^14 + y. This is unique,
- *    because first it does a bit shift for 14 bits, and adds (or) 
+ *    because first it does a bit shift for 14 bits, and adds (or)
  *    afterwards a number that is smaller tham 14 bits!
  */
 int CAStar::CalculateKey( int x, int y )
@@ -276,7 +276,7 @@ int CAStar::CalculateKey( int x, int y )
  */
 void CAStar::GenerateChildren( CAStarState * father )
 {
-  register CAStarState * child; 
+  register CAStarState * child;
   register int key;
 
   register float prob;
@@ -287,45 +287,45 @@ void CAStar::GenerateChildren( CAStarState * father )
     {
       prob = m_pOccGrid->getProb( father->m_X, father->m_Y-1 );
       if( prob != _COLLI_CELL_OCCUPIED_ )
-	{
-	  child = m_vAStarStates[++m_AStarStateCount];
-	  child->m_X = father->m_X;
-	  child->m_Y = father->m_Y-1;
-	  key = CalculateKey( child->m_X, child->m_Y );
-	  if ( m_hClosedList.find( key ) == m_hClosedList.end() )
-	    {
-	      child->m_pFather = father;
-	      child->m_PastCost = father->m_PastCost + (int)prob;
-	      child->m_TotalCost = child->m_PastCost + Heuristic( child );
-	      m_pOpenList.push( child );
-	      m_hClosedList[key] = key;
-	    }
-	  else
-	    --m_AStarStateCount;
-	}
+        {
+          child = m_vAStarStates[++m_AStarStateCount];
+          child->m_X = father->m_X;
+          child->m_Y = father->m_Y-1;
+          key = CalculateKey( child->m_X, child->m_Y );
+          if ( m_hClosedList.find( key ) == m_hClosedList.end() )
+            {
+              child->m_pFather = father;
+              child->m_PastCost = father->m_PastCost + (int)prob;
+              child->m_TotalCost = child->m_PastCost + Heuristic( child );
+              m_pOpenList.push( child );
+              m_hClosedList[key] = key;
+            }
+          else
+            --m_AStarStateCount;
+        }
     }
-  
+
   if ( father->m_Y < (signed int)m_Height )
     {
       prob = m_pOccGrid->getProb( father->m_X, father->m_Y+1 );
       if( prob != _COLLI_CELL_OCCUPIED_ )
-	{
-	  child = m_vAStarStates[++m_AStarStateCount];
-	  child->m_X = father->m_X;
-	  child->m_Y = father->m_Y+1;
-	  key = CalculateKey( child->m_X, child->m_Y );
+        {
+          child = m_vAStarStates[++m_AStarStateCount];
+          child->m_X = father->m_X;
+          child->m_Y = father->m_Y+1;
+          key = CalculateKey( child->m_X, child->m_Y );
 
-	  if ( m_hClosedList.find( key ) == m_hClosedList.end() )
-	    {
-	      child->m_pFather = father;
-	      child->m_PastCost = father->m_PastCost + (int)prob;
-	      child->m_TotalCost = child->m_PastCost + Heuristic( child );
-	      m_pOpenList.push( child );
-	      m_hClosedList[key] = key;
-	    }
-	  else
-	    --m_AStarStateCount;
-	}
+          if ( m_hClosedList.find( key ) == m_hClosedList.end() )
+            {
+              child->m_pFather = father;
+              child->m_PastCost = father->m_PastCost + (int)prob;
+              child->m_TotalCost = child->m_PastCost + Heuristic( child );
+              m_pOpenList.push( child );
+              m_hClosedList[key] = key;
+            }
+          else
+            --m_AStarStateCount;
+        }
     }
 
 
@@ -333,46 +333,46 @@ void CAStar::GenerateChildren( CAStarState * father )
     {
       prob = m_pOccGrid->getProb( father->m_X-1, father->m_Y );
       if( prob != _COLLI_CELL_OCCUPIED_ )
-	{
-	  child = m_vAStarStates[++m_AStarStateCount];
-	  child->m_X = father->m_X-1;
-	  child->m_Y = father->m_Y;
-	  key = CalculateKey( child->m_X, child->m_Y );
-	  if ( m_hClosedList.find( key ) == m_hClosedList.end() )
-	    {
-	      child->m_pFather = father;
-	      child->m_PastCost = father->m_PastCost + (int)prob;
-	      child->m_TotalCost = child->m_PastCost + Heuristic( child );
-	      m_pOpenList.push( child );
-	      m_hClosedList[key] = key;
-	    }
-	  else
-	    --m_AStarStateCount;
-	}
+        {
+          child = m_vAStarStates[++m_AStarStateCount];
+          child->m_X = father->m_X-1;
+          child->m_Y = father->m_Y;
+          key = CalculateKey( child->m_X, child->m_Y );
+          if ( m_hClosedList.find( key ) == m_hClosedList.end() )
+            {
+              child->m_pFather = father;
+              child->m_PastCost = father->m_PastCost + (int)prob;
+              child->m_TotalCost = child->m_PastCost + Heuristic( child );
+              m_pOpenList.push( child );
+              m_hClosedList[key] = key;
+            }
+          else
+            --m_AStarStateCount;
+        }
     }
-  
+
   if ( father->m_X < (signed int)m_Width )
     {
       prob = m_pOccGrid->getProb( father->m_X+1, father->m_Y );
       if( prob != _COLLI_CELL_OCCUPIED_ )
-	{
-	  child = m_vAStarStates[++m_AStarStateCount];
-	  child->m_X = father->m_X+1;
-	  child->m_Y = father->m_Y;
-	  key = CalculateKey( child->m_X, child->m_Y );
-	 if ( m_hClosedList.find( key ) == m_hClosedList.end() )
-	    {
-	      child->m_pFather = father;
-	      child->m_PastCost = father->m_PastCost + (int)prob;
-	      child->m_TotalCost = child->m_PastCost + Heuristic( child );
-	      m_pOpenList.push( child );
-	      m_hClosedList[key] = key;
-	    }
-	  else
-	    --m_AStarStateCount;
-	}
+        {
+          child = m_vAStarStates[++m_AStarStateCount];
+          child->m_X = father->m_X+1;
+          child->m_Y = father->m_Y;
+          key = CalculateKey( child->m_X, child->m_Y );
+         if ( m_hClosedList.find( key ) == m_hClosedList.end() )
+            {
+              child->m_pFather = father;
+              child->m_PastCost = father->m_PastCost + (int)prob;
+              child->m_TotalCost = child->m_PastCost + Heuristic( child );
+              m_pOpenList.push( child );
+              m_hClosedList[key] = key;
+            }
+          else
+            --m_AStarStateCount;
+        }
     }
-  
+
 }
 
 
@@ -384,8 +384,8 @@ void CAStar::GenerateChildren( CAStarState * father )
 int CAStar::Heuristic( CAStarState * state )
 {
   //  return (int)( abs( state->m_X - m_pTargetState.m_X ));
-  return (int)( abs( state->m_X - m_pTargetState.m_X ) +	
- 		abs( state->m_Y - m_pTargetState.m_Y ) );
+  return (int)( abs( state->m_X - m_pTargetState.m_X ) +
+                abs( state->m_Y - m_pTargetState.m_Y ) );
 }
 
 
@@ -394,8 +394,8 @@ int CAStar::Heuristic( CAStarState * state )
  */
 bool CAStar::IsGoal( CAStarState * state )
 {
-  return ( (m_pTargetState.m_X == state->m_X) && 
-	   (m_pTargetState.m_Y == state->m_Y) );
+  return ( (m_pTargetState.m_X == state->m_X) &&
+           (m_pTargetState.m_Y == state->m_Y) );
 }
 
 
@@ -444,41 +444,41 @@ HomPoint CAStar::RemoveTargetFromObstacle( int targetX, int targetY, int stepX, 
       m_pOpenList.pop();
       key = CalculateKey( father->m_X, father->m_Y );
       if ( m_hClosedList.find( key ) == m_hClosedList.end() )
-	{
-	  m_hClosedList[key] = key;
-	  // generiere zwei kinder. wenn besetzt, pack sie an das ende 
-	  //   der openlist mit kosten + 1, sonst return den Knoten
-	  if ( (father->m_X > 1) && ( father->m_X < (signed)m_Width-2 ) )
-	    {
-	      child = m_vAStarStates[++m_AStarStateCount];
-	      child->m_X = father->m_X + stepX;
-	      child->m_Y = father->m_Y;
-	      child->m_TotalCost = father->m_TotalCost+1;
-	      key = CalculateKey( child->m_X, child->m_Y );
-	      if ( m_pOccGrid->getProb( child->m_X, child->m_Y ) == _COLLI_CELL_NEAR_ )
+        {
+          m_hClosedList[key] = key;
+          // generiere zwei kinder. wenn besetzt, pack sie an das ende
+          //   der openlist mit kosten + 1, sonst return den Knoten
+          if ( (father->m_X > 1) && ( father->m_X < (signed)m_Width-2 ) )
+            {
+              child = m_vAStarStates[++m_AStarStateCount];
+              child->m_X = father->m_X + stepX;
+              child->m_Y = father->m_Y;
+              child->m_TotalCost = father->m_TotalCost+1;
+              key = CalculateKey( child->m_X, child->m_Y );
+              if ( m_pOccGrid->getProb( child->m_X, child->m_Y ) == _COLLI_CELL_NEAR_ )
               {
-		return HomPoint( child->m_X, child->m_Y );
+                return HomPoint( child->m_X, child->m_Y );
               }
-	      else	
+              else
                if ( m_hClosedList.find( key ) == m_hClosedList.end() )
-		  m_pOpenList.push( child );
-	    }
-	  if ( (father->m_Y > 1) && (father->m_Y < (signed)m_Height-2) ) 
-	    {
-	      child = m_vAStarStates[++m_AStarStateCount];
-	      child->m_X = father->m_X;
-	      child->m_Y = father->m_Y + stepY;
-	      child->m_TotalCost = father->m_TotalCost+1;
-	      key = CalculateKey( child->m_X, child->m_Y );
+                  m_pOpenList.push( child );
+            }
+          if ( (father->m_Y > 1) && (father->m_Y < (signed)m_Height-2) )
+            {
+              child = m_vAStarStates[++m_AStarStateCount];
+              child->m_X = father->m_X;
+              child->m_Y = father->m_Y + stepY;
+              child->m_TotalCost = father->m_TotalCost+1;
+              key = CalculateKey( child->m_X, child->m_Y );
               if( m_pOccGrid->getProb( child->m_X, child->m_Y ) == _COLLI_CELL_NEAR_ )
               {
-	        return HomPoint( child->m_X, child->m_Y );
+                return HomPoint( child->m_X, child->m_Y );
               }
-	      else
-         	if ( m_hClosedList.find( key ) == m_hClosedList.end() )
-		  m_pOpenList.push( child );
-	    }
-	}
+              else
+                if ( m_hClosedList.find( key ) == m_hClosedList.end() )
+                  m_pOpenList.push( child );
+            }
+        }
     }
   loggerASS->log_error("CAStar", "Failed to get a modified targetpoint\n");
   return HomPoint( targetX, targetY );

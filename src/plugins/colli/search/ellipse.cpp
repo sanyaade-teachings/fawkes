@@ -51,62 +51,76 @@
 /*                                                                      */
 /* ******************************************************************** */
 
-#ifndef _COLLI_FAST_ELLIPSE_
-#define _COLLI_FAST_ELLIPSE_
+#include "ellipse.h"
+#include "../common/defines.h"
 
-
-//#include "../common/defines.h"
 #include <vector>
+#include <iostream>
 
-
-
-
-class CFastEllipse
+/** construct a new ellipse with given values. */
+CFastEllipse::CFastEllipse( int radius_width, int radius_height, int robocup_mode )
 {
- public:
+  float dist = 1000.0;
+  float dist_near = 1000.0;
+  float dist_middle = 1000.0;
+  float dist_far = 1000.0;
 
-  // center 0, 0
-  // construct a new ellipse with given values
-  CFastEllipse( int radius_width, int radius_height,
-                int robocup_mode );
-  ~CFastEllipse();
+  int maxRad = std::max( radius_width, radius_height );
 
-
-  // Return the occupied cells with their values
-  inline const std::vector< int > GetEllipse()
+  for ( int y = -(maxRad+6); y <= (maxRad+6); y++ )
   {
-    return m_OccupiedCells;
+    for ( int x = -(maxRad+6); x <= (maxRad+6); x++ )
+      {
+        dist = sqr(((float)x/(float)radius_width)) + sqr(((float)y/(float)radius_height));
+        dist_near = sqr(((float)x/(float)(radius_width+2))) + sqr(((float)y/(float)(radius_height+2)));
+        dist_middle = sqr(((float)x/(float)(radius_width+4))) + sqr(((float)y/(float)(radius_height+4)));
+/*      if ( robocup_mode == 1 ) */
+/*        { */
+/*          ; // ignore far distance obstacles */
+/*        } */
+/*      else */
+/*        { */
+            dist_far = sqr((float)x/(float)(radius_width+6))+sqr((float)y/(float)(radius_height+6));
+//        }
+
+        if ( (dist > 1.0) && (dist_near > 1.0) &&
+             (dist_middle > 1.0) && (dist_far > 1.0) )
+          {
+            ; // not in grid!
+          }
+        else if ( (dist > 1.0) && (dist_near > 1.0) &&
+                  (dist_middle > 1.0) && (dist_far <= 1.0) )
+          {
+            m_OccupiedCells.push_back( x );
+            m_OccupiedCells.push_back( y );
+            m_OccupiedCells.push_back( (int)_COLLI_CELL_FAR_ );
+          }
+        else if ( (dist > 1.0) && (dist_near > 1.0) &&
+                  (dist_middle <= 1.0) )
+          {
+            m_OccupiedCells.push_back( x );
+            m_OccupiedCells.push_back( y );
+            m_OccupiedCells.push_back( (int)_COLLI_CELL_MIDDLE_ );
+          }
+        else if ( (dist > 1.0) && (dist_near <= 1.0) &&
+                  (dist_middle <= 1.0) )
+          {
+            m_OccupiedCells.push_back( x );
+            m_OccupiedCells.push_back( y );
+            m_OccupiedCells.push_back( (int)_COLLI_CELL_NEAR_ );
+          }
+        else if ( (dist <= 1.0) && (dist_near <= 1.0) &&
+                  (dist_middle <= 1.0) )
+          {
+            m_OccupiedCells.push_back( x );
+            m_OccupiedCells.push_back( y );
+            m_OccupiedCells.push_back( (int)_COLLI_CELL_OCCUPIED_ );
+          }
+      }
   }
+}
 
-
-  inline int GetKey()
-  {
-    return m_Key;
-  }
-
-  inline void SetKey( int key )
-  {
-    m_Key = key;
-  }
-
-
- private:
-
-  // the occ cells, size is dividable through 3, 'cause:
-  // [i]   = x coord,
-  // [i+1] = y coord,
-  // [i+2] = costs
-  std::vector< int > m_OccupiedCells;
-
-
-  // a unique identifier for each ellipse
-  int m_Key;
-
-  inline float sqr( float x )
-  {
-    return (x*x);
-  }
-
-};
-
-#endif
+CFastEllipse::~CFastEllipse()
+{
+  m_OccupiedCells.clear();
+}

@@ -54,17 +54,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define PI 3.14159265
-
-#ifndef _COLLI_CELL_CONSTANTS_
-#define _COLLI_CELL_CONSTANTS_     1
-#define _COLLI_CELL_OCCUPIED_   1000.0
-#define _COLLI_CELL_NEAR_          4.0 // near an obstacle    | COST  6!
-#define _COLLI_CELL_MIDDLE_        3.0 // rel.near an obstacle| COST  4!
-#define _COLLI_CELL_FAR_           2.0 // far from an obstacle| COST  2!
-#define _COLLI_CELL_FREE_          1.0 // default free value  | COST  1!
-#endif
-
 // Colli States
 enum ColliState {
   NothingToDo,          // Indicating that nothing is to do

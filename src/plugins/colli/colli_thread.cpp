@@ -25,6 +25,8 @@
  #include "visualization_thread_base.h"
 #endif
 
+#include "common/defines.h"
+
 #include <interfaces/MotorInterface.h>
 #include <interfaces/Laser360Interface.h>
 #include <interfaces/NavigatorInterface.h>

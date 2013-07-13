@@ -59,12 +59,13 @@
 
 //#include <utils/configfile/configfile.h>
 #include "astar_search.h"
+#include "../common/defines.h"
 #include <geometry/hom_point.h>
 
 using namespace std;
 
 
-// Constructor. Constructs the plan, initializes an A* Object and 
+// Constructor. Constructs the plan, initializes an A* Object and
 //  makes a reference to the OccupancyGrid.
 CSearch::CSearch( Logger* logger, Configuration *config, CLaserOccupancyGrid * occGrid ) :
   CAbstractSearch( logger, occGrid )
@@ -72,38 +73,38 @@ CSearch::CSearch( Logger* logger, Configuration *config, CLaserOccupancyGrid * o
   loggerAstar = logger;
   loggerAstar->log_info("CSearch","CSearch(Constructor): Entering \n");
   m_pAStar = new CAStar( logger, config, occGrid );
-  
+
   /*string confFileName = "../cfg/robocup/colli.cfg";
-  try 
+  try
     {
       ConfigFile * m_pConf = new ConfigFile( confFileName );
-      
+
       m_RobocupMode = m_pConf->integer( "Colli_ROBOCUP_MODE" );
 
 
 #ifdef _COLLI_VISUALIZE_
       m_pVis = 0;
       if ( m_pConf->integer( "ColliVis" ) == 1 )
-	{
-      	  m_pVis = new CVisualize( );
-       	  int argc = 1;
-       	  char * argv = "Colli-Vis";
-      	  m_pVis->init_vwin( argc, &argv, 2*m_pOccGrid->getWidth(), 2*m_pOccGrid->getHeight() );
-      	  m_pVis->draw_field();
-      	  m_pVis->myXtAppMainLoop();
-	}
+        {
+          m_pVis = new CVisualize( );
+          int argc = 1;
+          char * argv = "Colli-Vis";
+          m_pVis->init_vwin( argc, &argv, 2*m_pOccGrid->getWidth(), 2*m_pOccGrid->getHeight() );
+          m_pVis->draw_field();
+          m_pVis->myXtAppMainLoop();
+        }
 #endif
       delete m_pConf;
     }
   catch (...)
     {
-      cout << "***** ERROR *****: Could not open: " << confFileName 
-	   << " --> ABORTING!" << endl << endl;
+      cout << "***** ERROR *****: Could not open: " << confFileName
+           << " --> ABORTING!" << endl << endl;
       exit( 0 );
     }*/
   if(!config->exists("/plugins/colli/Colli_ROBOCUP_MODE"))
   {
-      cout << "***** ERROR *****: Could not open: Colli_ROBOCUP_MODE" 
+      cout << "***** ERROR *****: Could not open: Colli_ROBOCUP_MODE"
            << " --> ABORTING!" << endl << endl;
       exit( 0 );
   }
@@ -142,7 +143,7 @@ CSearch::~CSearch()
 
 std::vector< HomPoint >  CSearch::GetPlan()
 {
-  
+
   return m_vPlan;
 }
 
@@ -185,31 +186,31 @@ void CSearch::Update( int roboX, int roboY, int targetX, int targetY)
   m_RoboPosition = HomPoint(min_roboX, min_roboY);
   m_LocalTarget     = HomPoint( min_roboX, min_roboY );
   m_LocalTrajectory = HomPoint( min_roboX, min_roboY );
-  
+
   if( m_pOccGrid->getProb( targetX, targetY ) == _COLLI_CELL_OCCUPIED_ )
     {
       int stepX = 1;  // initializing to 1
       int stepY = 1;
       if ( roboX < targetX ) // if we search in the other direction, inverse it!
-	stepX = -1;
-      if ( roboY < targetY ) 
-	stepY = -1;
+        stepX = -1;
+      if ( roboY < targetY )
+        stepY = -1;
       m_TargetPosition = m_pAStar->RemoveTargetFromObstacle( targetX, targetY,stepX, stepY );
     }
   else
     {
       m_TargetPosition = HomPoint( targetX, targetY );
     }
- 
+
     m_pAStar->Solve( m_RoboPosition, m_TargetPosition, m_vPlan);
-  
+
   if (m_vPlan.size() > 0)
     {
       m_UpdatedSuccessful = true;
       m_LocalTarget     = CalculateLocalTarget();
       m_LocalTarget     = AdjustWaypoint( m_LocalTarget );
       m_LocalTrajectory = CalculateLocalTrajectoryPoint();
-    } 
+    }
 }
 
 // Return, if the previous called update performed successfully
@@ -240,23 +241,23 @@ HomPoint CSearch::CalculateLocalTarget()
     {
       vector<HomPoint>::iterator it = m_vPlan.begin()+1;
       for ( ; it != m_vPlan.end()-1; ++it )
-  	{
-	  prev = target;
-	  target = *it;
+        {
+          prev = target;
+          target = *it;
 
-	  if ( m_RobocupMode != 1 ) // not robocup mode
-	    {
-	      if ( IsObstacleBetween( m_RoboPosition, *it, 5 ) &&
-		   IsObstacleBetween( m_RoboPosition, *(it+1), 5 ) )
-		return prev;
-	    }
-	  else // robocup mode
-	    {
-	      if ( IsObstacleBetween( m_RoboPosition, *it, 11 ) &&
-		   IsObstacleBetween( m_RoboPosition, *(it+1), 11 ) )
-		return prev;
-	    }
-   	}
+          if ( m_RobocupMode != 1 ) // not robocup mode
+            {
+              if ( IsObstacleBetween( m_RoboPosition, *it, 5 ) &&
+                   IsObstacleBetween( m_RoboPosition, *(it+1), 5 ) )
+                return prev;
+            }
+          else // robocup mode
+            {
+              if ( IsObstacleBetween( m_RoboPosition, *it, 11 ) &&
+                   IsObstacleBetween( m_RoboPosition, *(it+1), 11 ) )
+                return prev;
+            }
+        }
       return HomPoint( *(m_vPlan.end()-1) );
     }
   else
@@ -290,37 +291,37 @@ HomPoint CSearch::CalculateLocalTrajectoryPoint( )
   if ( x < (int)m_LocalTarget.x() )
     {
       ++x;
-      while ( ( x < (int)m_pOccGrid->getWidth() ) && 
-	      ( x <= (int)m_LocalTarget.x() ) &&
-	      !(IsObstacleBetween( HomPoint(x, y), m_LocalTarget, max_occ )) &&
-	      !(IsObstacleBetween( m_RoboPosition, HomPoint(x, y), max_occ ) ) )
-	++x;
-      
+      while ( ( x < (int)m_pOccGrid->getWidth() ) &&
+              ( x <= (int)m_LocalTarget.x() ) &&
+              !(IsObstacleBetween( HomPoint(x, y), m_LocalTarget, max_occ )) &&
+              !(IsObstacleBetween( m_RoboPosition, HomPoint(x, y), max_occ ) ) )
+        ++x;
+
       if ( x == m_LocalTarget.x() && y == m_LocalTarget.y() )
-	return HomPoint( x, y );
+        return HomPoint( x, y );
       else
-	return HomPoint( x-1, y );
+        return HomPoint( x-1, y );
     }
   else
     {
       --x;
-      while ( ( x > 0 ) && 
-	      ( x >= (int)m_LocalTarget.x() ) &&
-	      !(IsObstacleBetween( HomPoint(x, y), m_LocalTarget, max_occ )) &&
-	      !(IsObstacleBetween( m_RoboPosition, HomPoint(x, y), max_occ ) ) )
-	--x;
+      while ( ( x > 0 ) &&
+              ( x >= (int)m_LocalTarget.x() ) &&
+              !(IsObstacleBetween( HomPoint(x, y), m_LocalTarget, max_occ )) &&
+              !(IsObstacleBetween( m_RoboPosition, HomPoint(x, y), max_occ ) ) )
+        --x;
 
       if ( (x == (int)m_LocalTarget.x()) && (y == (int)m_LocalTarget.y()) )
-	return HomPoint( x, y );
+        return HomPoint( x, y );
       else
-	return HomPoint( x+1, y );
+        return HomPoint( x+1, y );
     }
 }
 
 
 // checks per raytracing, if an obstacle is between two points.
-bool CSearch::IsObstacleBetween( const HomPoint &a, const HomPoint &b, 
-				 const int maxcount )
+bool CSearch::IsObstacleBetween( const HomPoint &a, const HomPoint &b,
+                                 const int maxcount )
 {
   if (a.x() == b.x() && a.y() == b.y() )
     return false;
@@ -336,77 +337,77 @@ bool CSearch::IsObstacleBetween( const HomPoint &a, const HomPoint &b,
   int endYGrid = (int)b.y();
   ( endYGrid > _actYGrid ? _yDirInt = 1 : _yDirInt = -1 );
   int dY = abs(endYGrid - _actYGrid);
-  
+
   // decide whether direction is more x or more y, and run the algorithm
-  if (dX > dY) 
+  if (dX > dY)
     {
       register int _P, _dPr, _dPru;
       _dPr  = dY<<1; // amount to increment decision if right is chosen (always)
       _dPru = _dPr - (dX<<1); // amount to increment decision if up is chosen
       _P    = _dPr - dX; // decision variable start value
-      
-      for ( ; (_actXGrid != endXGrid) && (_actYGrid != endYGrid); 
-	    _actXGrid += _xDirInt )
-	{
-	  if (_actXGrid < 0 || _actXGrid > m_pOccGrid->getWidth() ||
-	      _actYGrid < 0 || _actXGrid > m_pOccGrid->getHeight() )
-	    return false;
 
-	  prob = m_pOccGrid->getProb( _actXGrid, _actYGrid );
+      for ( ; (_actXGrid != endXGrid) && (_actYGrid != endYGrid);
+            _actXGrid += _xDirInt )
+        {
+          if (_actXGrid < 0 || _actXGrid > m_pOccGrid->getWidth() ||
+              _actYGrid < 0 || _actXGrid > m_pOccGrid->getHeight() )
+            return false;
 
-	  if ( prob == _COLLI_CELL_FREE_ )
-	    ;
-	  else if ( prob == _COLLI_CELL_OCCUPIED_ )
-	    return true;
-	  else if ( prob == _COLLI_CELL_FAR_ )
-	    ++count;
-	  else if ( prob == _COLLI_CELL_MIDDLE_ )
-	    count += 2;
-	  else if ( prob == _COLLI_CELL_NEAR_ )
-	    count += 4;
-	  else
-	    loggerAstar->log_error("CSearch","AStar_Search Line 541: ERROR IN RAYTRACER!\n");
-	  
-	  if ( count > maxcount )
-	    return true;
+          prob = m_pOccGrid->getProb( _actXGrid, _actYGrid );
 
-	  ( ( _P > 0 ) ? _actYGrid += _yDirInt, _P += _dPru : _P += _dPr );
-	}
+          if ( prob == _COLLI_CELL_FREE_ )
+            ;
+          else if ( prob == _COLLI_CELL_OCCUPIED_ )
+            return true;
+          else if ( prob == _COLLI_CELL_FAR_ )
+            ++count;
+          else if ( prob == _COLLI_CELL_MIDDLE_ )
+            count += 2;
+          else if ( prob == _COLLI_CELL_NEAR_ )
+            count += 4;
+          else
+            loggerAstar->log_error("CSearch","AStar_Search Line 541: ERROR IN RAYTRACER!\n");
+
+          if ( count > maxcount )
+            return true;
+
+          ( ( _P > 0 ) ? _actYGrid += _yDirInt, _P += _dPru : _P += _dPr );
+        }
     }
-  else 
+  else
     {
       register int _P, _dPr, _dPru;
       _dPr         = dX<<1; // amount to increment decision if right is chosen (always)
       _dPru        = _dPr - (dY<<1); // amount to increment decision if up is chosen
       _P           = _dPr - dY; // decision variable start value
-      
-      for ( ; (_actXGrid != endXGrid) && (_actYGrid != endYGrid); 
-	    _actYGrid += _yDirInt ) 
-	{
-	  if (_actXGrid < 0 || _actXGrid > m_pOccGrid->getWidth() ||
-	      _actYGrid < 0 || _actXGrid > m_pOccGrid->getHeight() )
-	    return false;
 
-	  prob = m_pOccGrid->getProb( _actXGrid, _actYGrid );
+      for ( ; (_actXGrid != endXGrid) && (_actYGrid != endYGrid);
+            _actYGrid += _yDirInt )
+        {
+          if (_actXGrid < 0 || _actXGrid > m_pOccGrid->getWidth() ||
+              _actYGrid < 0 || _actXGrid > m_pOccGrid->getHeight() )
+            return false;
 
-	  if ( prob == _COLLI_CELL_FREE_ )
-	    ;
-	  else if ( prob == _COLLI_CELL_OCCUPIED_ )
-	    return true;
-	  else if ( prob == _COLLI_CELL_FAR_ )
-	    ++count;
-	  else if ( prob == _COLLI_CELL_MIDDLE_ )
-	    count += 2;
-	  else if ( prob == _COLLI_CELL_NEAR_ )
-	    count += 4;
-	  else
-	    loggerAstar->log_error("CSearch","AStar_Search Line 576: ERROR IN RAYTRACER!\n");
-	  
-	  if ( count > maxcount )
-	    return true;
+          prob = m_pOccGrid->getProb( _actXGrid, _actYGrid );
 
-	  ( ( _P > 0 ) ? _actXGrid += _xDirInt, _P += _dPru : _P += _dPr );
-	}
+          if ( prob == _COLLI_CELL_FREE_ )
+            ;
+          else if ( prob == _COLLI_CELL_OCCUPIED_ )
+            return true;
+          else if ( prob == _COLLI_CELL_FAR_ )
+            ++count;
+          else if ( prob == _COLLI_CELL_MIDDLE_ )
+            count += 2;
+          else if ( prob == _COLLI_CELL_NEAR_ )
+            count += 4;
+          else
+            loggerAstar->log_error("CSearch","AStar_Search Line 576: ERROR IN RAYTRACER!\n");
+
+          if ( count > maxcount )
+            return true;
+
+          ( ( _P > 0 ) ? _actXGrid += _xDirInt, _P += _dPru : _P += _dPr );
+        }
     }
   return false; // there is no obstacle between those two points.
 }
