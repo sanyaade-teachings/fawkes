@@ -79,13 +79,11 @@ ifeq ($(ENABLE_VISUAL_DEBUGGING),1)
     WARN_TARGETS += warning_nav_msgs
    endif
  else
-  $(warning ros is not available)$
   ENABLE_VISUAL_DEBUGGING = 0
   WARN_TARGETS += warning_ros
  endif
 endif
 ifneq ($(ENABLE_VISUAL_DEBUGGING),1)
-  $(warning HAVE: $(call boost-have-lib,thread)  CFLAGS: $(call boost-lib-cflags,thread)  LDFLAGS: $(call boost-lib-ldflags,thread))
   CFLAGS  += $(call boost-lib-cflags,thread)
   LDFLAGS += $(call boost-lib-ldflags,thread)
 endif
