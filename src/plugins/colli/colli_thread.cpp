@@ -4,7 +4,6 @@
  *
  *  Created: Sat Jul 13 12:00:00 2013
  *  Copyright  2013  AllemaniACs
- *
  ****************************************************************************/
 
 /*  This program is free software; you can redistribute it and/or modify
@@ -42,10 +41,9 @@ using namespace std;
 ColliThread::ColliThread()
   : Thread("ColliThread", Thread::OPMODE_CONTINUOUS)
 {
- #ifdef HAVE_VISUAL_DEBUGGING
+#ifdef HAVE_VISUAL_DEBUGGING
   visthread_ = NULL;
 #endif
-
 }
 
 

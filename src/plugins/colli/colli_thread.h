@@ -92,13 +92,16 @@ class ColliThread
   virtual void loop();
   virtual void finalize();
 
+#ifdef HAVE_VISUAL_DEBUGGING
+  void set_visualization_thread(ColliVisualizationThreadBase *visthread);
+#endif
+
  protected: virtual void run() { Thread::run(); }
 
  private:
  #ifdef HAVE_VISUAL_DEBUGGING
   ColliVisualizationThreadBase *visthread_;
   void visualize_cells();
-  void set_visualization_thread(ColliVisualizationThreadBase *visthread);
   void visualize_grid();
  #endif
   fawkes::MotorInterface  *m_pMopoObj;
