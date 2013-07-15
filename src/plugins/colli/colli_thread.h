@@ -61,7 +61,7 @@ enum ColliState {
 
 const string default_hostname = "";
 #ifdef HAVE_VISUAL_DEBUGGING
-class ColliVisualizationThreadBase;
+class ColliVisualizationThread;
 #endif
 
 namespace fawkes {
@@ -93,14 +93,14 @@ class ColliThread
   virtual void finalize();
 
 #ifdef HAVE_VISUAL_DEBUGGING
-  void set_visualization_thread(ColliVisualizationThreadBase *visthread);
+  void set_visualization_thread(ColliVisualizationThread *visthread);
 #endif
 
  protected: virtual void run() { Thread::run(); }
 
  private:
  #ifdef HAVE_VISUAL_DEBUGGING
-  ColliVisualizationThreadBase *visthread_;
+  ColliVisualizationThread *visthread_;
   void visualize_cells();
   void visualize_grid();
  #endif

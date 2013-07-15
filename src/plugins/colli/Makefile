@@ -72,8 +72,7 @@ ifeq ($(ENABLE_VISUAL_DEBUGGING),1)
    LDFLAGS += $(LDFLAGS_ROS) $(call ros-pkg-lflags,visualization_msgs) $(shell rospack export --lang=cpp --attrib=cflags visualization_msgs)
    LDFLAGS += $(LDFLAGS_ROS) $(call ros-pkg-lflags,interactive_markers) $(shell rospack export --lang=cpp --attrib=cflags interactive_markers)
    LIBS_colli += fawkesrosaspect
-   OBJS_colli += visualization_thread_base.o visualization_thread.o
-   #OBJS_colli += navigation_thread_base.o navigation_thread.o
+   OBJS_colli += visualization_thread.o
    else
     ENABLE_VISUAL_DEBUGGING = 0
     WARN_TARGETS += warning_nav_msgs

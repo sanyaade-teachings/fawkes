@@ -14,42 +14,38 @@
 #  error ColliVisualizationThread was disabled by build flags
 #endif
 
-#include "visualization_thread_base.h"
-
 #include <core/threading/thread.h>
 #include <core/threading/mutex.h>
+#include <core/threading/mutex_locker.h>
 #include <aspect/tf.h>
 #include <aspect/configurable.h>
 #include <aspect/logging.h>
 #include <aspect/blackboard.h>
 #include <plugins/ros/aspect/ros.h>
 #include <plugins/ros/aspect/ros_inifin.h>
-#include <core/threading/mutex_locker.h>
 #include <interfaces/NavigatorInterface.h>
 #include <interfaces/MotorInterface.h>
-#include <vector>
+#include <geometry/hom_point.h>
 
 #include <ros/ros.h>
 #include <ros/this_node.h>
 #include <std_msgs/String.h>
 
-namespace ros {
-  class Publisher;
-  class Subscriber;
-}
 #include <geometry_msgs/PoseStamped.h>
 #include <visualization_msgs/InteractiveMarker.h>
 #include <interactive_markers/interactive_marker_server.h>
 #include <interactive_markers/menu_handler.h>
 
-using namespace ros;
-using namespace fawkes;
+#include <vector>
+#include <string>
 
-const int max_counter_ = 100;
+namespace ros {
+  class Publisher;
+  class Subscriber;
+}
 
 class ColliVisualizationThread
-: public ColliVisualizationThreadBase,
-  public fawkes::Thread,
+: public fawkes::Thread,
   public fawkes::TransformAspect,
   public fawkes::LoggingAspect,
   public fawkes::ConfigurableAspect,
@@ -57,18 +53,33 @@ class ColliVisualizationThread
   public fawkes::ROSAspect
 {
  public:
+  const static int max_counter_ = 100;
+
   ColliVisualizationThread();
 
   virtual void init();
   virtual void loop();
   virtual void finalize();
 
-  virtual void visualize(const std::string frame_id,vector<HomPoint> cells,vector<HomPoint > near_cells,vector<HomPoint > far_cells,vector<HomPoint > middle_cells,
-                         HomPoint m_RoboGridPos,HomPoint m_LaserGridPos,vector<HomPoint> laser_points,
-                         vector< HomPoint > plan,HomPoint motor_des,int cell_width,int cell_height,HomPoint target,
-                         int grid_width, int grid_height, HomPoint motor_real,HomPoint localTarget,HomPoint target_odom,
-                         vector<HomPoint > orig_laser_points,vector<HomPoint > search_occ,
-                         vector<HomPoint > astar_found_occ,vector<HomPoint > free_cells,vector<HomPoint > seen_states,HomPoint modTarget) throw();
+  virtual void visualize(const std::string frame_id,
+			 std::vector<fawkes::HomPoint> cells,
+			 std::vector<fawkes::HomPoint> near_cells,
+			 std::vector<fawkes::HomPoint> far_cells,
+			 std::vector<fawkes::HomPoint> middle_cells,
+                         fawkes::HomPoint m_RoboGridPos,
+			 fawkes::HomPoint m_LaserGridPos,
+			 std::vector<fawkes::HomPoint> laser_points,
+                         std::vector<fawkes::HomPoint> plan,
+			 fawkes::HomPoint motor_des,
+			 int cell_width, int cell_height, fawkes::HomPoint target,
+                         int grid_width, int grid_height, fawkes::HomPoint motor_real,
+			 fawkes::HomPoint localTarget, fawkes::HomPoint target_odom,
+                         std::vector<fawkes::HomPoint> orig_laser_points,
+			 std::vector<fawkes::HomPoint> search_occ,
+                         std::vector<fawkes::HomPoint> astar_found_occ,
+			 std::vector<fawkes::HomPoint> free_cells,
+			 std::vector<fawkes::HomPoint> seen_states,
+			 fawkes::HomPoint modTarget) throw();
 
   void visualize_grid_boundary();
   void visualize_path();
@@ -89,14 +100,14 @@ class ColliVisualizationThread
   void visualize_colli_params();
   void visualize_robot_icon();
   void visualize_modified_target();
-  HomPoint transform( HomPoint point );
-  HomPoint transform_robo( HomPoint point );
-  HomPoint transform_odom_to_base(HomPoint point);
-  HomPoint transform_base_to_odom(HomPoint point);
-  HomPoint transform_laser_to_base(HomPoint point);
-  HomPoint transform_base_to_map(HomPoint point);
-  HomPoint transform_map_to_base(HomPoint point);
-  HomPoint transform_map_to_base(geometry_msgs::PoseStamped poseMsg);
+  fawkes::HomPoint transform( fawkes::HomPoint point );
+  fawkes::HomPoint transform_robo( fawkes::HomPoint point );
+  fawkes::HomPoint transform_odom_to_base(fawkes::HomPoint point);
+  fawkes::HomPoint transform_base_to_odom(fawkes::HomPoint point);
+  fawkes::HomPoint transform_laser_to_base(fawkes::HomPoint point);
+  fawkes::HomPoint transform_base_to_map(fawkes::HomPoint point);
+  fawkes::HomPoint transform_map_to_base(fawkes::HomPoint point);
+  fawkes::HomPoint transform_map_to_base(geometry_msgs::PoseStamped poseMsg);
   void visualize_target_odom();
   void callback( const geometry_msgs::PoseStamped::ConstPtr &msg);
   void processFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback );
@@ -141,30 +152,30 @@ class ColliVisualizationThread
   ros::Subscriber *robot_sub_;
   ros::Subscriber *drive_mode_sub_;
 
-  vector<HomPoint > cells_;
-  vector<HomPoint > near_cells_;
-  vector<HomPoint > far_cells_;
-  vector<HomPoint > middle_cells_;
-  vector<HomPoint> laser_points_;
-  vector<HomPoint > orig_laser_points_;
-  vector<HomPoint > socc_;
-  vector<float > data_;
-  vector< HomPoint > plan_;
-  vector<HomPoint > astar_found_occ_;
-  vector<HomPoint > free_cells_;
-  vector<HomPoint > seen_states_;
+  std::vector<fawkes::HomPoint > cells_;
+  std::vector<fawkes::HomPoint > near_cells_;
+  std::vector<fawkes::HomPoint > far_cells_;
+  std::vector<fawkes::HomPoint > middle_cells_;
+  std::vector<fawkes::HomPoint> laser_points_;
+  std::vector<fawkes::HomPoint > orig_laser_points_;
+  std::vector<fawkes::HomPoint > socc_;
+  std::vector<float > data_;
+  std::vector< fawkes::HomPoint > plan_;
+  std::vector<fawkes::HomPoint > astar_found_occ_;
+  std::vector<fawkes::HomPoint > free_cells_;
+  std::vector<fawkes::HomPoint > seen_states_;
 
-  HomPoint robo_pos_;
-  HomPoint laser_pos_;
-  HomPoint target_pos_;
-  HomPoint fix_target_;
-  HomPoint target_odom_;
-  HomPoint motor_des_;
-  HomPoint motor_real_;
-  HomPoint local_target_;
-  HomPoint rviz_target_;
-  HomPoint rvizTarget;
-  HomPoint modTarget_;
+  fawkes::HomPoint robo_pos_;
+  fawkes::HomPoint laser_pos_;
+  fawkes::HomPoint target_pos_;
+  fawkes::HomPoint fix_target_;
+  fawkes::HomPoint target_odom_;
+  fawkes::HomPoint motor_des_;
+  fawkes::HomPoint motor_real_;
+  fawkes::HomPoint local_target_;
+  fawkes::HomPoint rviz_target_;
+  fawkes::HomPoint rvizTarget;
+  fawkes::HomPoint modTarget_;
   float odomx_;;
   float odomy_;
   float odomori_;
@@ -175,16 +186,16 @@ class ColliVisualizationThread
 
   int has_feedback;
   int feedback_id;
-  string pose_frame_id;
-  NavigatorInterface *m_navi;
-  NavigatorInterface *p_navi;
-  MotorInterface  *m_motor;
+  std::string pose_frame_id;
+  fawkes::NavigatorInterface *m_navi;
+  fawkes::NavigatorInterface *p_navi;
+  fawkes::MotorInterface  *m_motor;
   bool ref_obstacle;
-  string motor_iface_id;
-  string naviface_id;
+  std::string motor_iface_id;
+  std::string naviface_id;
   geometry_msgs::Pose robot_marker_pose;
   bool frame_valid_;
-  string fixed_frame_;
+  std::string fixed_frame_;
 };
 
 #endif

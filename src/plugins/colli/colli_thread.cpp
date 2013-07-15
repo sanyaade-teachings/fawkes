@@ -21,7 +21,7 @@
 
 #include "colli_thread.h"
 #ifdef HAVE_VISUAL_DEBUGGING
- #include "visualization_thread_base.h"
+#  include "visualization_thread.h"
 #endif
 
 #include "common/defines.h"
@@ -1048,7 +1048,7 @@ ColliThread::nearest_cell_to_target()
 
 #ifdef HAVE_VISUAL_DEBUGGING
 void
-ColliThread::set_visualization_thread(ColliVisualizationThreadBase *visthread)
+ColliThread::set_visualization_thread(ColliVisualizationThread *visthread)
 {
   visthread_ = visthread;
   if(visthread_ ) cout << "visualization thread set"<< endl;
@@ -1062,7 +1062,7 @@ ColliThread::publish_odom()
   tf::Quaternion o_r(-m_pMopoObj->odometry_orientation(), 0, 0);
   tf::Vector3 o_t(m_pMopoObj->odometry_position_x(),-m_pMopoObj->odometry_position_y(), 0);
   tf::Transform o_tr(o_r, o_t);
-  Time *o_ts = new Time();
+  fawkes::Time *o_ts = new fawkes::Time();
   o_ts = &(o_ts->stamp());
   fawkes::Time o_time(o_ts->get_sec(), o_ts->get_usec());
   m_tf_pub_odom->send_transform(o_tr, o_time, "/odom", "/base_link");

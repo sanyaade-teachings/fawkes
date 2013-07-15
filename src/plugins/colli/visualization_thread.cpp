@@ -11,11 +11,14 @@
 
 #include <ros/ros.h>
 #include <nav_msgs/GridCells.h>
-#include<nav_msgs/OccupancyGrid.h>
-#include<nav_msgs/Path.h>
+#include <nav_msgs/OccupancyGrid.h>
+#include <nav_msgs/Path.h>
 #include <geometry_msgs/PointStamped.h>
 #include <ros/this_node.h>
 #include <std_msgs/String.h>
+
+using namespace std;
+using namespace fawkes;
 
 ColliVisualizationThread::ColliVisualizationThread()
   : fawkes::Thread("ColliVisualizationThread", Thread::OPMODE_WAITFORWAKEUP)
