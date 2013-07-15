@@ -46,5 +46,6 @@ class ColliPlugin : public fawkes::Plugin
   }
 };
 
-PLUGIN_DESCRIPTION("plugin for collision avoidance")
+PLUGIN_DESCRIPTION("Local locomotion path planning with collision avoidance")
 EXPORT_PLUGIN(ColliPlugin)
+
