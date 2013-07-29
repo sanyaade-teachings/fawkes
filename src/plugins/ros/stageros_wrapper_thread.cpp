@@ -21,11 +21,13 @@
 
 #include "stageros_wrapper_thread.h"
 
-#include <core/threading/mutex_locker.h>
 #include <utils/math/angle.h>
+#include <math.h>
 
 #include <ros/this_node.h>
 #include <sensor_msgs/LaserScan.h>
+#include <tf/types.h>
+
 
 #include <fnmatch.h>
 
@@ -54,9 +56,9 @@ void
 StagerosWrapperThread::init()
 {
 
-  //subscribe ROS Topic "scan"
+  //subscribe ROS Topic "base_scan"
   try {
-    __sub = rosnode->subscribe("base_scan", 100, &StagerosWrapperThread::laser_scan_message_cb, this);
+    __laser_sub = rosnode->subscribe("base_scan", 100, &StagerosWrapperThread::laser_scan_message_cb, this);
   } catch (Exception& e) {
     e.append("%s initialization failed, could not register ros laser subscriber", name());
     logger->log_error(name(), e);
@@ -72,15 +74,32 @@ StagerosWrapperThread::init()
     throw;
   }
 
+  //subscribe ROS Topic "odom"
+  try {
+    __odom_sub = rosnode->subscribe("odom", 100, &StagerosWrapperThread::odom_message_cb, this);
+  } catch (Exception& e) {
+    e.append("%s initialization failed, could not register odom subscriber", name());
+    logger->log_error(name(), e);
+    throw;
+  }
+
+  // try to open motor interface for writing
+  try {
+    __motor_if = blackboard->open_for_writing<MotorInterface>("Robotino");
+  } catch (Exception& e) {
+    e.append("%s initialization failed, could not open Motor interface for writing", name());
+    logger->log_error(name(), e);
+    throw;
+  }
 }
 
 void
 StagerosWrapperThread::finalize()
 {
   
-  // unregister ros subscriber
+  // unregister ros laser subscriber
   try {
-    __sub.shutdown();
+    __laser_sub.shutdown();
   } catch (Exception& e) {
     logger->log_error(name(), "Unregistering ros laser subscriber failed!");
     logger->log_error(name(), e);
@@ -92,6 +111,21 @@ StagerosWrapperThread::finalize()
     //__laser_if->clear();
   } catch (Exception& e) {
     logger->log_error(name(), "Closing laser interface failed!");
+    logger->log_error(name(), e);
+  }
+  // unregister ros odom subscriber
+  try {
+    __odom_sub.shutdown();
+  } catch (Exception& e) {
+    logger->log_error(name(), "Unregistering ros odom subscriber failed!");
+    logger->log_error(name(), e);
+  }
+
+  // close BlackBoard laser interface
+  try {
+    blackboard->close(__motor_if);
+  } catch (Exception& e) {
+    logger->log_error(name(), "Closing motor interface failed!");
     logger->log_error(name(), e);
   }
 }
@@ -121,7 +155,27 @@ StagerosWrapperThread::laser_scan_message_cb(const sensor_msgs::LaserScan::Const
             		distances[i] = msg->ranges[idx];
           	}
         }
-
   __laser_if->set_distances(distances);  
   __laser_if->write();
+}
+
+void
+StagerosWrapperThread::odom_message_cb(const nav_msgs::Odometry::ConstPtr &msg){
+   
+ const float odomX = (*msg).pose.pose.position.x;
+ const float odomY = (*msg).pose.pose.position.y;
+
+ float q_x = (*msg).pose.pose.orientation.x;
+ float q_y = (*msg).pose.pose.orientation.y;
+ float q_z = (*msg).pose.pose.orientation.z;
+ float q_w = (*msg).pose.pose.orientation.w;
+
+ const float odomPhi = asin( 2*q_x*q_y + 2*q_z*q_w);
+
+ __motor_if->set_odometry_position_x( odomX / 1000.f );
+ __motor_if->set_odometry_position_y( odomY / 1000.f );
+ __motor_if->set_odometry_orientation( deg2rad( odomPhi ) );
+ __motor_if->write();
+
+
 }

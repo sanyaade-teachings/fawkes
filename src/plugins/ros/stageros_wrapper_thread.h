@@ -28,14 +28,12 @@
 #include <aspect/blackboard.h>
 #include <plugins/ros/aspect/ros.h>
 #include <interfaces/Laser360Interface.h>
-#include <core/threading/mutex.h>
+#include <interfaces/MotorInterface.h>
 #include <utils/time/time.h>
-
-#include <list>
-#include <queue>
 
 #include <ros/node_handle.h>
 #include <sensor_msgs/LaserScan.h>
+#include <nav_msgs/Odometry.h>
 
 class StagerosWrapperThread
 : public fawkes::Thread,
@@ -54,6 +52,7 @@ class StagerosWrapperThread
 
  private:
   void laser_scan_message_cb(const sensor_msgs::LaserScan::ConstPtr &msg);
+  void odom_message_cb(const nav_msgs::Odometry::ConstPtr &msg);
   void conditional_close(fawkes::Interface *interface) throw();
   std::string topic_name(const char *if_id, const char *suffix);
 
@@ -62,9 +61,12 @@ class StagerosWrapperThread
  protected: virtual void run() { Thread::run(); }
 
  private:
-  ros::Subscriber __sub;
+  ros::Subscriber __laser_sub;
+  ros::Subscriber __odom_sub;
   sensor_msgs::LaserScan  __laser_msg;
+  nav_msgs::Odometry __odom_msg;
   fawkes::Laser360Interface *__laser_if;
+  fawkes::MotorInterface *__motor_if;
 
 };
 

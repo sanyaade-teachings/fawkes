@@ -62,7 +62,8 @@ LIBS_ros_navigator = m pthread fawkescore fawkesutils fawkesaspects fawkesblackb
 OBJS_ros_navigator = navigator_plugin.o navigator_thread.o
 
 LIBS_stageros_wrapper = m pthread fawkescore fawkesutils fawkesaspects fawkesblackboard \
-		    fawkesinterface fawkesrosaspect fvutils Laser360Interface 
+		    fawkesinterface fawkesrosaspect fvutils Laser360Interface fawkestf \
+	            MotorInterface 
 OBJS_stageros_wrapper = stageros_wrapper_plugin.o stageros_wrapper_thread.o
 
 OBJS_all = $(OBJS_ros) $(OBJS_ros_talkerpub) $(OBJS_ros_webview) $(OBJS_ros_tf) \
@@ -131,11 +132,6 @@ ifeq ($(HAVE_ROS),1)
     LDFLAGS_ros_laserscan += $(call ros-pkg-lflags,sensor_msgs)
     PLUGINS_all += $(PLUGINDIR)/ros-laserscan.so
 
-    CFLAGS_stageros_wrapper_thread += $(call ros-pkg-cflags,sensor_msgs) $(CFLAGS)
-    CFLAGS_stageros_wrapper_plugin = $(CFLAGS_stageros_wrapper_thread) $(CFLAGS)
-    LDFLAGS_stageros_wrapper += $(call ros-pkg-lflags,sensor_msgs)
-    PLUGINS_all += $(PLUGINDIR)/stageros-wrapper.so
-
   else
     WARN_TARGETS += warning_rospcl warning_images warning_laserscan warning_stageros_wrapper
   endif
@@ -184,6 +180,26 @@ ifeq ($(HAVE_ROS),1)
   else
     WARN_TARGETS += warning_move_base_msgs
   endif
+
+
+  ifeq ($(call ros-have-pkg,sensor_msgs),1)
+   ifeq ($(call ros-have-pkg,nav_msgs),1)
+     ifeq ($(HAVE_TF),1)
+     CFLAGS_stageros_wrapper_thread += $(call ros-pkg-cflags,sensor_msgs)  $(CFLAGS_TF)  $(CFLAGS) \
+					$(call ros-pkg-cflags,nav_msgs)
+     CFLAGS_stageros_wrapper_plugin = $(CFLAGS_stageros_wrapper_thread) $(CFLAGS) 
+     LDFLAGS_stageros_wrapper += $(call ros-pkg-lflags,sensor_msgs) $(call ros-pkg-lflags,nav_msgs) \
+					$(patsubst %bullet/lib,,$(call ros-pkg-lflags,tf))
+     PLUGINS_all += $(PLUGINDIR)/stageros-wrapper.so
+     else
+       WARN_TARGETS += warning_fawkestf
+     endif
+   else
+     WARN_TARGETS += warning_nav_msgs
+   endif
+  else
+   WARN_TARGETS += warning_laserscan
+  endif  
 
 else
   WARN_TARGETS += warning_ros
