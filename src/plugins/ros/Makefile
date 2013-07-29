@@ -61,9 +61,13 @@ LIBS_ros_navigator = m pthread fawkescore fawkesutils fawkesaspects fawkesblackb
 		     fawkesinterface fawkesrosaspect NavigatorInterface
 OBJS_ros_navigator = navigator_plugin.o navigator_thread.o
 
+LIBS_stageros_wrapper = m pthread fawkescore fawkesutils fawkesaspects fawkesblackboard \
+		    fawkesinterface fawkesrosaspect fvutils Laser360Interface 
+OBJS_stageros_wrapper = stageros_wrapper_plugin.o stageros_wrapper_thread.o
+
 OBJS_all = $(OBJS_ros) $(OBJS_ros_talkerpub) $(OBJS_ros_webview) $(OBJS_ros_tf) \
 	   $(OBJS_ros_pcl) $(OBJS_ros_images) $(OBJS_ros_laserscan) $(OBJS_ros_odometry) \
-	   $(OBJS_ros_cmdvel) $(OBJS_ros_navigator)
+	   $(OBJS_ros_cmdvel) $(OBJS_ros_navigator) $(OBJS_stageros_wrapper)
 
 ifeq ($(HAVE_ROS),1)
   PRESUBDIRS += aspect
@@ -127,8 +131,13 @@ ifeq ($(HAVE_ROS),1)
     LDFLAGS_ros_laserscan += $(call ros-pkg-lflags,sensor_msgs)
     PLUGINS_all += $(PLUGINDIR)/ros-laserscan.so
 
+    CFLAGS_stageros_wrapper_thread += $(call ros-pkg-cflags,sensor_msgs) $(CFLAGS)
+    CFLAGS_stageros_wrapper_plugin = $(CFLAGS_stageros_wrapper_thread) $(CFLAGS)
+    LDFLAGS_stageros_wrapper += $(call ros-pkg-lflags,sensor_msgs)
+    PLUGINS_all += $(PLUGINDIR)/stageros-wrapper.so
+
   else
-    WARN_TARGETS += warning_rospcl warning_images warning_laserscan
+    WARN_TARGETS += warning_rospcl warning_images warning_laserscan warning_stageros_wrapper
   endif
 
   ifeq ($(call ros-have-pkg,nav_msgs),1)
@@ -200,6 +209,8 @@ warning_images:
 	$(SILENT)echo -e "$(INDENT_PRINT)--> $(TRED)Omitting ROS images plugin$(TNORMAL) (ROS package image_transport not found)"
 warning_laserscan:
 	$(SILENT)echo -e "$(INDENT_PRINT)--> $(TRED)Omitting ROS laser scan plugin$(TNORMAL) (ROS package sensor_msgs not found)"
+warning_stageros_wrapper:
+	$(SILENT)echo -e "$(INDENT_PRINT)--> $(TRED)Omitting Stageros Wrapper plugin$(TNORMAL) (ROS package sensor_msgs not found)"
 warning_nav_msgs:
 	$(SILENT)echo -e "$(INDENT_PRINT)--> $(TRED)Omitting ROS odometry Plugin$(TNORMAL) (ROS package nav_msgs not found)"
 warning_odometry:
