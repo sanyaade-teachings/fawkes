@@ -34,6 +34,7 @@
 #include <ros/node_handle.h>
 #include <sensor_msgs/LaserScan.h>
 #include <nav_msgs/Odometry.h>
+#include <geometry_msgs/Twist.h>
 
 class StagerosWrapperThread
 : public fawkes::Thread,
@@ -53,9 +54,8 @@ class StagerosWrapperThread
  private:
   void laser_scan_message_cb(const sensor_msgs::LaserScan::ConstPtr &msg);
   void odom_message_cb(const nav_msgs::Odometry::ConstPtr &msg);
+  void publish_cmd_vel_message(const fawkes::MotorInterface::TransRotMessage *msg);
   void conditional_close(fawkes::Interface *interface) throw();
-  std::string topic_name(const char *if_id, const char *suffix);
-
 
  /** Stub to see name in backtrace for easier debugging. @see Thread::run() */
  protected: virtual void run() { Thread::run(); }
@@ -63,6 +63,8 @@ class StagerosWrapperThread
  private:
   ros::Subscriber __laser_sub;
   ros::Subscriber __odom_sub;
+  ros::Publisher __cmd_vel_pub;
+
   sensor_msgs::LaserScan  __laser_msg;
   nav_msgs::Odometry __odom_msg;
   fawkes::Laser360Interface *__laser_if;

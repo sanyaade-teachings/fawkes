@@ -186,10 +186,11 @@ ifeq ($(HAVE_ROS),1)
    ifeq ($(call ros-have-pkg,nav_msgs),1)
      ifeq ($(HAVE_TF),1)
      CFLAGS_stageros_wrapper_thread += $(call ros-pkg-cflags,sensor_msgs)  $(CFLAGS_TF)  $(CFLAGS) \
-					$(call ros-pkg-cflags,nav_msgs)
+					$(call ros-pkg-cflags,nav_msgs) $(call ros-pkg-cflags,geometry_msgs)
      CFLAGS_stageros_wrapper_plugin = $(CFLAGS_stageros_wrapper_thread) $(CFLAGS) 
      LDFLAGS_stageros_wrapper += $(call ros-pkg-lflags,sensor_msgs) $(call ros-pkg-lflags,nav_msgs) \
-					$(patsubst %bullet/lib,,$(call ros-pkg-lflags,tf))
+					$(patsubst %bullet/lib,,$(call ros-pkg-lflags,tf)) \
+					$(call ros-pkg-lflags,geometry_msgs)
      PLUGINS_all += $(PLUGINDIR)/stageros-wrapper.so
      else
        WARN_TARGETS += warning_fawkestf

@@ -91,6 +91,15 @@ StagerosWrapperThread::init()
     logger->log_error(name(), e);
     throw;
   }
+
+  //publish ROS Topic "twist"
+  try {
+    __cmd_vel_pub = rosnode->advertise<geometry_msgs::Twist>("cmd_vel", 1);
+  } catch (Exception& e) {
+    e.append("%s initialization failed, could not register cmd_vel publisher", name());
+    logger->log_error(name(), e);
+    throw;
+  }
 }
 
 void
@@ -113,6 +122,7 @@ StagerosWrapperThread::finalize()
     logger->log_error(name(), "Closing laser interface failed!");
     logger->log_error(name(), e);
   }
+
   // unregister ros odom subscriber
   try {
     __odom_sub.shutdown();
@@ -128,12 +138,31 @@ StagerosWrapperThread::finalize()
     logger->log_error(name(), "Closing motor interface failed!");
     logger->log_error(name(), e);
   }
+
+  // unregister ros odom subscriber
+  try {
+    __cmd_vel_pub.shutdown();
+  } catch (Exception& e) {
+    logger->log_error(name(), "Unregistering ros cmd_vel publisher failed!");
+    logger->log_error(name(), e);
+  }
 }
 
 
 void
 StagerosWrapperThread::loop()
 {
+
+  //process incoming Velocity Commands from Fawkes
+  __motor_if->read();
+  while( ! __motor_if->msgq_empty() ){
+
+	if( fawkes::MotorInterface::TransRotMessage *msg = __motor_if->msgq_first_safe(msg)){ 
+		publish_cmd_vel_message(msg);
+		logger->log_info( name(), "TransRot Message received" );
+  	}
+  }
+
 }
 
 
@@ -162,20 +191,30 @@ StagerosWrapperThread::laser_scan_message_cb(const sensor_msgs::LaserScan::Const
 void
 StagerosWrapperThread::odom_message_cb(const nav_msgs::Odometry::ConstPtr &msg){
    
- const float odomX = (*msg).pose.pose.position.x;
- const float odomY = (*msg).pose.pose.position.y;
+  const float odomX = (*msg).pose.pose.position.x;
+  const float odomY = (*msg).pose.pose.position.y;
 
- float q_x = (*msg).pose.pose.orientation.x;
- float q_y = (*msg).pose.pose.orientation.y;
- float q_z = (*msg).pose.pose.orientation.z;
- float q_w = (*msg).pose.pose.orientation.w;
+  float q_x = (*msg).pose.pose.orientation.x;
+  float q_y = (*msg).pose.pose.orientation.y;
+  float q_z = (*msg).pose.pose.orientation.z;
+  float q_w = (*msg).pose.pose.orientation.w;
 
- const float odomPhi = asin( 2*q_x*q_y + 2*q_z*q_w);
+  const float odomPhi = asin( 2*q_x*q_y + 2*q_z*q_w);
 
- __motor_if->set_odometry_position_x( odomX / 1000.f );
- __motor_if->set_odometry_position_y( odomY / 1000.f );
- __motor_if->set_odometry_orientation( deg2rad( odomPhi ) );
- __motor_if->write();
+  __motor_if->set_odometry_position_x( odomX / 1000.f );
+  __motor_if->set_odometry_position_y( odomY / 1000.f );
+  __motor_if->set_odometry_orientation( deg2rad( odomPhi ) );
+  __motor_if->write();
+}
 
+void
+StagerosWrapperThread::publish_cmd_vel_message(const fawkes::MotorInterface::TransRotMessage *msg){
+
+  geometry_msgs::Twist twist_msg;
+  twist_msg.linear.x = msg->vx();
+  twist_msg.linear.y = msg->vy();
+  twist_msg.angular.z = msg->omega();
+
+  __cmd_vel_pub.publish(twist_msg);
 
 }
