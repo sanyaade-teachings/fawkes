@@ -26,6 +26,7 @@
 #include <aspect/blocked_timing.h>
 #include <aspect/logging.h>
 #include <aspect/blackboard.h>
+#include <aspect/configurable.h>
 #include <plugins/ros/aspect/ros.h>
 #include <interfaces/Laser360Interface.h>
 #include <interfaces/MotorInterface.h>
@@ -42,6 +43,7 @@ class StagerosWrapperThread
 : public fawkes::Thread,
   public fawkes::LoggingAspect,
   public fawkes::BlockedTimingAspect,
+  public fawkes::ConfigurableAspect,
   public fawkes::BlackBoardAspect,
   public fawkes::ROSAspect
 {

@@ -58,7 +58,8 @@ StagerosWrapperThread::init()
 
   //subscribe ROS Topic "base_scan"
   try {
-    __laser_sub = rosnode->subscribe("base_scan", 100, &StagerosWrapperThread::laser_scan_message_cb, this);
+    std::string ros_topic_id = config->get_string("/stageros-wrapper/laser/ros-topic");
+    __laser_sub = rosnode->subscribe(ros_topic_id.c_str(), 100, &StagerosWrapperThread::laser_scan_message_cb, this);
   } catch (Exception& e) {
     e.append("%s initialization failed, could not register ros laser subscriber", name());
     logger->log_error(name(), e);
@@ -67,7 +68,8 @@ StagerosWrapperThread::init()
  
   // try to open laser interface for writing
   try {
-    __laser_if = blackboard->open_for_writing<Laser360Interface>("base_scan");
+    std::string laser_if_id = config->get_string("/stageros-wrapper/laser/laser_interface_id");
+    __laser_if = blackboard->open_for_writing<Laser360Interface>(laser_if_id.c_str());
   } catch (Exception& e) {
     e.append("%s initialization failed, could not open laser interface for writing", name());
     logger->log_error(name(), e);
@@ -76,7 +78,8 @@ StagerosWrapperThread::init()
 
   //subscribe Pose Topic "amcl_pose"
   try {
-    __pose_sub = rosnode->subscribe("amcl_pose", 100, &StagerosWrapperThread::pose_message_cb, this);
+    std::string ros_topic_id = config->get_string("/stageros-wrapper/position/ros-topic");
+    __pose_sub = rosnode->subscribe(ros_topic_id.c_str(), 100, &StagerosWrapperThread::pose_message_cb, this);
   } catch (Exception& e) {
     e.append("%s initialization failed, could not register amcl pose subscriber", name());
     logger->log_error(name(), e);
@@ -85,8 +88,10 @@ StagerosWrapperThread::init()
 
   // try to Position3D interface for writing
   try {
-    __pose_if = blackboard->open_for_writing<Position3DInterface>("pose");
-    __pose_if->set_frame("/map");  
+    std::string pose_if_id = config->get_string("/stageros-wrapper/position/pose_interface_id");
+    std::string frame = config->get_string("/stageros-wrapper/position/frame");
+    __pose_if = blackboard->open_for_writing<Position3DInterface>(pose_if_id.c_str());
+    __pose_if->set_frame(frame.c_str());  
     __pose_if->write();
   } catch (Exception& e) {
     e.append("%s initialization failed, could not Position3D interface for writing", name());
@@ -96,7 +101,8 @@ StagerosWrapperThread::init()
 
   //subscribe ROS Topic "odom"
   try {
-    __odom_sub = rosnode->subscribe("odom", 100, &StagerosWrapperThread::odom_message_cb, this);
+    std::string ros_topic_id = config->get_string("/stageros-wrapper/odometry/ros-topic");
+    __odom_sub = rosnode->subscribe(ros_topic_id.c_str(), 100, &StagerosWrapperThread::odom_message_cb, this);
   } catch (Exception& e) {
     e.append("%s initialization failed, could not register odom subscriber", name());
     logger->log_error(name(), e);
@@ -105,7 +111,8 @@ StagerosWrapperThread::init()
 
   // try to open motor interface for writing
   try {
-    __motor_if = blackboard->open_for_writing<MotorInterface>("Robotino");
+    std::string motor_if_id = config->get_string("/stageros-wrapper/motor/motor_interface_id");
+    __motor_if = blackboard->open_for_writing<MotorInterface>(motor_if_id.c_str());
   } catch (Exception& e) {
     e.append("%s initialization failed, could not open Motor interface for writing", name());
     logger->log_error(name(), e);
@@ -114,7 +121,8 @@ StagerosWrapperThread::init()
 
   //publish ROS Topic "twist"
   try {
-    __cmd_vel_pub = rosnode->advertise<geometry_msgs::Twist>("cmd_vel", 1);
+    std::string ros_topic_id = config->get_string("/stageros-wrapper/motor/ros-topic");
+    __cmd_vel_pub = rosnode->advertise<geometry_msgs::Twist>(ros_topic_id.c_str(), 1);
   } catch (Exception& e) {
     e.append("%s initialization failed, could not register cmd_vel publisher", name());
     logger->log_error(name(), e);
