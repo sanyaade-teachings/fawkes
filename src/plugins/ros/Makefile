@@ -63,7 +63,7 @@ OBJS_ros_navigator = navigator_plugin.o navigator_thread.o
 
 LIBS_stageros_wrapper = m pthread fawkescore fawkesutils fawkesaspects fawkesblackboard \
 		    fawkesinterface fawkesrosaspect fvutils Laser360Interface fawkestf \
-	            MotorInterface 
+	            MotorInterface Position3DInterface 
 OBJS_stageros_wrapper = stageros_wrapper_plugin.o stageros_wrapper_thread.o
 
 OBJS_all = $(OBJS_ros) $(OBJS_ros_talkerpub) $(OBJS_ros_webview) $(OBJS_ros_tf) \

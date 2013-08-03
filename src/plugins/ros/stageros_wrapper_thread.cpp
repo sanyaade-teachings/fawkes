@@ -64,12 +64,32 @@ StagerosWrapperThread::init()
     logger->log_error(name(), e);
     throw;
   }
-
+ 
   // try to open laser interface for writing
   try {
     __laser_if = blackboard->open_for_writing<Laser360Interface>("base_scan");
   } catch (Exception& e) {
     e.append("%s initialization failed, could not open laser interface for writing", name());
+    logger->log_error(name(), e);
+    throw;
+  }
+
+  //subscribe Pose Topic "amcl_pose"
+  try {
+    __pose_sub = rosnode->subscribe("amcl_pose", 100, &StagerosWrapperThread::pose_message_cb, this);
+  } catch (Exception& e) {
+    e.append("%s initialization failed, could not register amcl pose subscriber", name());
+    logger->log_error(name(), e);
+    throw;
+  }
+
+  // try to Position3D interface for writing
+  try {
+    __pose_if = blackboard->open_for_writing<Position3DInterface>("pose");
+    __pose_if->set_frame("/map");  
+    __pose_if->write();
+  } catch (Exception& e) {
+    e.append("%s initialization failed, could not Position3D interface for writing", name());
     logger->log_error(name(), e);
     throw;
   }
@@ -113,13 +133,29 @@ StagerosWrapperThread::finalize()
     logger->log_error(name(), "Unregistering ros laser subscriber failed!");
     logger->log_error(name(), e);
   }
-
+ 
   // close BlackBoard laser interface
   try {
     blackboard->close(__laser_if);
     //__laser_if->clear();
   } catch (Exception& e) {
     logger->log_error(name(), "Closing laser interface failed!");
+    logger->log_error(name(), e);
+  }
+
+  // unregister amcl pose subscriber
+  try {
+    __pose_sub.shutdown();
+  } catch (Exception& e) {
+    logger->log_error(name(), "Unregistering amcl pose subscriber failed!");
+    logger->log_error(name(), e);
+  }
+
+  // close BlackBoard Position3D interface
+  try {
+    blackboard->close(__pose_if);
+  } catch (Exception& e) {
+    logger->log_error(name(), "Closing Position3D interface failed!");
     logger->log_error(name(), e);
   }
 
@@ -200,6 +236,26 @@ StagerosWrapperThread::laser_scan_message_cb(const sensor_msgs::LaserScan::Const
         }
   __laser_if->set_distances(distances);  
   __laser_if->write();
+}
+
+void
+StagerosWrapperThread::pose_message_cb(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg){
+ 
+  double trans[3];
+  trans[0] = (*msg).pose.pose.position.x; 
+  trans[1] = (*msg).pose.pose.position.y; 
+  trans[2] = (*msg).pose.pose.position.z; 
+
+  double rot[4]; 
+  rot[0] = (*msg).pose.pose.orientation.x; 
+  rot[1] = (*msg).pose.pose.orientation.y; 
+  rot[2] = (*msg).pose.pose.orientation.z; 
+  rot[3] = (*msg).pose.pose.orientation.w; 
+
+  __pose_if->set_translation(trans);
+  __pose_if->set_rotation(rot);
+  __pose_if->write();
+
 }
 
 void

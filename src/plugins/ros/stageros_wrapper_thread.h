@@ -29,12 +29,14 @@
 #include <plugins/ros/aspect/ros.h>
 #include <interfaces/Laser360Interface.h>
 #include <interfaces/MotorInterface.h>
+#include <interfaces/Position3DInterface.h>
 #include <utils/time/time.h>
 
 #include <ros/node_handle.h>
 #include <sensor_msgs/LaserScan.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Twist.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 
 class StagerosWrapperThread
 : public fawkes::Thread,
@@ -53,6 +55,7 @@ class StagerosWrapperThread
 
  private:
   void laser_scan_message_cb(const sensor_msgs::LaserScan::ConstPtr &msg);
+  void pose_message_cb(const geometry_msgs::PoseWithCovarianceStampedConstPtr &msg);
   void odom_message_cb(const nav_msgs::Odometry::ConstPtr &msg);
   void publish_cmd_vel_message(const fawkes::MotorInterface::TransRotMessage *msg);
   void conditional_close(fawkes::Interface *interface) throw();
@@ -63,12 +66,14 @@ class StagerosWrapperThread
  private:
   ros::Subscriber __laser_sub;
   ros::Subscriber __odom_sub;
+  ros::Subscriber __pose_sub;
   ros::Publisher __cmd_vel_pub;
 
   sensor_msgs::LaserScan  __laser_msg;
   nav_msgs::Odometry __odom_msg;
   fawkes::Laser360Interface *__laser_if;
   fawkes::MotorInterface *__motor_if;
+  fawkes::Position3DInterface *__pose_if;
 
 };
 
