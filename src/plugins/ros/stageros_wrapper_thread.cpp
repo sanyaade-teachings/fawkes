@@ -159,7 +159,6 @@ StagerosWrapperThread::loop()
 
 	if( fawkes::MotorInterface::TransRotMessage *msg = __motor_if->msgq_first_safe(msg)){ 
 		publish_cmd_vel_message(msg);
-		logger->log_info( name(), "TransRot Message received" );
   	}
   }
 
@@ -175,6 +174,7 @@ StagerosWrapperThread::laser_scan_message_cb(const sensor_msgs::LaserScan::Const
   float distances[360];
 
 	for (unsigned int i = 0; i < 360; ++i) {
+		/************ no need for this snippet as we use 1°-inkrements in the Laser360-Interface*********************** 
 		float a_rad = deg2rad(i);
 		if ((a_rad < msg->angle_min) || (a_rad > msg->angle_max)) {
 			distances[i] = 0.;
@@ -183,6 +183,20 @@ StagerosWrapperThread::laser_scan_message_cb(const sensor_msgs::LaserScan::Const
             		int idx = (int)roundf((a_rad - msg->angle_min) / msg->angle_increment);
             		distances[i] = msg->ranges[idx];
           	}
+		*/
+		
+		// dirty hardcoded stuff follows
+		
+		if ((0 <= i ) && (i <= 90 )){
+			distances[90-i] = msg->ranges[i];
+		}
+		else if((270 <= i ) && (i < 360)){
+			distances[i] = msg->ranges[450-i];			
+		}
+		else {
+			distances[i] = 0.0;
+		}
+
         }
   __laser_if->set_distances(distances);  
   __laser_if->write();
@@ -194,11 +208,11 @@ StagerosWrapperThread::odom_message_cb(const nav_msgs::Odometry::ConstPtr &msg){
   const float odomX = (*msg).pose.pose.position.x;
   const float odomY = (*msg).pose.pose.position.y;
 
+  // convert quaternion to angle 
   float q_x = (*msg).pose.pose.orientation.x;
   float q_y = (*msg).pose.pose.orientation.y;
   float q_z = (*msg).pose.pose.orientation.z;
   float q_w = (*msg).pose.pose.orientation.w;
-
   const float odomPhi = asin( 2*q_x*q_y + 2*q_z*q_w);
 
   __motor_if->set_odometry_position_x( odomX / 1000.f );
@@ -210,11 +224,20 @@ StagerosWrapperThread::odom_message_cb(const nav_msgs::Odometry::ConstPtr &msg){
 void
 StagerosWrapperThread::publish_cmd_vel_message(const fawkes::MotorInterface::TransRotMessage *msg){
 
+  // write msg on interface
+  __motor_if->set_vx( msg->vx() );
+  __motor_if->set_vy( msg->vy() );
+  __motor_if->set_omega( msg->omega() );
+  __motor_if->write();
+
+  // push msg into ros-format
   geometry_msgs::Twist twist_msg;
   twist_msg.linear.x = msg->vx();
   twist_msg.linear.y = msg->vy();
   twist_msg.angular.z = msg->omega();
 
+  // publish ros msg
   __cmd_vel_pub.publish(twist_msg);
+
 
 }
