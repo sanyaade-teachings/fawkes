@@ -221,7 +221,7 @@ ColliThread::finalize()
   logger->log_info(name(), "COLLI (Destructor): Entering destructing ...\n");
   delete m_pSearch;
   delete m_pLaser;
-  delete m_pMotorInstruct;
+//  delete m_pMotorInstruct;                                                                                            TODO check if it realy needs to get removed
   delete m_pSelectDriveMode;
   delete m_pLaserOccGrid;
 //  delete driveMode;
@@ -565,13 +565,19 @@ ColliThread::loop()
 void
 ColliThread::RegisterAtBlackboard()
 {
-  m_tf_pub_odom = new tf::TransformPublisher(blackboard, "colli odometry");
+  ninit = blackboard->open_for_writing<NavigatorInterface>(naviface_id.c_str());
+  motor_des = blackboard->open_for_writing<MotorInterface>("Motor Caesar");                                             //TODO remove writing, replace reading with m_pMopoObj
+                                                                                                                        //what it does at the moment it doesn't make any sense
+                                                                                                                        //
+                                                                                                                        //BUT MAYBE a interface for direkt motor controls with collition avoidance would be nice
+                                                                                                                        //like drive sideways by 20cm if there is no obstacle
 
   m_pMopoObj = blackboard->open_for_reading<MotorInterface>(motor_iface_id.c_str());
-  motor_des = blackboard->open_for_writing<MotorInterface>("Motor Caesar");
   m_pLaserScannerObj = blackboard->open_for_reading<Laser360Interface>(laser_iface_id.c_str());
-  m_pColliTargetObj = blackboard->open_for_reading<NavigatorInterface>(naviface_id.c_str());
-  m_pColliDataObj = blackboard->open_for_writing<NavigatorInterface>("Navigator Temp");
+
+  m_tf_pub_odom = new tf::TransformPublisher(blackboard, "colli odometry");                                             //TODO remove: athome move to motor-plugin
+  m_pColliTargetObj = blackboard->open_for_reading<NavigatorInterface>(naviface_id.c_str());                            //TODO replace with ninit
+  m_pColliDataObj = blackboard->open_for_writing<NavigatorInterface>("Navigator Temp");                                 //TODO remove maybe (check first)
 
   m_pMopoObj->read();
   m_pLaserScannerObj->read();
@@ -581,8 +587,6 @@ ColliThread::RegisterAtBlackboard()
   m_pColliDataObj->set_final(true);
   m_pColliDataObj->write();
   m_pColliTargetObj->read();
-
-  ninit = blackboard->open_for_writing<NavigatorInterface>(naviface_id.c_str());
 }
 
 /** Initialize all modules used by the Colli. */
