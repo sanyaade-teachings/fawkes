@@ -100,3 +100,5 @@ plugins/colli:
   MotorDistance: 0
   # If all the cells containing the robot must be considered
   adjust_robo_pos: false
+
+  enable_debug_output: false

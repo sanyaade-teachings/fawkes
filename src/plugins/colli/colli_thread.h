@@ -161,6 +161,8 @@ class ColliThread
   // Do we  use a RWI Style Robot
   bool isRwiRobot;
 
+  bool display_debug_output;
+
   vector<HomPoint > m_vSolution;
 
   string laser_frame;
