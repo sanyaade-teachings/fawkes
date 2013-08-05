@@ -16,23 +16,21 @@
 //     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-
 /*
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-  ©                                                                            ©
-  ©                                            ####   ####           .-""-.    ©
-  ©       # #                             #   #    # #    #         /[] _ _\   ©
-  ©       # #                                 #    # #             _|_o_LII|_  ©
-  © ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ©
-  © #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ©
-  © #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ©
-  © #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ©
-  © '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ©
-  ©                                                               /__|    |__\ ©
-  ©                                                                            ©
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-*/
-
+ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ ï¿½                                                                            ï¿½
+ ï¿½                                            ####   ####           .-""-.    ï¿½
+ ï¿½       # #                             #   #    # #    #         /[] _ _\   ï¿½
+ ï¿½       # #                                 #    # #             _|_o_LII|_  ï¿½
+ ï¿½ ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ï¿½
+ ï¿½ #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ï¿½
+ ï¿½ #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ï¿½
+ ï¿½ #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ï¿½
+ ï¿½ '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ï¿½
+ ï¿½                                                               /__|    |__\ ï¿½
+ ï¿½                                                                            ï¿½
+ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ */
 
 /* ******************************************************************** */
 /*                                                                      */
@@ -57,44 +55,44 @@
 
 #include "abstract_drive_mode.h"
 
-namespace fawkes {
+namespace fawkes
+{
 #if 0 /* just to make Emacs auto-indent happy */
 }
 #endif
 
-class CFastBackwardDriveModule : public CAbstractDriveMode
-{
-public:
+  class CFastBackwardDriveModule : public CAbstractDriveMode
+  {
+  public:
 
-  /** Constructor.
-   */
-  CFastBackwardDriveModule( Logger* logger, Configuration *config );
+    /** Constructor.
+     */
+    CFastBackwardDriveModule(Logger* logger, Configuration *config);
 
+    /** Destructor. Does nothing, because nothing was created in this module.
+     */
+    ~CFastBackwardDriveModule();
 
-  /** Destructor. Does nothing, because nothing was created in this module.
-   */
-  ~CFastBackwardDriveModule();
+    /** This Routine is called. Afterwards the m_proposedTranslation and
+     *    m_proposedRotation have to be filled. Here they are
+     *    set to zero.
+     */
+    virtual void
+    Update();
 
+  private:
 
-  /** This Routine is called. Afterwards the m_proposedTranslation and
-   *    m_proposedRotation have to be filled. Here they are
-   *    set to zero.
-   */
-  virtual void Update();
+    float
+    FastBackward_Translation(float dist_to_target, float dist_to_front, float alpha, float trans_0, float rot_0,
+        float rot_1);
 
+    float
+    FastBackward_Curvature(float dist_to_target, float dist_to_trajec, float alpha, float trans_0, float rot_0);
 
-private:
+    float m_MaxTranslation, m_MaxRotation;
 
-  float FastBackward_Translation ( float dist_to_target, float dist_to_front, float alpha,
-           float trans_0, float rot_0, float rot_1 );
-
-  float FastBackward_Curvature( float dist_to_target, float dist_to_trajec, float alpha,
-        float trans_0, float rot_0 );
-
-  float m_MaxTranslation, m_MaxRotation;
-
-  Logger* loggerFastBack;
-};
+    Logger* loggerFastBack;
+  };
 
 } // namespace fawkes
 

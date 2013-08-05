@@ -1,4 +1,3 @@
-
 /***************************************************************************
  *  abstract_state.h - Class for an A*-search state
  *
@@ -25,77 +24,74 @@
 #ifndef _PLUGINS_COLLI_SEARCH_ASTAR_STATE_H_
 #define _PLUGINS_COLLI_SEARCH_ASTAR_STATE_H_
 
-namespace fawkes {
+namespace fawkes
+{
 #if 0 /* just to make Emacs auto-indent happy */
 }
 #endif
 
-/** AStarState.
- *  This is the class for an A* State.
- */
-class ColliAStarState
-{
-public:
-
-  /**  This is the standard constructor.
+  /** AStarState.
+   *  This is the class for an A* State.
    */
-  ColliAStarState( );
+  class ColliAStarState
+  {
+  public:
 
-  /**  This is another standard constuctor, this time parametrized.
-   *   @param x is the x coordinate.
-   *   @param y is the y coordinate.
-   *   @param pastCost is the total left cost.
-   *   @param father is a pointer to the predecessor of this
-   *          AStarState.
-   */
-  ColliAStarState( int x, int y, int pastCost, ColliAStarState * father );
+    /**  This is the standard constructor.
+     */
+    ColliAStarState();
 
-  /// Destructor.
-  ~ColliAStarState();
+    /**  This is another standard constuctor, this time parametrized.
+     *   @param x is the x coordinate.
+     *   @param y is the y coordinate.
+     *   @param pastCost is the total left cost.
+     *   @param father is a pointer to the predecessor of this
+     *          AStarState.
+     */
+    ColliAStarState(int x, int y, int pastCost, ColliAStarState * father);
 
-  // Coordinates
-  int m_X, m_Y;
+    /// Destructor.
+    ~ColliAStarState();
 
-  // Predecessor
-  ColliAStarState * m_pFather;
+    // Coordinates
+    int m_X, m_Y;
 
-  // Costs
-  int m_PastCost, m_TotalCost;
-};
+    // Predecessor
+    ColliAStarState * m_pFather;
 
+    // Costs
+    int m_PastCost, m_TotalCost;
+  };
 
-
-/* ************************************************************************** */
-/* ***********************  IMPLEMENTATION DETAILS  ************************* */
-/* ************************************************************************** */
-
-
+  /* ************************************************************************** */
+  /* ***********************  IMPLEMENTATION DETAILS  ************************* */
+  /* ************************************************************************** */
 
 // Standard Constructor
-inline ColliAStarState::ColliAStarState( )
-{
-  m_pFather =  0;
-  m_X = m_Y = 0;
-  m_TotalCost = 0;
-  m_PastCost = 0;
-}
-
+  inline
+  ColliAStarState::ColliAStarState()
+  {
+    m_pFather = 0;
+    m_X = m_Y = 0;
+    m_TotalCost = 0;
+    m_PastCost = 0;
+  }
 
 // Another Constructor
-inline ColliAStarState::ColliAStarState( int x, int y,
-         int pastCost, ColliAStarState * father )
-{
-  m_X = x;
-  m_Y = y;
-  m_PastCost = pastCost;
-  m_pFather = father;
-}
-
+  inline
+  ColliAStarState::ColliAStarState(int x, int y, int pastCost, ColliAStarState * father)
+  {
+    m_X = x;
+    m_Y = y;
+    m_PastCost = pastCost;
+    m_pFather = father;
+  }
 
 // Standard Destructor
-inline ColliAStarState::~ColliAStarState( )
-{
-}
+  inline
+  ColliAStarState::~ColliAStarState()
+  {
+  }
 
 } // namespace fawkes
 

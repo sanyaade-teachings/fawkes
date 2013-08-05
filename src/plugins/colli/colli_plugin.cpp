@@ -1,4 +1,3 @@
-
 /***************************************************************************
  *  colli_plugin.cpp - Fawkes Colli Plugin
  *
@@ -25,15 +24,16 @@
 #include "colli_thread.h"
 
 #ifdef HAVE_VISUAL_DEBUGGING
- #include "visualization_thread.h"
+#include "visualization_thread.h"
 #endif
 
 using namespace fawkes;
 
 class ColliPlugin : public fawkes::Plugin
 {
- public:
-  ColliPlugin(Configuration *config) : Plugin(config)
+public:
+  ColliPlugin(Configuration *config)
+      : Plugin(config)
   {
     ColliThread *collithr = new ColliThread();
     thread_list.push_back(collithr);

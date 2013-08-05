@@ -16,23 +16,21 @@
 //     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-
 /*
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-  ©                                                                            ©
-  ©                                            ####   ####           .-""-.    ©
-  ©       # #                             #   #    # #    #         /[] _ _\   ©
-  ©       # #                                 #    # #             _|_o_LII|_  ©
-  © ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ©
-  © #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ©
-  © #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ©
-  © #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ©
-  © '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ©
-  ©                                                               /__|    |__\ ©
-  ©                                                                            ©
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-*/
-
+ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ ï¿½                                                                            ï¿½
+ ï¿½                                            ####   ####           .-""-.    ï¿½
+ ï¿½       # #                             #   #    # #    #         /[] _ _\   ï¿½
+ ï¿½       # #                                 #    # #             _|_o_LII|_  ï¿½
+ ï¿½ ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ï¿½
+ ï¿½ #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ï¿½
+ ï¿½ #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ï¿½
+ ï¿½ #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ï¿½
+ ï¿½ '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ï¿½
+ ï¿½                                                               /__|    |__\ ï¿½
+ ï¿½                                                                            ï¿½
+ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ */
 
 /* ******************************************************************** */
 /*                                                                      */
@@ -52,48 +50,46 @@
 /*                                                                      */
 /* ******************************************************************** */
 
-
 #ifndef _COLLI_SLOW_BACKWARD_DRIVE_MODE_H_
 #define _COLLI_SLOW_BACKWARD_DRIVE_MODE_H_
 
 #include "abstract_drive_mode.h"
 #include <utils/math/angle.h>
 
-namespace fawkes {
+namespace fawkes
+{
 #if 0 /* just to make Emacs auto-indent happy */
 }
 #endif
 
-class CSlowBackwardDriveModule : public CAbstractDriveMode
-{
-public:
+  class CSlowBackwardDriveModule : public CAbstractDriveMode
+  {
+  public:
 
-  ///
-  CSlowBackwardDriveModule(Logger* logger, Configuration *config);
+    ///
+    CSlowBackwardDriveModule(Logger* logger, Configuration *config);
 
+    ///
+    ~CSlowBackwardDriveModule();
 
-  ///
-  ~CSlowBackwardDriveModule();
+    ///
+    void
+    Update();
 
+  private:
 
-  ///
-  void Update();
+    float
+    SlowBackward_Translation(float dist_to_target, float dist_to_front, float alpha, float trans_0, float rot_0,
+        float rot_1);
 
+    float
+    SlowBackward_Curvature(float dist_to_target, float dist_to_trajec, float alpha, float trans_0, float rot_0);
 
+    float m_MaxTranslation, m_MaxRotation;
 
-private:
+    Logger* loggerSlowBack;
 
-  float SlowBackward_Translation ( float dist_to_target, float dist_to_front, float alpha,
-           float trans_0, float rot_0, float rot_1 );
-
-  float SlowBackward_Curvature( float dist_to_target, float dist_to_trajec, float alpha,
-        float trans_0, float rot_0 );
-
-  float m_MaxTranslation, m_MaxRotation;
-
-  Logger* loggerSlowBack;
-
-};
+  };
 
 } // namespace fawkes
 

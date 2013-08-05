@@ -16,23 +16,21 @@
 //     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-
 /*
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-  ©                                                                            ©
-  ©                                            ####   ####           .-""-.    ©
-  ©       # #                             #   #    # #    #         /[] _ _\   ©
-  ©       # #                                 #    # #             _|_o_LII|_  ©
-  © ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ©
-  © #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ©
-  © #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ©
-  © #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ©
-  © '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ©
-  ©                                                               /__|    |__\ ©
-  ©                                                                            ©
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-*/
-
+ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ ï¿½                                                                            ï¿½
+ ï¿½                                            ####   ####           .-""-.    ï¿½
+ ï¿½       # #                             #   #    # #    #         /[] _ _\   ï¿½
+ ï¿½       # #                                 #    # #             _|_o_LII|_  ï¿½
+ ï¿½ ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ï¿½
+ ï¿½ #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ï¿½
+ ï¿½ #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ï¿½
+ ï¿½ #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ï¿½
+ ï¿½ '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ï¿½
+ ï¿½                                                               /__|    |__\ ï¿½
+ ï¿½                                                                            ï¿½
+ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ */
 
 /* ******************************************************************** */
 /*                                                                      */
@@ -53,7 +51,6 @@
 /*                                                                      */
 /* ******************************************************************** */
 
-
 #ifndef _COLLI_ESCAPE_DRIVE_MODE_H_
 #define _COLLI_ESCAPE_DRIVE_MODE_H_
 
@@ -61,66 +58,68 @@
 
 #include <vector>
 
-namespace fawkes {
+namespace fawkes
+{
 #if 0 /* just to make Emacs auto-indent happy */
 }
 #endif
 
-class Laser;
-class CRoboShape_Colli;
+  class Laser;
+  class CRoboShape_Colli;
 
-/** Class Escape-Drive-Module. This module is called, if an escape is
- *    neccessary. It should try to maximize distance to the disturbing
- *    obstacle.
- */
-class CEscapeDriveModule : public CAbstractDriveMode
-{
-public:
+  /** Class Escape-Drive-Module. This module is called, if an escape is
+   *    neccessary. It should try to maximize distance to the disturbing
+   *    obstacle.
+   */
+  class CEscapeDriveModule : public CAbstractDriveMode
+  {
+  public:
 
     /** Constructor. Sets only the drive mode name to "MovingNotAllowed"
      */
-    CEscapeDriveModule( Logger* logger, Configuration *config, Laser* laser );
-
+    CEscapeDriveModule(Logger* logger, Configuration *config, Laser* laser);
 
     /** Destructor. Does nothing, because nothing was created in this module.
      */
     ~CEscapeDriveModule();
 
-
     /** This Routine is called. Afterwards the m_proposedTranslation and
      *    m_proposedRotation have to be filled. Here they are
      *    set to zero.
      */
-    virtual void Update();
+    virtual void
+    Update();
 
-
-private:
+  private:
 
     /// our pointer to the laserinterface.... lets escape ;-)
-    Laser*             m_pLaser;
-    CRoboShape_Colli*  m_pRoboShape;
+    Laser* m_pLaser;
+    CRoboShape_Colli* m_pRoboShape;
 
     /// Readings without robolength in it
-    std::vector< float > m_vNormalizedReadings;
-    std::vector< float > m_vFront, m_vBack;
-    std::vector< float > m_vLeftFront,  m_vLeftBack;
-    std::vector< float > m_vRightFront, m_vRightBack;
-
+    std::vector<float> m_vNormalizedReadings;
+    std::vector<float> m_vFront, m_vBack;
+    std::vector<float> m_vLeftFront, m_vLeftBack;
+    std::vector<float> m_vRightFront, m_vRightBack;
 
     /// absolute values are the maximum values. do not act faster!
     float m_MaxTranslation;
     float m_MaxRotation;
 
+    void
+    FillNormalizedReadings();
+    void
+    SortNormalizedReadings();
 
-    void FillNormalizedReadings();
-    void SortNormalizedReadings();
-
-    bool CheckDanger( std::vector< float > readings );
-    bool TurnLeftAllowed();
-    bool TurnRightAllowed();
+    bool
+    CheckDanger(std::vector<float> readings);
+    bool
+    TurnLeftAllowed();
+    bool
+    TurnRightAllowed();
 
     Logger* loggerEscape;
-};
+  };
 
 } // namespace fawkes
 

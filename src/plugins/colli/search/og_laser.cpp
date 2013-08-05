@@ -1,4 +1,3 @@
-
 /***************************************************************************
  *  og_laser.cpp - occ-grid interface for colli_a* search algorithm
  *
@@ -36,7 +35,6 @@
 #include "../robo-utils/geometry/ellipse.h"
 #include "../robo-utils/geometry/trig_table.h"
 
-
 #include <logging/logger.h>
 #include <config/config.h>
 #include <interfaces/Laser360Interface.h>
@@ -49,403 +47,341 @@
 
 using namespace std;
 
-namespace fawkes {
+namespace fawkes
+{
 #if 0 /* just to make Emacs auto-indent happy */
 }
 #endif
 
-/** Constructor. */
-ColliLaserOccupancyGrid::ColliLaserOccupancyGrid( Logger* logger, Configuration *config, Laser * laser, int width, int height,int cell_width, int cell_height ):
-OccupancyGrid( width, height, cell_width, cell_height )
-{
-  ref_obstacle = false;
-  /*m_Height = height;
-  m_Width = width;
-  m_CellWidth = cell_width;
-  m_CellHeight = cell_height;*/
-
-  loggerGrid = logger;
-  loggerGrid->log_info("laser occupancy grid","grid width: %d , grid height: %d , cell width: %d , cell height: %d\n",width,height,cell_width,cell_height);
-  loggerGrid->log_info("ColliLaserOccupancyGrid","ColliLaserOccupancyGrid(Constructor): Entering\n");
-  m_pLaser = laser;
-  m_pRoboShape = new RoboShape(logger,config);
-  m_vOldReadings.clear();
-  initGrid();
-
-  if(!config->exists("/plugins/colli/ColliLaserOccupancyGrid/ColliLaserOccupancyGrid_MAX_HISTORY_LENGTH") )
+  /** Constructor. */
+  ColliLaserOccupancyGrid::ColliLaserOccupancyGrid(Logger* logger, Configuration *config, Laser * laser, int width,
+      int height, int cell_width, int cell_height)
+      : OccupancyGrid(width, height, cell_width, cell_height)
   {
-      cout << "***** ERROR *****: Could not find: " << "ColliLaserOccupancyGrid_MAX_HISTORY_LENGTH"
-           << " --> ABORTING!" << endl << endl;
+    ref_obstacle = false;
+    /*m_Height = height;
+     m_Width = width;
+     m_CellWidth = cell_width;
+     m_CellHeight = cell_height;*/
+
+    loggerGrid = logger;
+    loggerGrid->log_info("laser occupancy grid",
+        "grid width: %d , grid height: %d , cell width: %d , cell height: %d\n", width, height, cell_width,
+        cell_height);
+    loggerGrid->log_info("ColliLaserOccupancyGrid", "ColliLaserOccupancyGrid(Constructor): Entering\n");
+    m_pLaser = laser;
+    m_pRoboShape = new RoboShape(logger, config);
+    m_vOldReadings.clear();
+    initGrid();
+
+    if (!config->exists("/plugins/colli/ColliLaserOccupancyGrid/ColliLaserOccupancyGrid_MAX_HISTORY_LENGTH")) {
+      cout << "***** ERROR *****: Could not find: " << "ColliLaserOccupancyGrid_MAX_HISTORY_LENGTH" << " --> ABORTING!"
+          << endl << endl;
       return;
-  }
-  else
-  {
-    m_MaxHistoryLength = config->get_int("/plugins/colli/ColliLaserOccupancyGrid/ColliLaserOccupancyGrid_MAX_HISTORY_LENGTH");
-  }
+    } else {
+      m_MaxHistoryLength = config->get_int(
+          "/plugins/colli/ColliLaserOccupancyGrid/ColliLaserOccupancyGrid_MAX_HISTORY_LENGTH");
+    }
 
-  if(!config->exists("/plugins/colli/ColliLaserOccupancyGrid/ColliLaserOccupancyGrid_MIN_HISTORY_LENGTH"))
-  {
-      cout << "***** ERROR *****: Could not find: " << "ColliLaserOccupancyGrid_MIN_HISTORY_LENGTH"
-           << " --> ABORTING!" << endl << endl;
+    if (!config->exists("/plugins/colli/ColliLaserOccupancyGrid/ColliLaserOccupancyGrid_MIN_HISTORY_LENGTH")) {
+      cout << "***** ERROR *****: Could not find: " << "ColliLaserOccupancyGrid_MIN_HISTORY_LENGTH" << " --> ABORTING!"
+          << endl << endl;
       return;
 
-  }
-  else
-  {
-    m_MinHistoryLength = config->get_int("/plugins/colli/ColliLaserOccupancyGrid/ColliLaserOccupancyGrid_MIN_HISTORY_LENGTH");
-  }
+    } else {
+      m_MinHistoryLength = config->get_int(
+          "/plugins/colli/ColliLaserOccupancyGrid/ColliLaserOccupancyGrid_MIN_HISTORY_LENGTH");
+    }
 
-  if(!config->exists("/plugins/colli/ColliLaserOccupancyGrid/ColliLaserOccupancyGrid_INITIAL_HISTORY_SIZE"))
-  {
+    if (!config->exists("/plugins/colli/ColliLaserOccupancyGrid/ColliLaserOccupancyGrid_INITIAL_HISTORY_SIZE")) {
       cout << "***** ERROR *****: Could not find: " << "ColliLaserOccupancyGrid_INITIAL_HISTORY_SIZE"
-           << " --> ABORTING!" << endl << endl;
+          << " --> ABORTING!" << endl << endl;
       return;
 
-  }
-  else
-  {
-    m_InitialHistorySize = 3*config->get_int("/plugins/colli/ColliLaserOccupancyGrid/ColliLaserOccupancyGrid_INITIAL_HISTORY_SIZE");
-  }
+    } else {
+      m_InitialHistorySize = 3
+          * config->get_int("/plugins/colli/ColliLaserOccupancyGrid/ColliLaserOccupancyGrid_INITIAL_HISTORY_SIZE");
+    }
 
-  if(!config->exists("/plugins/colli/ColliLaserOccupancyGrid/TrigTable_RESOLUTION"))
-  {
-      cout << "***** ERROR *****: Could not find: " << "TrigTable_RESOLUTION"
-           << " --> ABORTING!" << endl << endl;
+    if (!config->exists("/plugins/colli/ColliLaserOccupancyGrid/TrigTable_RESOLUTION")) {
+      cout << "***** ERROR *****: Could not find: " << "TrigTable_RESOLUTION" << " --> ABORTING!" << endl << endl;
       return;
 
-  }
-  else
-  {
-    m_TrigTableResolution = config->get_int("/plugins/colli/ColliLaserOccupancyGrid/TrigTable_RESOLUTION");
-  }
+    } else {
+      m_TrigTableResolution = config->get_int("/plugins/colli/ColliLaserOccupancyGrid/TrigTable_RESOLUTION");
+    }
 
-  if(!config->exists("/plugins/colli/ColliLaserOccupancyGrid/Laser_MINIMUM_READING_LENGTH"))
-  {
-      cout << "***** ERROR *****: Could not find: " << "Laser_MINIMUM_READING_LENGTH"
-           << " --> ABORTING!" << endl << endl;
+    if (!config->exists("/plugins/colli/ColliLaserOccupancyGrid/Laser_MINIMUM_READING_LENGTH")) {
+      cout << "***** ERROR *****: Could not find: " << "Laser_MINIMUM_READING_LENGTH" << " --> ABORTING!" << endl
+          << endl;
       return;
-  }
-  else
-  {
-    m_MinimumLaserLength = config->get_float("/plugins/colli/ColliLaserOccupancyGrid/Laser_MINIMUM_READING_LENGTH");
-  }
+    } else {
+      m_MinimumLaserLength = config->get_float("/plugins/colli/ColliLaserOccupancyGrid/Laser_MINIMUM_READING_LENGTH");
+    }
 
-  if(!config->exists("/plugins/colli/ColliLaserOccupancyGrid/ColliLaserOccupancyGrid_DISTANCE_ACCOUNT"))
-  {
-      cout << "***** ERROR *****: Could not find: " << "ColliLaserOccupancyGrid_DISTANCE_ACCOUNT"
-           << " --> ABORTING!" << endl << endl;
+    if (!config->exists("/plugins/colli/ColliLaserOccupancyGrid/ColliLaserOccupancyGrid_DISTANCE_ACCOUNT")) {
+      cout << "***** ERROR *****: Could not find: " << "ColliLaserOccupancyGrid_DISTANCE_ACCOUNT" << " --> ABORTING!"
+          << endl << endl;
       return;
 
-  }
-  else
-  {
-    m_EllipseDistance = config->get_float("/plugins/colli/ColliLaserOccupancyGrid/ColliLaserOccupancyGrid_DISTANCE_ACCOUNT");
-  }
+    } else {
+      m_EllipseDistance = config->get_float(
+          "/plugins/colli/ColliLaserOccupancyGrid/ColliLaserOccupancyGrid_DISTANCE_ACCOUNT");
+    }
 
-  if(!config->exists("/plugins/colli/ColliLaserOccupancyGrid/Colli_ROBOCUP_MODE"))
-  {
-      cout << "***** ERROR *****: Could not find: " << "Colli_ROBOCUP_MODE"
-           << " --> ABORTING!" << endl << endl;
+    if (!config->exists("/plugins/colli/ColliLaserOccupancyGrid/Colli_ROBOCUP_MODE")) {
+      cout << "***** ERROR *****: Could not find: " << "Colli_ROBOCUP_MODE" << " --> ABORTING!" << endl << endl;
       return;
 
-  }
-  else
-  {
-    m_RobocupMode = config->get_int("/plugins/colli/ColliLaserOccupancyGrid/Colli_ROBOCUP_MODE");
-  }
+    } else {
+      m_RobocupMode = config->get_int("/plugins/colli/ColliLaserOccupancyGrid/Colli_ROBOCUP_MODE");
+    }
 
-  if(!config->exists("/plugins/colli/ColliMaxCellExtension"))
-  {
-      cout << "***** ERROR *****: Could not find: " << "ColliMaxCellExtension"
-           << " --> ABORTING!" << endl << endl;
+    if (!config->exists("/plugins/colli/ColliMaxCellExtension")) {
+      cout << "***** ERROR *****: Could not find: " << "ColliMaxCellExtension" << " --> ABORTING!" << endl << endl;
       return;
 
-  }
-  else
-  {
-    m_MaxCellExt = config->get_float("/plugins/colli/ColliMaxCellExtension");
-  }
+    } else {
+      m_MaxCellExt = config->get_float("/plugins/colli/ColliMaxCellExtension");
+    }
 
-  if(!config->exists("/plugins/colli/ColliMaxOldCellExtension"))
-  {
-      cout << "***** ERROR *****: Could not find: " << "ColliMaxCellExtension"
-           << " --> ABORTING!" << endl << endl;
+    if (!config->exists("/plugins/colli/ColliMaxOldCellExtension")) {
+      cout << "***** ERROR *****: Could not find: " << "ColliMaxCellExtension" << " --> ABORTING!" << endl << endl;
       return;
 
-  }
-  else
-  {
-    m_MaxOldCellExt = config->get_float("/plugins/colli/ColliMaxOldCellExtension");
-  }
-  if(!config->exists("/plugins/colli/RefObstacle"))
-  {
+    } else {
+      m_MaxOldCellExt = config->get_float("/plugins/colli/ColliMaxOldCellExtension");
+    }
+    if (!config->exists("/plugins/colli/RefObstacle")) {
       cout << "Could not find: " << "RefObstacle" << endl;
+    } else {
+      ref_obstacle = config->get_bool("/plugins/colli/RefObstacle");
+    }
+
+    loggerGrid->log_info("ColliLaserOccupancyGrid", "Generating trigonometry table\n");
+    m_pTrigTable = new TrigTable(m_TrigTableResolution);
+    loggerGrid->log_info("ColliLaserOccupancyGrid", "Generating trigonometry table done\n");
+    loggerGrid->log_info("ColliLaserOccupancyGrid", "Generating ellipse map\n");
+    ellipse_map = new ColliEllipseMap();
+
+    loggerGrid->log_info("ColliLaserOccupancyGrid", "Generating ellipse map done\n");
+    loggerGrid->log_info("ColliLaserOccupancyGrid", "ColliLaserOccupancyGrid(Constructor): Exiting\n");
   }
-  else
-  {
-    ref_obstacle = config->get_bool("/plugins/colli/RefObstacle");
-  }
-
-
-  loggerGrid->log_info("ColliLaserOccupancyGrid","Generating trigonometry table\n");
-  m_pTrigTable = new TrigTable( m_TrigTableResolution );
-  loggerGrid->log_info("ColliLaserOccupancyGrid","Generating trigonometry table done\n");
-  loggerGrid->log_info("ColliLaserOccupancyGrid","Generating ellipse map\n");
-  ellipse_map = new ColliEllipseMap();
-
-  loggerGrid->log_info("ColliLaserOccupancyGrid","Generating ellipse map done\n");
-  loggerGrid->log_info("ColliLaserOccupancyGrid","ColliLaserOccupancyGrid(Constructor): Exiting\n");
-}
-
-
 
 // Destructor
-ColliLaserOccupancyGrid::~ColliLaserOccupancyGrid()
-{
-  delete m_pTrigTable;
-  delete m_pRoboShape;
-}
-
+  ColliLaserOccupancyGrid::~ColliLaserOccupancyGrid()
+  {
+    delete m_pTrigTable;
+    delete m_pRoboShape;
+  }
 
 // ** just as help function ** //
-inline float ColliLaserOccupancyGrid::normalize_degree(float angle_deg)
-{
-    while ( (angle_deg < 0) || (angle_deg > 360) )
-    {
-        if (angle_deg < 0)
-            angle_deg += 360;
-        else if (angle_deg > 360)
-            angle_deg -= 360;
-        else
-            angle_deg = 0;
+  inline float
+  ColliLaserOccupancyGrid::normalize_degree(float angle_deg)
+  {
+    while ((angle_deg < 0) || (angle_deg > 360)) {
+      if (angle_deg < 0) angle_deg += 360;
+      else if (angle_deg > 360) angle_deg -= 360;
+      else angle_deg = 0;
     }
     return angle_deg;
-}
+  }
 
-void ColliLaserOccupancyGrid::ResetOld( int max_age )
-{
-  if ( max_age == -1 )
-    {
+  void
+  ColliLaserOccupancyGrid::ResetOld(int max_age)
+  {
+    if (max_age == -1) {
       m_vOldReadings.clear();
-      m_vOldReadings.reserve( m_InitialHistorySize );
+      m_vOldReadings.reserve(m_InitialHistorySize);
       return;
-    }
-  else if ( max_age > 0 )
-    {
-      std::vector< float > old_readings;
-      old_readings.reserve( m_InitialHistorySize );
+    } else if (max_age > 0) {
+      std::vector<float> old_readings;
+      old_readings.reserve(m_InitialHistorySize);
 
-      for ( unsigned int i = 0; i < m_vOldReadings.size(); i+=3 )
-        if ( m_vOldReadings[i+2] < max_age )
-          {
-            old_readings.push_back( m_vOldReadings[i] );
-            old_readings.push_back( m_vOldReadings[i+1] );
-            old_readings.push_back( m_vOldReadings[i+2] );
-          }
+      for (unsigned int i = 0; i < m_vOldReadings.size(); i += 3)
+        if (m_vOldReadings[i + 2] < max_age) {
+          old_readings.push_back(m_vOldReadings[i]);
+          old_readings.push_back(m_vOldReadings[i + 1]);
+          old_readings.push_back(m_vOldReadings[i + 2]);
+        }
 
       m_vOldReadings.clear();
-      m_vOldReadings.reserve( m_InitialHistorySize );
+      m_vOldReadings.reserve(m_InitialHistorySize);
 
       // integrate the new calculated old readings
-      for ( unsigned int i = 0; i < old_readings.size(); i++ )
-        m_vOldReadings.push_back( old_readings[i] );
+      for (unsigned int i = 0; i < old_readings.size(); i++)
+        m_vOldReadings.push_back(old_readings[i]);
     }
-}
-
-
+  }
 
 // update the occ grid by putting the laser readings in it.
 // the current robopos is the midx and the midy
 // and the inc variable is the increase of the obstacles
-void ColliLaserOccupancyGrid::UpdateOccGrid( int midX, int midY, float inc, float vel,
-                                         float xdiff, float ydiff, float oridiff )
-{
-  for ( int y = 0; y < m_Height; ++y )
-    for ( int x = 0; x < m_Width; ++x )
-      m_OccupancyProb[x][y] = _COLLI_CELL_FREE_;
-
-  IntegrateOldReadings( midX, midY, inc, vel, xdiff, ydiff, oridiff );
-  IntegrateNewReadings( midX, midY, inc, vel );
-}
-
-
-void ColliLaserOccupancyGrid::IntegrateOldReadings( int midX, int midY, float inc, float vel,
-                                                float xdiff, float ydiff, float oridiff )
-{
-  std::vector< float > old_readings;
-  old_readings.reserve( m_InitialHistorySize );
-
-  float oldpos_x, oldpos_y;
-  float newpos_x, newpos_y;
-
-  float history = max( m_MinHistoryLength,
-                       m_MaxHistoryLength - (int)(max( 0.0, fabs(vel)-0.5 ) )* 20 );
-
-  // update all old readings
-  for ( unsigned int i = 0; i < m_vOldReadings.size(); i+=3 )
+  void
+  ColliLaserOccupancyGrid::UpdateOccGrid(int midX, int midY, float inc, float vel, float xdiff, float ydiff,
+      float oridiff)
   {
-    if ( m_vOldReadings[i+2] < history )
-      {
+    for (int y = 0; y < m_Height; ++y)
+      for (int x = 0; x < m_Width; ++x)
+        m_OccupancyProb[x][y] = _COLLI_CELL_FREE_;
+
+    IntegrateOldReadings(midX, midY, inc, vel, xdiff, ydiff, oridiff);
+    IntegrateNewReadings(midX, midY, inc, vel);
+  }
+
+  void
+  ColliLaserOccupancyGrid::IntegrateOldReadings(int midX, int midY, float inc, float vel, float xdiff, float ydiff,
+      float oridiff)
+  {
+    std::vector<float> old_readings;
+    old_readings.reserve(m_InitialHistorySize);
+
+    float oldpos_x, oldpos_y;
+    float newpos_x, newpos_y;
+
+    float history = max(m_MinHistoryLength, m_MaxHistoryLength - (int) (max(0.0, fabs(vel) - 0.5)) * 20);
+
+    // update all old readings
+    for (unsigned int i = 0; i < m_vOldReadings.size(); i += 3) {
+      if (m_vOldReadings[i + 2] < history) {
         oldpos_x = m_vOldReadings[i];
-        oldpos_y = m_vOldReadings[i+1];
-        newpos_x =  -xdiff + (  oldpos_x * m_pTrigTable->GetCos( oridiff ) +
-                                        oldpos_y * m_pTrigTable->GetSin( oridiff ) );
-        newpos_y =  -ydiff + ( -oldpos_x * m_pTrigTable->GetSin( oridiff ) +
-                                oldpos_y * m_pTrigTable->GetCos( oridiff ) );
+        oldpos_y = m_vOldReadings[i + 1];
+        newpos_x = -xdiff + (oldpos_x * m_pTrigTable->GetCos(oridiff) + oldpos_y * m_pTrigTable->GetSin(oridiff));
+        newpos_y = -ydiff + (-oldpos_x * m_pTrigTable->GetSin(oridiff) + oldpos_y * m_pTrigTable->GetCos(oridiff));
 
-        float angle_to_old_reading = atan2( newpos_y, newpos_x );
-        float sqr_distance_to_old_reading = sqr( newpos_x ) + sqr( newpos_y );
+        float angle_to_old_reading = atan2(newpos_y, newpos_x);
+        float sqr_distance_to_old_reading = sqr(newpos_x) + sqr(newpos_y);
 
-        int number_of_old_reading = (int)
-          (normalize_degree( ( 360.0/(m_pLaser->GetNumberOfReadings()) ) *
-                             rad2deg(angle_to_old_reading) ) );
+        int number_of_old_reading = (int) (normalize_degree(
+            (360.0 / (m_pLaser->GetNumberOfReadings())) * rad2deg(angle_to_old_reading)));
         bool SollEintragen = true;
 
-          if ( sqr( m_pLaser->GetReadingLength( number_of_old_reading ) - 0.3 ) > sqr_distance_to_old_reading )
-          {
-            SollEintragen = false;
+        if (sqr(m_pLaser->GetReadingLength(number_of_old_reading) - 0.3) > sqr_distance_to_old_reading) {
+          SollEintragen = false;
+        }
+
+        if (SollEintragen == true) {
+          float posX = (float) (midX + (int) ((newpos_x * 100.0) / ((float) m_CellWidth)));
+          float posY = (float) (midY + (int) ((newpos_y * 100.0) / ((float) m_CellHeight)));
+
+          if ((posX > 4.0) && (posX < (float) (m_Width - 5)) && (posY > 4.0) && (posY < (float) (m_Height - 5))) {
+            old_readings.push_back(newpos_x);
+            old_readings.push_back(newpos_y);
+            old_readings.push_back(m_vOldReadings[i + 2] + 1.0);
+
+            // 25 cm's in my opinion, that are here: 0.25*100/m_CellWidth
+            int size = (int) (((0.25 + inc) * 100.0) / (float) m_CellWidth);
+            integrateObstacle(Ellipse(HomPoint(posX, posY), size - 2, size - 2, 0.0));
           }
-
-
-        if ( SollEintragen == true )
-          {
-            float posX = (float) (midX + (int)((newpos_x*100.0) / ((float)m_CellWidth )));
-            float posY = (float) (midY + (int)((newpos_y*100.0) / ((float)m_CellHeight )));
-
-            if ( (posX > 4.0) && (posX < (float)(m_Width-5)) &&
-                 (posY > 4.0) && (posY < (float)(m_Height-5)) )
-              {
-                old_readings.push_back( newpos_x );
-                old_readings.push_back( newpos_y );
-                old_readings.push_back( m_vOldReadings[i+2]+1.0 );
-
-                // 25 cm's in my opinion, that are here: 0.25*100/m_CellWidth
-                int size = (int)(((0.25+inc)*100.0)/(float)m_CellWidth);
-                integrateObstacle( Ellipse( HomPoint( posX, posY ), size-2, size-2, 0.0 ) );
-              }
-          }
+        }
       }
+    }
+    m_vOldReadings.clear();
+    m_vOldReadings.reserve(m_InitialHistorySize);
+
+    // integrate the new calculated old readings
+    for (unsigned int i = 0; i < old_readings.size(); i++)
+      m_vOldReadings.push_back(old_readings[i]);
   }
-  m_vOldReadings.clear();
-  m_vOldReadings.reserve( m_InitialHistorySize );
 
-  // integrate the new calculated old readings
-  for ( unsigned int i = 0; i < old_readings.size(); i++ )
-    m_vOldReadings.push_back( old_readings[i] );
-}
+  inline HomPoint
+  transformLaser2Motor(const HomPoint &laser_point)
+  {
+    return HomPoint(laser_point.x() - 0.2, laser_point.y());
+  }
 
-inline HomPoint transformLaser2Motor( const HomPoint &laser_point )
-{
-  return HomPoint( laser_point.x()-0.2, laser_point.y() );
-}
+  void
+  ColliLaserOccupancyGrid::IntegrateNewReadings(int midX, int midY, float inc, float vel)
+  {
+    int numberOfReadings = m_pLaser->GetNumberOfReadings();
+    int posX, posY;
+    HomPoint point;
+    float p_x, p_y;
+    /* float oldp_x = 1000.0;
+     float oldp_y = 1000.0;*/
 
-void ColliLaserOccupancyGrid::IntegrateNewReadings( int midX, int midY,
-                                                float inc, float vel )
-{
-  int numberOfReadings = m_pLaser->GetNumberOfReadings();
-  int posX, posY;
-  HomPoint point;
-  float p_x, p_y;
- /* float oldp_x = 1000.0;
-  float oldp_y = 1000.0;*/
-
-  for ( int i = 0; i < numberOfReadings; i++ ){
-      if ( m_pLaser->GetReadingLength(i) >= m_MinimumLaserLength )
-      {
+    for (int i = 0; i < numberOfReadings; i++) {
+      if (m_pLaser->GetReadingLength(i) >= m_MinimumLaserLength) {
         // point = transformLaser2Motor(Point(m_pLaser->GetReadingPosX(i), m_pLaser->GetReadingPosY(i)));
         //point = transformLaser2Motor(HomPoint(m_pLaser->GetReadingPosX(i), m_pLaser->GetReadingPosY(i)));
         point = HomPoint(m_pLaser->GetReadingPosX(i), m_pLaser->GetReadingPosY(i));
         p_x = point.x();
         p_y = point.y();
-/*      if ( !((p_x == 0.0) && (p_y == 0.0)) &&
-            sqr(p_x-oldp_x)+sqr(p_y-oldp_y) > sqr( m_EllipseDistance ) )
-          {
-            oldp_x = p_x;
-            oldp_y = p_y;*/
-            posX = midX + (int)((p_x*100.0) / ((float)m_CellWidth ));
-            posY = midY + (int)((p_y*100.0) / ((float)m_CellHeight ));
+        /*      if ( !((p_x == 0.0) && (p_y == 0.0)) &&
+         sqr(p_x-oldp_x)+sqr(p_y-oldp_y) > sqr( m_EllipseDistance ) )
+         {
+         oldp_x = p_x;
+         oldp_y = p_y;*/
+        posX = midX + (int) ((p_x * 100.0) / ((float) m_CellWidth));
+        posY = midY + (int) ((p_y * 100.0) / ((float) m_CellHeight));
 
-            if ( !( (posX <= 5) || (posX >= m_Width-6) ||
-                    (posY <= 5) || (posY >= m_Height-6) ) )
-  //          if ( !( (posX <= 0) || (posX >= m_Width-6) ||
-    //                (posY <= 0) || (posY >= m_Height-6) ) )
-              {
-                //float dec = max( (sqrt(sqr(p_x)+sqr(p_y))/3.0-1.0), 0.0 );
-                //float dec = max((m_pLaser->GetReadingLength(i)/2.0)-1.0, 0.0 );
-                float dec = 0.0;
+        if (!((posX <= 5) || (posX >= m_Width - 6) || (posY <= 5) || (posY >= m_Height - 6)))
+        //          if ( !( (posX <= 0) || (posX >= m_Width-6) ||
+        //                (posY <= 0) || (posY >= m_Height-6) ) )
+        {
+          //float dec = max( (sqrt(sqr(p_x)+sqr(p_y))/3.0-1.0), 0.0 );
+          //float dec = max((m_pLaser->GetReadingLength(i)/2.0)-1.0, 0.0 );
+          float dec = 0.0;
 
-                float height = 0.0;
-                float rad = normalize_rad( m_pLaser->GetRadiansForReading( i ) );
-                height = m_pRoboShape->GetRobotLengthforRad( deg2rad( 90. ) );
-                height = max( 4.0, ((height + inc - dec)*100.0)/(float)m_CellHeight );
-                if( ref_obstacle )
-                  height = min(m_MaxCellExt,height);
-                float length = 0.0;
-                length = m_pRoboShape->GetRobotLengthforRad( rad );
+          float height = 0.0;
+          float rad = normalize_rad(m_pLaser->GetRadiansForReading(i));
+          height = m_pRoboShape->GetRobotLengthforRad(deg2rad(90.));
+          height = max(4.0, ((height + inc - dec) * 100.0) / (float) m_CellHeight);
+          if (ref_obstacle) height = min(m_MaxCellExt, height);
+          float length = 0.0;
+          length = m_pRoboShape->GetRobotLengthforRad(rad);
 
-                if (fabs(normalize_mirror_rad(rad)) < M_PI_2)
-                  length = m_pRoboShape->GetRobotLengthforRad( deg2rad( 90. ) );
-                else
-                  length = m_pRoboShape->GetRobotLengthforRad( rad );
+          if (fabs(normalize_mirror_rad(rad)) < M_PI_2) length = m_pRoboShape->GetRobotLengthforRad(deg2rad(90.));
+          else length = m_pRoboShape->GetRobotLengthforRad(rad);
 
-                length = max( 4.0, ((length + inc - dec)*100.0)/(float)m_CellWidth );
-                if( ref_obstacle)
-                  length = min(m_MaxCellExt,length);
-                   if ( !m_pLaser->IsPipe( rad ) )
-                   {
-                    integrateObstacle( Ellipse( HomPoint( posX, posY ), (int)height, (int)length, 0.0 ) );
-                    if ( !Contained( p_x, p_y ) )
-                    {
-                        m_vOldReadings.push_back( p_x );
-                        m_vOldReadings.push_back( p_y );
-                        m_vOldReadings.push_back( 0.0 );
-                    }
-                   }
-              }
-          //}
+          length = max(4.0, ((length + inc - dec) * 100.0) / (float) m_CellWidth);
+          if (ref_obstacle) length = min(m_MaxCellExt, length);
+          if (!m_pLaser->IsPipe(rad)) {
+            integrateObstacle(Ellipse(HomPoint(posX, posY), (int) height, (int) length, 0.0));
+            if (!Contained(p_x, p_y)) {
+              m_vOldReadings.push_back(p_x);
+              m_vOldReadings.push_back(p_y);
+              m_vOldReadings.push_back(0.0);
+            }
+          }
+        }
+        //}
       }
-   }
-}
+    }
+  }
 
-
-bool ColliLaserOccupancyGrid::Contained( float p_x, float p_y )
-{
-  for ( unsigned int i = 0; i < m_vOldReadings.size(); i+=3 )
-    if ( sqr(p_x - m_vOldReadings[i]) + sqr(p_y - m_vOldReadings[i+1]) < sqr( m_EllipseDistance ) )
-      {
+  bool
+  ColliLaserOccupancyGrid::Contained(float p_x, float p_y)
+  {
+    for (unsigned int i = 0; i < m_vOldReadings.size(); i += 3)
+      if (sqr(p_x - m_vOldReadings[i]) + sqr(p_y - m_vOldReadings[i + 1]) < sqr(m_EllipseDistance)) {
         return true;
       }
-  return false;
-}
+    return false;
+  }
 
+  void
+  ColliLaserOccupancyGrid::integrateObstacle(Ellipse ellipse)
+  {
+    int centerx = (int) (ellipse.GetCenter().x());
+    int centery = (int) (ellipse.GetCenter().y());
 
+    int width = (int) (ellipse.GetWidth());
+    int height = (int) (ellipse.GetHeight());
 
-void ColliLaserOccupancyGrid::integrateObstacle( Ellipse ellipse )
-{
-  int centerx = (int)(ellipse.GetCenter().x());
-  int centery = (int)(ellipse.GetCenter().y());
+    std::vector<int> fast_ellipse = ellipse_map->GetEllipse(width, height, m_RobocupMode);
 
-  int width = (int)(ellipse.GetWidth());
-  int height = (int)(ellipse.GetHeight());
+    int posX = 0;
+    int posY = 0;
 
-  std::vector< int > fast_ellipse = ellipse_map->GetEllipse( width, height, m_RobocupMode );
-
-  int posX = 0;
-  int posY = 0;
-
-  // i = x offset, i+1 = y offset, i+2 is cost
-  for ( unsigned int i = 0; i < fast_ellipse.size(); i+=3 )
-    {
-      posY = centery + fast_ellipse[i+1];
+    // i = x offset, i+1 = y offset, i+2 is cost
+    for (unsigned int i = 0; i < fast_ellipse.size(); i += 3) {
+      posY = centery + fast_ellipse[i + 1];
       posX = centerx + fast_ellipse[i];
 
-      if ( (posX >= 0) && (posX < m_Width) &&
-           (posY >= 0) && (posY < m_Height) &&
-           (m_OccupancyProb[posX][posY] < fast_ellipse[i+2]) )
-        m_OccupancyProb[posX][posY] = fast_ellipse[i+2];
+      if ((posX >= 0) && (posX < m_Width) && (posY >= 0) && (posY < m_Height)
+          && (m_OccupancyProb[posX][posY] < fast_ellipse[i + 2])) m_OccupancyProb[posX][posY] = fast_ellipse[i + 2];
     }
-}
-
-
+  }
 
 } // end of namespace fawkes

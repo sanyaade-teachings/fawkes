@@ -1,4 +1,3 @@
-
 /***************************************************************************
  *  colli_thread.cpp - Colli Thread
  *
@@ -37,20 +36,17 @@
 using namespace fawkes;
 using namespace std;
 
-
 ColliThread::ColliThread()
-  : Thread("ColliThread", Thread::OPMODE_CONTINUOUS)
+    : Thread("ColliThread", Thread::OPMODE_CONTINUOUS)
 {
 #ifdef HAVE_VISUAL_DEBUGGING
   visthread_ = NULL;
 #endif
 }
 
-
 ColliThread::~ColliThread()
 {
 }
-
 
 void
 ColliThread::init()
@@ -59,8 +55,7 @@ ColliThread::init()
     logger->log_info(name(), "Debug output is not set... Disabled");
     display_debug_output = false;
   } else {
-    display_debug_output = config->get_bool(
-        "/plugins/colli/enable_debug_output");
+    display_debug_output = config->get_bool("/plugins/colli/enable_debug_output");
   }
 
   if (display_debug_output) {
@@ -68,12 +63,10 @@ ColliThread::init()
   }
 
   if (!config->exists("/plugins/colli/Colli_FREQUENCY")) {
-    logger->log_error(name(),
-        "***** ERROR *****: Could not get: Colli_FREQUENCY --> ABORTING");
+    logger->log_error(name(), "***** ERROR *****: Could not get: Colli_FREQUENCY --> ABORTING");
     return;
   } else {
-    m_ColliFrequency = (int) (1000.0
-        / (float) config->get_int("/plugins/colli/Colli_FREQUENCY"));
+    m_ColliFrequency = (int) (1000.0 / (float) config->get_int("/plugins/colli/Colli_FREQUENCY"));
 
     if (display_debug_output) {
       logger->log_info(name(), "Colli_FREQUENCY %f", m_ColliFrequency);
@@ -81,8 +74,7 @@ ColliThread::init()
   }
 
   if (!config->exists("/plugins/colli/OccGrid_HEIGHT")) {
-    logger->log_error(name(),
-        "***** ERROR *****: Could not get: OccGrid_HEIGHT --> ABORTING!");
+    logger->log_error(name(), "***** ERROR *****: Could not get: OccGrid_HEIGHT --> ABORTING!");
     return;
   } else {
     m_OccGridHeight = config->get_float("/plugins/colli/OccGrid_HEIGHT");
@@ -90,8 +82,7 @@ ColliThread::init()
   }
 
   if (!config->exists("/plugins/colli/OccGrid_WIDTH")) {
-    logger->log_error(name(),
-        "***** ERROR *****: Could not get: OccGrid_WIDTH --> ABORTING!");
+    logger->log_error(name(), "***** ERROR *****: Could not get: OccGrid_WIDTH --> ABORTING!");
     return;
   } else {
     m_OccGridWidth = config->get_float("/plugins/colli/OccGrid_HEIGHT");
@@ -99,8 +90,7 @@ ColliThread::init()
   }
 
   if (!config->exists("/plugins/colli/OccGrid_CELL_HEIGHT")) {
-    logger->log_error(name(),
-        "***** ERROR *****: Could not get: OccGrid_CELL_HEIGHT --> ABORTING!");
+    logger->log_error(name(), "***** ERROR *****: Could not get: OccGrid_CELL_HEIGHT --> ABORTING!");
     return;
   } else {
     m_OccGridCellHeight = config->get_int("/plugins/colli/OccGrid_CELL_HEIGHT");
@@ -108,8 +98,7 @@ ColliThread::init()
   }
 
   if (!config->exists("/plugins/colli/OccGrid_CELL_WIDTH")) {
-    logger->log_error(name(),
-        "***** ERROR *****: Could not get: OccGrid_CELL_WIDTH --> ABORTING!");
+    logger->log_error(name(), "***** ERROR *****: Could not get: OccGrid_CELL_WIDTH --> ABORTING!");
     return;
   } else {
     m_OccGridCellWidth = config->get_int("/plugins/colli/OccGrid_CELL_WIDTH");
@@ -117,18 +106,15 @@ ColliThread::init()
   }
 
   if (!config->exists("/plugins/colli/Colli_MAX_ROBO_INCREASE")) {
-    logger->log_error(name(),
-        "***** ERROR *****: Could not get: Colli_MAX_ROBO_INCREASE --> ABORTING!");
+    logger->log_error(name(), "***** ERROR *****: Could not get: Colli_MAX_ROBO_INCREASE --> ABORTING!");
     return;
   } else {
-    m_MaximumRoboIncrease = config->get_float(
-        "/plugins/colli/Colli_MAX_ROBO_INCREASE");
+    m_MaximumRoboIncrease = config->get_float("/plugins/colli/Colli_MAX_ROBO_INCREASE");
     //cout << "Colli_MAX_ROBO_INCREASE " << m_MaximumRoboIncrease << endl;
   }
 
   if (!config->exists("/plugins/colli/Colli_ROBOCUP_MODE")) {
-    logger->log_error(name(),
-        "***** ERROR *****: Could not get: Colli_ROBOCUP_MODE --> ABORTING!");
+    logger->log_error(name(), "***** ERROR *****: Could not get: Colli_ROBOCUP_MODE --> ABORTING!");
     return;
   } else {
     m_RobocupMode = config->get_int("/plugins/colli/Colli_ROBOCUP_MODE");
@@ -136,55 +122,48 @@ ColliThread::init()
   }
 
   if (!config->exists("/plugins/colli/Navigator_interface_id")) {
-    logger->log_error(name(),
-        "***** ERROR *****: Could not get: Navigator_interface_id --> ABORTING!");
+    logger->log_error(name(), "***** ERROR *****: Could not get: Navigator_interface_id --> ABORTING!");
     return;
   } else {
     naviface_id = config->get_string("/plugins/colli/Navigator_interface_id");
   }
 
   if (!config->exists("/plugins/colli/Laser_interface_id")) {
-    logger->log_error(name(),
-        "***** ERROR *****: Could not get: Laser_interface_id --> ABORTING!");
+    logger->log_error(name(), "***** ERROR *****: Could not get: Laser_interface_id --> ABORTING!");
     return;
   } else {
     laser_iface_id = config->get_string("/plugins/colli/Laser_interface_id");
   }
 
   if (!config->exists("/plugins/colli/Motor_interface_id")) {
-    logger->log_error(name(),
-        "***** ERROR *****: Could not get: Motor_interface_id --> ABORTING!");
+    logger->log_error(name(), "***** ERROR *****: Could not get: Motor_interface_id --> ABORTING!");
     return;
   } else {
     motor_iface_id = config->get_string("/plugins/colli/Motor_interface_id");
   }
 
   /* As default we use a football player AllemaniACs robot */
-  if (default_hostname == "carl_rc.informatik.rwth-aachen.de") {//TODO this needs to get removed or changed to generic version
+  if (default_hostname == "carl_rc.informatik.rwth-aachen.de") { //TODO this needs to get removed or changed to generic version
     isRwiRobot = true;
     if (display_debug_output) {
-      logger->log_info(name(),
-          "COLLI (Constructor): Using a RWI Robot so this effects robs position in grid");
+      logger->log_info(name(), "COLLI (Constructor): Using a RWI Robot so this effects robs position in grid");
     }
   } else {
     isRwiRobot = false;
     if (display_debug_output) {
-      logger->log_info(name(),
-          "COLLI (Constructor): Using Colli for an AllemaniACs IKEA Style Robot");
+      logger->log_info(name(), "COLLI (Constructor): Using Colli for an AllemaniACs IKEA Style Robot");
     }
   }
 
   if (!config->exists("/plugins/colli/MotorDistance")) {
-    logger->log_error(name(),
-        "***** ERROR *****: Could not get: MotorDistance");
+    logger->log_error(name(), "***** ERROR *****: Could not get: MotorDistance");
     motor_distance = 0;
   } else {
     motor_distance = config->get_float("/plugins/colli/MotorDistance");
   }
 
   if (!config->exists("/plugins/colli/adjust_robo_pos")) {
-    logger->log_error(name(),
-        "***** ERROR *****: Could not get: adjust_robo_pos");
+    logger->log_error(name(), "***** ERROR *****: Could not get: adjust_robo_pos");
     adjust_robopos = false;
   } else {
     adjust_robopos = config->get_bool("/plugins/colli/adjust_robo_pos");
@@ -209,8 +188,7 @@ ColliThread::init()
   srand(time(NULL));
 
   if (display_debug_output) {
-    logger->log_info(name(),
-        "COLLI (Constructor): Entering initialization ...");
+    logger->log_info(name(), "COLLI (Constructor): Entering initialization ...");
   }
 
   RegisterAtBlackboard();
@@ -237,11 +215,10 @@ ColliThread::init()
   }
 }
 
-
 void
 ColliThread::finalize()
 {
-  logger->log_info(name(),"COLLI (Destructor): Entering destructing ...\n");
+  logger->log_info(name(), "COLLI (Destructor): Entering destructing ...\n");
   delete m_pSearch;
   delete m_pLaser;
   delete m_pMotorInstruct;
@@ -254,10 +231,9 @@ ColliThread::finalize()
   blackboard->close(m_pLaserScannerObj);
   blackboard->close(m_pMopoObj);
   blackboard->close(motor_des);
-  logger->log_info(name(),"COLLI (Destructor): Destructing done.\n");
+  logger->log_info(name(), "COLLI (Destructor): Destructing done.\n");
 
 }
-
 
 /* **************************************************************************** */
 /* **************************************************************************** */
@@ -302,8 +278,7 @@ ColliThread::finalize()
 // ============================================================================ //
 //
 
-
- #ifdef HAVE_VISUAL_DEBUGGING
+#ifdef HAVE_VISUAL_DEBUGGING
 void
 ColliThread::visualize_cells()
 {
@@ -390,229 +365,195 @@ ColliThread::visualize_cells()
 
   HomPoint modTarget = m_pSearch->get_mod_target();
   visthread_->visualize("/base_link",occ_cells,near_cells,far_cells,middle_cells,m_RoboGridPos,m_LaserGridPos,laser_points,plan,motor_des_point,
-                       m_pLaserOccGrid->getCellWidth(),m_pLaserOccGrid->getCellHeight(),target,
-                       m_OccGridWidth,m_OccGridHeight,motor_real,m_LocalTarget,target_odom,orig_laser_points,
-                       search_occ_cells,astar_found_occ,free_cells,seen_states,modTarget);
+      m_pLaserOccGrid->getCellWidth(),m_pLaserOccGrid->getCellHeight(),target,
+      m_OccGridWidth,m_OccGridHeight,motor_real,m_LocalTarget,target_odom,orig_laser_points,
+      search_occ_cells,astar_found_occ,free_cells,seen_states,modTarget);
 }
 #endif
-
 
 void
 ColliThread::loop()
 {
-  #ifdef HAVE_VISUAL_DEBUGGING
+#ifdef HAVE_VISUAL_DEBUGGING
   visualize_cells();
-  #endif
+#endif
   publish_odom();
   // to be on the sure side of life
   m_ProposedTranslation = 0.0;
-  m_ProposedRotation    = 0.0;
+  m_ProposedRotation = 0.0;
   // Update blackboard data
   UpdateBB();
 
-
 //  BBPing();
- // BBOperate();
-/* TODO
-  if ( !( BBAlive( "laser", 4 ) ||
-          BBAlive( "sim_robot", 4 ) ||
-          BBAlive( "laser_obstacles", 4 ) ) )
-    {
-      cout << "***** Laser or sim_robot dead!!! --> STOPPING!!!!" << endl;
-      m_pMotorInstruct->Drive( 0.0, 0.0 );
-      m_pColliDataObj->SetFinal( true );
-      m_pColliDataObj->UpdateBB();
-      BBOperate();
-      escape_count = 0;
-      return;
-    }
-*/
+  // BBOperate();
+  /* TODO
+   if ( !( BBAlive( "laser", 4 ) ||
+   BBAlive( "sim_robot", 4 ) ||
+   BBAlive( "laser_obstacles", 4 ) ) )
+   {
+   cout << "***** Laser or sim_robot dead!!! --> STOPPING!!!!" << endl;
+   m_pMotorInstruct->Drive( 0.0, 0.0 );
+   m_pColliDataObj->SetFinal( true );
+   m_pColliDataObj->UpdateBB();
+   BBOperate();
+   escape_count = 0;
+   return;
+   }
+   */
   // THIS IF FOR CHALLENGE ONLY!!!
   //if ( m_pColliTargetObj->GetColliMode() == (int)(OVERRIDE) ) // ** NOT SURE
-  if ( m_pColliTargetObj->flags() == (int)(OVERRIDE) )
-    {
-      std::cout << "BEING OVERRIDDEN!" << endl << endl;
-      m_pColliDataObj->set_final( false );
-      m_pColliDataObj->write();
-      escape_count = 0;
-      return;
-    }
+  if (m_pColliTargetObj->flags() == (int) (OVERRIDE)) {
+    std::cout << "BEING OVERRIDDEN!" << endl << endl;
+    m_pColliDataObj->set_final(false);
+    m_pColliDataObj->write();
+    escape_count = 0;
+    return;
+  }
 
-
-  if ((int) m_pColliTargetObj->error_code())
-    {
-      logger->log_error(name(),"Moving is not allowed!\n\n");
-      m_pMotorInstruct->Drive( 0.0, 0.0 );
-      m_pColliDataObj->set_final(true);
-      m_pColliDataObj->write();
-      escape_count = 0;
-      return;
-    }
-
+  if ((int) m_pColliTargetObj->error_code()) {
+    logger->log_error(name(), "Moving is not allowed!\n\n");
+    m_pMotorInstruct->Drive(0.0, 0.0);
+    m_pColliDataObj->set_final(true);
+    m_pColliDataObj->write();
+    escape_count = 0;
+    return;
+  }
 
   // Do only drive, if there is a new (first) target
-  if ( ( m_oldTargetX   == m_pColliTargetObj->dest_x() ) &&
-       ( m_oldTargetY   == m_pColliTargetObj->dest_y() ) &&
-       ( m_oldTargetOri == m_pColliTargetObj->dest_ori() ) )
-    {
-      m_oldAnglesToTarget.clear();
-      for ( unsigned int i = 0; i < 10; i++ )
-        m_oldAnglesToTarget.push_back( 0.0 );
+  if ((m_oldTargetX == m_pColliTargetObj->dest_x()) && (m_oldTargetY == m_pColliTargetObj->dest_y())
+      && (m_oldTargetOri == m_pColliTargetObj->dest_ori())) {
+    m_oldAnglesToTarget.clear();
+    for (unsigned int i = 0; i < 10; i++)
+      m_oldAnglesToTarget.push_back(0.0);
 
-      m_ProposedTranslation = 0.0;
-      m_ProposedRotation    = 0.0;
-      m_pColliDataObj->set_final( true );
-      m_pMotorInstruct->Drive( m_ProposedTranslation, m_ProposedRotation );
+    m_ProposedTranslation = 0.0;
+    m_ProposedRotation = 0.0;
+    m_pColliDataObj->set_final(true);
+    m_pMotorInstruct->Drive(m_ProposedTranslation, m_ProposedRotation);
 
-      escape_count = 0;
-      // Send motor and colli data away.
-      m_pColliDataObj->write();
-      return;
-    }
-  else
-    {
-      m_oldTargetX   = m_pColliTargetObj->dest_x()   + 1000.0;
-      m_oldTargetY   = m_pColliTargetObj->dest_y()   + 1000.0;
-      m_oldTargetOri = m_pColliTargetObj->dest_ori() + 1.0;
-      m_OldTargetPointX = m_pColliTargetObj->dest_x();
-      m_OldTargetPointY = m_pColliTargetObj->dest_y();
-    }
+    escape_count = 0;
+    // Send motor and colli data away.
+    m_pColliDataObj->write();
+    return;
+  } else {
+    m_oldTargetX = m_pColliTargetObj->dest_x() + 1000.0;
+    m_oldTargetY = m_pColliTargetObj->dest_y() + 1000.0;
+    m_oldTargetOri = m_pColliTargetObj->dest_ori() + 1.0;
+    m_OldTargetPointX = m_pColliTargetObj->dest_x();
+    m_OldTargetPointY = m_pColliTargetObj->dest_y();
+  }
 
   // Update state machine
   UpdateColliStateMachine();
 
   // nothing is to do
-  if (m_ColliStatus == NothingToDo)
-    {
-      m_pLaserOccGrid->ResetOld();
-      m_ProposedTranslation = 0.0;
-      m_ProposedRotation    = 0.0;
-      m_pColliDataObj->set_final( true );
+  if (m_ColliStatus == NothingToDo) {
+    m_pLaserOccGrid->ResetOld();
+    m_ProposedTranslation = 0.0;
+    m_ProposedRotation = 0.0;
+    m_pColliDataObj->set_final(true);
 
-      m_oldTargetX   = m_pColliTargetObj->dest_x();
-      m_oldTargetY   = m_pColliTargetObj->dest_y();
-      m_oldTargetOri = m_pColliTargetObj->dest_ori();
+    m_oldTargetX = m_pColliTargetObj->dest_x();
+    m_oldTargetY = m_pColliTargetObj->dest_y();
+    m_oldTargetOri = m_pColliTargetObj->dest_ori();
 
-      m_pLaserOccGrid->ResetOld();
+    m_pLaserOccGrid->ResetOld();
 
-      escape_count = 0;
+    escape_count = 0;
+  } else {
+    // perform the update of the grid.
+    UpdateOwnModules();
+    m_pColliDataObj->set_final(false);
+    if (m_pMopoObj->motor_state() == m_pMopoObj->MOTOR_DISABLED) {
+      m_pMotorInstruct->Drive(0.0, 0.0);
     }
-  else
-    {
-      // perform the update of the grid.
-      UpdateOwnModules();
-      m_pColliDataObj->set_final( false );
-      if ( m_pMopoObj->motor_state () == m_pMopoObj->MOTOR_DISABLED )
-      {
-        m_pMotorInstruct->Drive( 0.0, 0.0 );
+
+    // Check, if one of our positions (robo-, laser-gridpos is not valid) => Danger!
+    if (CheckEscape() == true || escape_count > 0) {
+
+      if (GetMotorTranslation(motor_des->vx(), motor_des->omega()) == 0.0 && motor_des->omega() == 0.0) {
+        m_pLaserOccGrid->ResetOld();
       }
 
-      // Check, if one of our positions (robo-, laser-gridpos is not valid) => Danger!
-      if ( CheckEscape() == true || escape_count > 0 )
-        {
-
-          if ( GetMotorTranslation(motor_des->vx(),motor_des->omega()) == 0.0 &&
-               motor_des->omega() == 0.0 )
-            {
-              m_pLaserOccGrid->ResetOld();
-            }
-
-          // ueber denken und testen
-          if(m_pColliTargetObj->is_escaping_enabled () == true)
-            {
-             // SJTODO: ERST wenn ich gestoppt habe, escape mode anwerfen!!!
-              if (escape_count > 0)
-                {
-                  escape_count--;
-                }
-              else
-                {
-                  int rnd = (int)((rand())/(float)(RAND_MAX)) * 10; // + 5;
-                  escape_count = rnd;
-                  logger->log_info(name(),"Escape: new round with %d\n",rnd);
-                }
-              logger->log_info(name(),"Escape mode, escaping!\n");
-              m_pSelectDriveMode->SetLocalTarget( m_LocalTarget.x(), m_LocalTarget.y() );
-              m_pSelectDriveMode->Update( true );  // <-- this calls the ESCAPE mode!
-              m_ProposedTranslation = m_pSelectDriveMode->GetProposedTranslation();
-              m_ProposedRotation    = m_pSelectDriveMode->GetProposedRotation();
-            }
-          else
-            {
-              logger->log_error(name(),"Escape mode, but not allowed!\n");
-              m_ProposedTranslation = 0.0;
-              m_ProposedRotation    = 0.0;
-              escape_count = 0;
-            }
+      // ueber denken und testen
+      if (m_pColliTargetObj->is_escaping_enabled() == true) {
+        // SJTODO: ERST wenn ich gestoppt habe, escape mode anwerfen!!!
+        if (escape_count > 0) {
+          escape_count--;
+        } else {
+          int rnd = (int) ((rand()) / (float) (RAND_MAX)) * 10; // + 5;
+          escape_count = rnd;
+          logger->log_info(name(), "Escape: new round with %d\n", rnd);
         }
-      else
-        { // only orienting to do and moving possible
-          if (m_ColliStatus == OrientAtTarget)
-            {
-              logger->log_info(name(),"colli state: orient at target\n");
-              m_ProposedTranslation = 0.0;
-              // turn faster if angle-diff is high
-              m_ProposedRotation    = 1.0*normalize_mirror_rad( m_pColliTargetObj->dest_ori() -
-                                                                GetMotorOri(m_pMopoObj->omega()) );
-              // but at least use 0.1 rad/s
-              if ( m_ProposedRotation > 0.0 )
-                m_ProposedRotation = max(  0.1, (double)m_ProposedRotation );
-              else
-                m_ProposedRotation = min( -0.1, (double)m_ProposedRotation );
+        logger->log_info(name(), "Escape mode, escaping!\n");
+        m_pSelectDriveMode->SetLocalTarget(m_LocalTarget.x(), m_LocalTarget.y());
+        m_pSelectDriveMode->Update(true);  // <-- this calls the ESCAPE mode!
+        m_ProposedTranslation = m_pSelectDriveMode->GetProposedTranslation();
+        m_ProposedRotation = m_pSelectDriveMode->GetProposedRotation();
+      } else {
+        logger->log_error(name(), "Escape mode, but not allowed!\n");
+        m_ProposedTranslation = 0.0;
+        m_ProposedRotation = 0.0;
+        escape_count = 0;
+      }
+    } else { // only orienting to do and moving possible
+      if (m_ColliStatus == OrientAtTarget) {
+        logger->log_info(name(), "colli state: orient at target\n");
+        m_ProposedTranslation = 0.0;
+        // turn faster if angle-diff is high
+        m_ProposedRotation = 1.0
+            * normalize_mirror_rad(m_pColliTargetObj->dest_ori() - GetMotorOri(m_pMopoObj->omega()));
+        // but at least use 0.1 rad/s
+        if (m_ProposedRotation > 0.0) m_ProposedRotation = max(0.1, (double) m_ProposedRotation);
+        else m_ProposedRotation = min(-0.1, (double) m_ProposedRotation);
 
-               m_pLaserOccGrid->ResetOld();
-            }
-          else
-            { // search for a path
-               m_pSearch->Update( (int)m_RoboGridPos.x(), (int)m_RoboGridPos.y(),
-                                 (int)m_TargetGridPos.x(), (int)m_TargetGridPos.y() );
-              if ( m_pSearch->UpdatedSuccessful() )
-                { //   if path exists,
-                  m_vSolution.clear();
-                  m_LocalGridTarget = m_pSearch->GetLocalTarget();
-                  m_LocalGridTrajec = m_pSearch->GetLocalTrajec();
-                  // coordinate transformation from grid coordinates to relative robot coordinates
-                  if( !adjust_robopos )
-                  {
-                    m_LocalTarget = HomPoint( (m_LocalGridTarget.x() - m_RoboGridPos.x())*m_pLaserOccGrid->getCellWidth()/100.0,
-                                          (m_LocalGridTarget.y() - m_RoboGridPos.y())*m_pLaserOccGrid->getCellHeight()/100.0 );
-                    m_LocalTrajec = HomPoint( (m_LocalGridTrajec.x() - m_RoboGridPos.x())*m_pLaserOccGrid->getCellWidth()/100.0,
-                                          (m_LocalGridTrajec.y() - m_RoboGridPos.y())*m_pLaserOccGrid->getCellHeight()/100.0 );
-                  }
-                  else
-                  {
-                    HomPoint mod_robo = nearest_cell_to_target();
-                    m_LocalTarget = HomPoint( (m_LocalGridTarget.x() - mod_robo.x())*m_pLaserOccGrid->getCellWidth()/100.0,
-                                          (m_LocalGridTarget.y() - mod_robo.y())*m_pLaserOccGrid->getCellHeight()/100.0 );
-                    m_LocalTrajec = HomPoint( (m_LocalGridTrajec.x() - mod_robo.x())*m_pLaserOccGrid->getCellWidth()/100.0,
-                                          (m_LocalGridTrajec.y() - mod_robo.y())*m_pLaserOccGrid->getCellHeight()/100.0 );
-                  }
-                  // call appopriate drive mode
-                  m_pSelectDriveMode->SetLocalTarget( m_LocalTarget.x(), m_LocalTarget.y() );
-                  m_pSelectDriveMode->SetLocalTrajec( m_LocalTrajec.x(), m_LocalTrajec.y() );
-                  m_pSelectDriveMode->Update();
-                  m_ProposedTranslation = m_pSelectDriveMode->GetProposedTranslation();
-                  m_ProposedRotation    = m_pSelectDriveMode->GetProposedRotation();
-                }
-              else
-                { // else stop
-                  logger->log_info(name(),"   Drive Mode: Update not successful ---> stopping!\n");
-                  m_LocalTarget = HomPoint( 0.0, 0.0 );
-                  m_LocalTrajec = HomPoint( 0.0, 0.0 );
-                  m_ProposedTranslation = 0.0;
-                  m_ProposedRotation    = 0.0;
-                  m_pLaserOccGrid->ResetOld();
-                }
-              m_pColliDataObj->set_x( m_LocalTarget.x() );
-              m_pColliDataObj->set_y( m_LocalTarget.y() );
-              m_pColliDataObj->set_dest_x( m_LocalTrajec.x() );
-              m_pColliDataObj->set_dest_y( m_LocalTrajec.y() );
-            }
+        m_pLaserOccGrid->ResetOld();
+      } else { // search for a path
+        m_pSearch->Update((int) m_RoboGridPos.x(), (int) m_RoboGridPos.y(), (int) m_TargetGridPos.x(),
+            (int) m_TargetGridPos.y());
+        if (m_pSearch->UpdatedSuccessful()) { //   if path exists,
+          m_vSolution.clear();
+          m_LocalGridTarget = m_pSearch->GetLocalTarget();
+          m_LocalGridTrajec = m_pSearch->GetLocalTrajec();
+          // coordinate transformation from grid coordinates to relative robot coordinates
+          if (!adjust_robopos) {
+            m_LocalTarget = HomPoint(
+                (m_LocalGridTarget.x() - m_RoboGridPos.x()) * m_pLaserOccGrid->getCellWidth() / 100.0,
+                (m_LocalGridTarget.y() - m_RoboGridPos.y()) * m_pLaserOccGrid->getCellHeight() / 100.0);
+            m_LocalTrajec = HomPoint(
+                (m_LocalGridTrajec.x() - m_RoboGridPos.x()) * m_pLaserOccGrid->getCellWidth() / 100.0,
+                (m_LocalGridTrajec.y() - m_RoboGridPos.y()) * m_pLaserOccGrid->getCellHeight() / 100.0);
+          } else {
+            HomPoint mod_robo = nearest_cell_to_target();
+            m_LocalTarget = HomPoint((m_LocalGridTarget.x() - mod_robo.x()) * m_pLaserOccGrid->getCellWidth() / 100.0,
+                (m_LocalGridTarget.y() - mod_robo.y()) * m_pLaserOccGrid->getCellHeight() / 100.0);
+            m_LocalTrajec = HomPoint((m_LocalGridTrajec.x() - mod_robo.x()) * m_pLaserOccGrid->getCellWidth() / 100.0,
+                (m_LocalGridTrajec.y() - mod_robo.y()) * m_pLaserOccGrid->getCellHeight() / 100.0);
+          }
+          // call appopriate drive mode
+          m_pSelectDriveMode->SetLocalTarget(m_LocalTarget.x(), m_LocalTarget.y());
+          m_pSelectDriveMode->SetLocalTrajec(m_LocalTrajec.x(), m_LocalTrajec.y());
+          m_pSelectDriveMode->Update();
+          m_ProposedTranslation = m_pSelectDriveMode->GetProposedTranslation();
+          m_ProposedRotation = m_pSelectDriveMode->GetProposedRotation();
+        } else { // else stop
+          logger->log_info(name(), "   Drive Mode: Update not successful ---> stopping!\n");
+          m_LocalTarget = HomPoint(0.0, 0.0);
+          m_LocalTrajec = HomPoint(0.0, 0.0);
+          m_ProposedTranslation = 0.0;
+          m_ProposedRotation = 0.0;
+          m_pLaserOccGrid->ResetOld();
         }
+        m_pColliDataObj->set_x(m_LocalTarget.x());
+        m_pColliDataObj->set_y(m_LocalTarget.y());
+        m_pColliDataObj->set_dest_x(m_LocalTrajec.x());
+        m_pColliDataObj->set_dest_y(m_LocalTrajec.y());
+      }
     }
+  }
   cout << "I want to realize " << m_ProposedTranslation << ", " << m_ProposedRotation << endl;
   // Realize drive mode proposal with realization module
-  m_pMotorInstruct->Drive( m_ProposedTranslation, m_ProposedRotation );
+  m_pMotorInstruct->Drive(m_ProposedTranslation, m_ProposedRotation);
 
   cout << endl << endl;
 
@@ -620,7 +561,6 @@ ColliThread::loop()
   m_pColliDataObj->write();
 
 }
-
 
 void
 ColliThread::RegisterAtBlackboard()
@@ -633,19 +573,17 @@ ColliThread::RegisterAtBlackboard()
   m_pColliTargetObj = blackboard->open_for_reading<NavigatorInterface>(naviface_id.c_str());
   m_pColliDataObj = blackboard->open_for_writing<NavigatorInterface>("Navigator Temp");
 
-
   m_pMopoObj->read();
   m_pLaserScannerObj->read();
   m_pColliTargetObj->read();
   m_pColliDataObj->read();
 
-  m_pColliDataObj->set_final( true );
+  m_pColliDataObj->set_final(true);
   m_pColliDataObj->write();
   m_pColliTargetObj->read();
 
   ninit = blackboard->open_for_writing<NavigatorInterface>(naviface_id.c_str());
 }
-
 
 /** Initialize all modules used by the Colli. */
 void
@@ -653,38 +591,38 @@ ColliThread::InitializeModules()
 {
   laser_frame = m_pLaserScannerObj->frame();
   // FIRST(!): the laserinterface (uses the laserscanner)
-  m_pLaser = new Laser( m_pLaserScannerObj, "" );
+  m_pLaser = new Laser(m_pLaserScannerObj, "");
   m_pLaser->UpdateLaser();
-  m_pLaser->transform(tf_listener,laser_frame);
+  m_pLaser->transform(tf_listener, laser_frame);
 
   // SECOND(!): the occupancy grid (it uses the laser)
 
   // set the cell width and heigth to 5 cm and the grid size to 7.5 m x 7.5 m.
   // this are 750/5 x 750/5 grid cells -> (750x750)/5 = 22500 grid cells
 
-  m_pLaserOccGrid = new ColliLaserOccupancyGrid( logger, config, m_pLaser, (int) ((m_OccGridWidth*100)/m_OccGridCellWidth),
-                                            (int)((m_OccGridHeight*100)/m_OccGridCellHeight),
-                                            m_OccGridCellWidth, m_OccGridCellHeight);
+  m_pLaserOccGrid = new ColliLaserOccupancyGrid(logger, config, m_pLaser,
+      (int) ((m_OccGridWidth * 100) / m_OccGridCellWidth), (int) ((m_OccGridHeight * 100) / m_OccGridCellHeight),
+      m_OccGridCellWidth, m_OccGridCellHeight);
   // THIRD(!): the search component (it uses the occ grid (without the laser)
-  m_pSearch = new ColliSearch( logger, config, m_pLaserOccGrid );
+  m_pSearch = new ColliSearch(logger, config, m_pLaserOccGrid);
 
   // BEFORE DRIVE MODE: the motorinstruction set
-  m_pMotorInstruct = (CBaseMotorInstruct *)new CQuadraticMotorInstruct( motor_des, m_pMopoObj,m_ColliFrequency, logger, config );
+  m_pMotorInstruct = (CBaseMotorInstruct *) new CQuadraticMotorInstruct(motor_des, m_pMopoObj, m_ColliFrequency, logger,
+      config);
   //m_pMotorInstruct->SetRecoverEmergencyStop();
 
-
   // AFTER MOTOR INSTRUCT: the motor propose values object
-  m_pSelectDriveMode = new CSelectDriveMode( motor_des, m_pLaser, m_pColliTargetObj, logger, config );
+  m_pSelectDriveMode = new CSelectDriveMode(motor_des, m_pLaser, m_pColliTargetObj, logger, config);
 
   // Initialization of colli state machine:
   // Currently nothing is to accomplish
-  m_ColliStatus  = NothingToDo;
-  m_oldTargetX   = m_pColliTargetObj->dest_x();
-  m_oldTargetY   = m_pColliTargetObj->dest_y();
+  m_ColliStatus = NothingToDo;
+  m_oldTargetX = m_pColliTargetObj->dest_x();
+  m_oldTargetY = m_pColliTargetObj->dest_y();
   m_oldTargetOri = m_pColliTargetObj->dest_ori();
 
-  m_OldX   = m_pMopoObj->odometry_position_x();
-  m_OldY   = m_pMopoObj->odometry_position_y();
+  m_OldX = m_pMopoObj->odometry_position_x();
+  m_OldY = m_pMopoObj->odometry_position_y();
   m_OldOri = GetMotorOri(m_pMopoObj->odometry_orientation());
 
   m_Updx = m_pMopoObj->odometry_position_x();
@@ -693,7 +631,6 @@ ColliThread::InitializeModules()
 
   m_vSolution.clear();
 }
-
 
 /** Get the newest values from the blackboard. */
 void
@@ -716,29 +653,24 @@ ColliThread::UpdateBB()
   m_pColliDataObj->read();
 }
 
-
 void
 ColliThread::update_navi()
 {
-  if((! ninit->msgq_empty()))
-  {
-    if( ninit->msgq_first_is<NavigatorInterface::CartesianGotoMessage>() )
-    {
+  if ((!ninit->msgq_empty())) {
+    if (ninit->msgq_first_is<NavigatorInterface::CartesianGotoMessage>()) {
       NavigatorInterface::CartesianGotoMessage *msgTmp = ninit->msgq_first_safe(msgTmp);
-      HomPoint trans = transform_base_to_odom(HomPoint(msgTmp->x(),msgTmp->y()));
-      logger->log_info(name(),"transforemed to odom is %f,%f",trans.x(),trans.y());
+      HomPoint trans = transform_base_to_odom(HomPoint(msgTmp->x(), msgTmp->y()));
+      logger->log_info(name(), "transforemed to odom is %f,%f", trans.x(), trans.y());
       ninit->set_dest_x(trans.x());
       ninit->set_dest_y(trans.y());
       ninit->set_dest_ori(msgTmp->orientation());
       ninit->write();
       ninit->msgq_pop();
-    }
-    else if( ninit->msgq_first_is<NavigatorInterface::PolarGotoMessage>() )
-    {
+    } else if (ninit->msgq_first_is<NavigatorInterface::PolarGotoMessage>()) {
       NavigatorInterface::PolarGotoMessage *msgTmp = ninit->msgq_first_safe(msgTmp);
       float new_x = msgTmp->dist() * cos(msgTmp->phi());
       float new_y = msgTmp->dist() * sin(msgTmp->phi());
-      HomPoint trans = transform_base_to_odom(HomPoint(new_x,new_y));
+      HomPoint trans = transform_base_to_odom(HomPoint(new_x, new_y));
       ninit->set_dest_x(trans.x());
       ninit->set_dest_y(trans.y());
       ninit->set_dest_ori(msgTmp->orientation());
@@ -746,40 +678,32 @@ ColliThread::update_navi()
       ninit->msgq_pop();
     }
   }
-  if( ! ninit->msgq_empty() )
-  {
-    if( ninit->msgq_first_is<NavigatorInterface::SetDriveModeMessage>() )
-    {
+  if (!ninit->msgq_empty()) {
+    if (ninit->msgq_first_is<NavigatorInterface::SetDriveModeMessage>()) {
       NavigatorInterface::SetDriveModeMessage *msgTmp = ninit->msgq_first_safe(msgTmp);
       ninit->set_drive_mode(msgTmp->drive_mode());
       ninit->write();
       ninit->msgq_pop();
     }
   }
-  if(! ninit->msgq_empty())
-  {
-    if( ninit->msgq_first_is<NavigatorInterface::SetMaxVelocityMessage>() )
-    {
+  if (!ninit->msgq_empty()) {
+    if (ninit->msgq_first_is<NavigatorInterface::SetMaxVelocityMessage>()) {
       NavigatorInterface::SetMaxVelocityMessage *msgTmp = ninit->msgq_first_safe(msgTmp);
       ninit->set_max_velocity(msgTmp->max_velocity());
       ninit->write();
       ninit->msgq_pop();
     }
   }
-  if(! ninit->msgq_empty())
-  {
-    if( ninit->msgq_first_is<NavigatorInterface::SetSecurityDistanceMessage>() )
-    {
+  if (!ninit->msgq_empty()) {
+    if (ninit->msgq_first_is<NavigatorInterface::SetSecurityDistanceMessage>()) {
       NavigatorInterface::SetSecurityDistanceMessage *msgTmp = ninit->msgq_first_safe(msgTmp);
       ninit->set_security_distance(msgTmp->security_distance());
       ninit->write();
       ninit->msgq_pop();
     }
   }
-  if(! ninit->msgq_empty())
-  {
-    if( ninit->msgq_first_is<NavigatorInterface::SetEscapingMessage>() )
-    {
+  if (!ninit->msgq_empty()) {
+    if (ninit->msgq_first_is<NavigatorInterface::SetEscapingMessage>()) {
       NavigatorInterface::SetEscapingMessage *msgTmp = ninit->msgq_first_safe(msgTmp);
       ninit->set_escaping_enabled(msgTmp->is_escaping_enabled());
       ninit->write();
@@ -790,74 +714,64 @@ ColliThread::update_navi()
   ninit->write();
 }
 
-
 void
 ColliThread::UpdateColliStateMachine()
 {
   // initialize
   m_ColliStatus = NothingToDo;
 
-  float curPosX = m_pMopoObj->odometry_position_x ();
-  float curPosY = m_pMopoObj->odometry_position_y ();
-  float curPosO = GetMotorOri(m_pMopoObj->odometry_orientation ());
+  float curPosX = m_pMopoObj->odometry_position_x();
+  float curPosY = m_pMopoObj->odometry_position_y();
+  float curPosO = GetMotorOri(m_pMopoObj->odometry_orientation());
 
   float targetX = m_pColliTargetObj->dest_x();
   float targetY = m_pColliTargetObj->dest_y();
   float targetO = m_pColliTargetObj->dest_ori();
 
-  bool  orient = m_pColliTargetObj->dest_ori();
+  bool orient = m_pColliTargetObj->dest_ori();
   // Real driving....
-  if ( ( orient == true ) &&
-       ( sqr( curPosX - targetX ) + sqr( curPosY - targetY ) >= sqr(2.1) ) )
-    {
-      float ori = m_pColliTargetObj->dest_ori();
+  if ((orient == true) && (sqr(curPosX - targetX) + sqr(curPosY - targetY) >= sqr(2.1))) {
+    float ori = m_pColliTargetObj->dest_ori();
 
-      float mult = 0.0;
-  /*  NOT USED  //if ( m_pMotorInstruct->GetUserDesiredTranslation() > 0 )
-        //      mult =  1.2;
-        mult = 0.8;
-      else if ( m_pMotorInstruct->GetUserDesiredTranslation() < 0 )
-        //      mult = -1.2;
-        mult = -0.8;
-      else
-        mult = 0.0;
-*/
+    float mult = 0.0;
+    /*  NOT USED  //if ( m_pMotorInstruct->GetUserDesiredTranslation() > 0 )
+     //      mult =  1.2;
+     mult = 0.8;
+     else if ( m_pMotorInstruct->GetUserDesiredTranslation() < 0 )
+     //      mult = -1.2;
+     mult = -0.8;
+     else
+     mult = 0.0;
+     */
 
-      float orientPointX = targetX - ( mult * cos(ori) );
-      float orientPointY = targetY - ( mult * sin(ori) );
+    float orientPointX = targetX - (mult * cos(ori));
+    float orientPointY = targetY - (mult * sin(ori));
 
-      m_TargetPointX = orientPointX;
-      m_TargetPointY = orientPointY;
-      m_ColliStatus = DriveToOrientPoint;
-      return;
-    }
-    else if ( sqr( curPosX - targetX ) + sqr( curPosY - targetY ) > sqr(0.15) )
-    {
-      m_TargetPointX = targetX;
-      m_TargetPointY = targetY;
-      m_ColliStatus = DriveToTarget;
-      logger->log_info(name(),"colli state: drive to target, distance is %f\n", sqr( curPosX - targetX ) + sqr( curPosY - targetY ));
-      return;
-    }
-  else if ( (orient == true) &&
-            ( fabs( normalize_mirror_rad(curPosO - targetO) ) > 0.1 ) )
-    {
-      logger->log_info(name(),"colli state: orient at target\n");
-      m_ColliStatus = OrientAtTarget;
-      return;
-    }
-  else
-    {
-      logger->log_info(name(),"colli state: nothing to do\n");
-      m_ColliStatus = NothingToDo;
-      return;
-    }
+    m_TargetPointX = orientPointX;
+    m_TargetPointY = orientPointY;
+    m_ColliStatus = DriveToOrientPoint;
+    return;
+  } else if (sqr(curPosX - targetX) + sqr(curPosY - targetY) > sqr(0.15)) {
+    m_TargetPointX = targetX;
+    m_TargetPointY = targetY;
+    m_ColliStatus = DriveToTarget;
+    logger->log_info(name(), "colli state: drive to target, distance is %f\n",
+        sqr(curPosX - targetX) + sqr(curPosY - targetY));
+    return;
+  } else if ((orient == true) && (fabs(normalize_mirror_rad(curPosO - targetO)) > 0.1)) {
+    logger->log_info(name(), "colli state: orient at target\n");
+    m_ColliStatus = OrientAtTarget;
+    return;
+  } else {
+    logger->log_info(name(), "colli state: nothing to do\n");
+    m_ColliStatus = NothingToDo;
+    return;
+  }
 
-  logger->log_info(name(),"**** COLLI ****: Here I should never never be\n");
+  logger->log_info(name(), "**** COLLI ****: Here I should never never be\n");
   return;
 
 }
-
 
 /** Calculate all information out of the updated blackboard data.
  * m_RoboGridPos, m_LaserGridPos, m_TargetGridPos have to be updated!
@@ -866,168 +780,151 @@ ColliThread::UpdateColliStateMachine()
 void
 ColliThread::UpdateOwnModules()
 {
-  if ( m_RobocupMode == 1 )  // Robocup mode
-    {
-      // set the cell size according to the current speed
-      m_pLaserOccGrid->setCellWidth( (int)m_OccGridCellWidth );
-      m_pLaserOccGrid->setCellHeight( (int)m_OccGridCellHeight );
-    }
-  else
-    {
-      // set the cell size according to the current speed
-      m_pLaserOccGrid->setCellWidth(  (int)max( (int)m_OccGridCellWidth,
-                                                (int)(5*fabs(GetMotorTranslation(motor_des->vx(),motor_des->omega()))+3) ) );
-      m_pLaserOccGrid->setCellHeight( (int)max( (int)m_OccGridCellHeight,
-                                                (int)(5*fabs(GetMotorTranslation(motor_des->vx(),motor_des->omega()))+3) ) );
-    }
-    logger->log_info(name(),"cell size is %d,%d",m_pLaserOccGrid->getCellWidth(),m_pLaserOccGrid->getCellHeight());
+  if (m_RobocupMode == 1)  // Robocup mode
+      {
+    // set the cell size according to the current speed
+    m_pLaserOccGrid->setCellWidth((int) m_OccGridCellWidth);
+    m_pLaserOccGrid->setCellHeight((int) m_OccGridCellHeight);
+  } else {
+    // set the cell size according to the current speed
+    m_pLaserOccGrid->setCellWidth(
+        (int) max((int) m_OccGridCellWidth,
+            (int) (5 * fabs(GetMotorTranslation(motor_des->vx(), motor_des->omega())) + 3)));
+    m_pLaserOccGrid->setCellHeight(
+        (int) max((int) m_OccGridCellHeight,
+            (int) (5 * fabs(GetMotorTranslation(motor_des->vx(), motor_des->omega())) + 3)));
+  }
+  logger->log_info(name(), "cell size is %d,%d", m_pLaserOccGrid->getCellWidth(), m_pLaserOccGrid->getCellHeight());
   // Calculate discrete position of the laser whicj is different for RWI Robots
   int laserpos_x;
 
-  if (isRwiRobot)
-    {
-      laserpos_x = 0;
-    }
-  else
-    {
-      laserpos_x = (int)(m_pLaserOccGrid->getWidth() / 2);
-    }
-  int laserpos_y = (int)(m_pLaserOccGrid->getHeight() / 2);
-  laserpos_x -= (int)( GetMotorTranslation(motor_des->vx(),motor_des->omega())*m_pLaserOccGrid->getWidth() / (2*3.0) );
-  laserpos_x  = max ( laserpos_x, 10 );
-  laserpos_x  = min ( laserpos_x, (int)(m_pLaserOccGrid->getWidth()-10) );
+  if (isRwiRobot) {
+    laserpos_x = 0;
+  } else {
+    laserpos_x = (int) (m_pLaserOccGrid->getWidth() / 2);
+  }
+  int laserpos_y = (int) (m_pLaserOccGrid->getHeight() / 2);
+  laserpos_x -= (int) (GetMotorTranslation(motor_des->vx(), motor_des->omega()) * m_pLaserOccGrid->getWidth()
+      / (2 * 3.0));
+  laserpos_x = max(laserpos_x, 10);
+  laserpos_x = min(laserpos_x, (int) (m_pLaserOccGrid->getWidth() - 10));
 
-  int robopos_x = laserpos_x + (int)(motor_distance/(float)m_pLaserOccGrid->getCellWidth());
+  int robopos_x = laserpos_x + (int) (motor_distance / (float) m_pLaserOccGrid->getCellWidth());
   int robopos_y = laserpos_y;
 
   // coordinate transformation for target point
-  float aX = m_TargetPointX - m_pMopoObj->odometry_position_x ();
-  float aY = m_TargetPointY - m_pMopoObj->odometry_position_y ();
-  float targetContX = ( aX*cos( GetMotorOri(m_pMopoObj->odometry_orientation () ) ) + aY*sin( GetMotorOri(m_pMopoObj->odometry_orientation ()) ) );
-  float targetContY = (-aX*sin( GetMotorOri(m_pMopoObj->odometry_orientation ()) ) + aY*cos( GetMotorOri(m_pMopoObj->odometry_orientation ()) ) );
+  float aX = m_TargetPointX - m_pMopoObj->odometry_position_x();
+  float aY = m_TargetPointY - m_pMopoObj->odometry_position_y();
+  float targetContX = (aX * cos(GetMotorOri(m_pMopoObj->odometry_orientation()))
+      + aY * sin(GetMotorOri(m_pMopoObj->odometry_orientation())));
+  float targetContY = (-aX * sin(GetMotorOri(m_pMopoObj->odometry_orientation()))
+      + aY * cos(GetMotorOri(m_pMopoObj->odometry_orientation())));
   // calculation, where in the grid the target is, thats relative to the motorpos, so add it ;-)
-  int targetGridX = (int)( (targetContX * 100.0) / (float)m_pLaserOccGrid->getCellWidth() );
-  int targetGridY = (int)( (targetContY * 100.0) / (float)m_pLaserOccGrid->getCellHeight() );
+  int targetGridX = (int) ((targetContX * 100.0) / (float) m_pLaserOccGrid->getCellWidth());
+  int targetGridY = (int) ((targetContY * 100.0) / (float) m_pLaserOccGrid->getCellHeight());
 
   targetGridX += robopos_x;
   targetGridY += robopos_y;
 
   // check the target borders. if its out of the occ grid, put it back in by border checking
   // with linear interpolation
-  if (targetGridX >= m_pLaserOccGrid->getWidth()-1)
-    {
-      targetGridY = robopos_y + ((robopos_x - (m_pLaserOccGrid->getWidth()-2))/(robopos_x - targetGridX) * (targetGridY - robopos_y));
-      targetGridX = m_pLaserOccGrid->getWidth()-2;
-    }
-  if (targetGridX < 2)
-    {
-      targetGridY = robopos_y + ((robopos_x-2)/(robopos_x - targetGridX) * (targetGridY - robopos_y));
-      targetGridX = 2;
-    }
+  if (targetGridX >= m_pLaserOccGrid->getWidth() - 1) {
+    targetGridY = robopos_y
+        + ((robopos_x - (m_pLaserOccGrid->getWidth() - 2)) / (robopos_x - targetGridX) * (targetGridY - robopos_y));
+    targetGridX = m_pLaserOccGrid->getWidth() - 2;
+  }
+  if (targetGridX < 2) {
+    targetGridY = robopos_y + ((robopos_x - 2) / (robopos_x - targetGridX) * (targetGridY - robopos_y));
+    targetGridX = 2;
+  }
 
-  if (targetGridY >= m_pLaserOccGrid->getHeight()-1)
-    {
-      targetGridX = robopos_x + ((robopos_y - (m_pLaserOccGrid->getHeight()-2))/(robopos_y - targetGridY) * (targetGridX - robopos_x));
-      targetGridY = m_pLaserOccGrid->getHeight()-2;
-    }
-  if (targetGridY < 2)
-    {
-      targetGridX = robopos_x + ((robopos_y-2)/(robopos_y - targetGridY) * (targetGridX - robopos_x));
-      targetGridY = 2;
-    }
+  if (targetGridY >= m_pLaserOccGrid->getHeight() - 1) {
+    targetGridX = robopos_x
+        + ((robopos_y - (m_pLaserOccGrid->getHeight() - 2)) / (robopos_y - targetGridY) * (targetGridX - robopos_x));
+    targetGridY = m_pLaserOccGrid->getHeight() - 2;
+  }
+  if (targetGridY < 2) {
+    targetGridX = robopos_x + ((robopos_y - 2) / (robopos_y - targetGridY) * (targetGridX - robopos_x));
+    targetGridY = 2;
+  }
 
   // update the laser
   m_pLaser->UpdateLaser();
-  m_pLaser->transform(tf_listener,laser_frame);
+  m_pLaser->transform(tf_listener, laser_frame);
   // Robo increasement for robots
   float m_RoboIncrease = 0.0;
 
-  if ( m_RobocupMode == 1 )  // Robocup mode
-    {
-      if ( m_pColliTargetObj->security_distance() > 0.0 )
-        {
-          m_RoboIncrease = m_pColliTargetObj->security_distance();
-          logger->log_info(name(),"UpdateOwnModules: Setting EXTERN Robot secure distance = %f . ATTENTION TO THE ROBOT!!!!\n", m_RoboIncrease);
-        }
-      else
-        {
-          m_RoboIncrease = 0.0;
-        }
+  if (m_RobocupMode == 1)  // Robocup mode
+      {
+    if (m_pColliTargetObj->security_distance() > 0.0) {
+      m_RoboIncrease = m_pColliTargetObj->security_distance();
+      logger->log_info(name(),
+          "UpdateOwnModules: Setting EXTERN Robot secure distance = %f . ATTENTION TO THE ROBOT!!!!\n", m_RoboIncrease);
+    } else {
+      m_RoboIncrease = 0.0;
     }
-  else  // no robocup mode
-    {
-      if ( m_pColliTargetObj->security_distance() > 0.0 )
-        {
-          m_RoboIncrease = m_pColliTargetObj->security_distance();
-          logger->log_info(name(),"UpdateOwnModules: Setting EXTERN Robot secure distance = %f ATTENTION TO THE ROBOT!!!!\n"
-                          , m_RoboIncrease);
-        }
-      else
-        {
-          float transinc = max(0.0,fabs( GetMotorTranslation(m_pMopoObj->vx(),m_pMopoObj->omega())/2.0 )-0.7);
-          float rotinc   = max(0.0,fabs( m_pMopoObj->omega()/3.5 )-0.7);
+  } else  // no robocup mode
+  {
+    if (m_pColliTargetObj->security_distance() > 0.0) {
+      m_RoboIncrease = m_pColliTargetObj->security_distance();
+      logger->log_info(name(),
+          "UpdateOwnModules: Setting EXTERN Robot secure distance = %f ATTENTION TO THE ROBOT!!!!\n", m_RoboIncrease);
+    } else {
+      float transinc = max(0.0, fabs(GetMotorTranslation(m_pMopoObj->vx(), m_pMopoObj->omega()) / 2.0) - 0.7);
+      float rotinc = max(0.0, fabs(m_pMopoObj->omega() / 3.5) - 0.7);
 
-          m_RoboIncrease = max( transinc, rotinc );
-          m_RoboIncrease = min( m_MaximumRoboIncrease, m_RoboIncrease );
-        }
+      m_RoboIncrease = max(transinc, rotinc);
+      m_RoboIncrease = min(m_MaximumRoboIncrease, m_RoboIncrease);
     }
+  }
 
   float xdiff = m_pMopoObj->odometry_position_x() - m_OldX;
   m_OldX = m_pMopoObj->odometry_position_x();
   float ydiff = m_pMopoObj->odometry_position_y() - m_OldY;
   m_OldY = m_pMopoObj->odometry_position_y();
-  float oridiff = normalize_mirror_rad( m_pMopoObj->odometry_orientation() - m_OldOri );
+  float oridiff = normalize_mirror_rad(m_pMopoObj->odometry_orientation() - m_OldOri);
   m_OldOri = GetMotorOri(m_pMopoObj->odometry_orientation());
 
-  float relxdiff =  xdiff *  cos( GetMotorOri(m_pMopoObj->odometry_orientation()) ) +
-                    ydiff *  sin( GetMotorOri(m_pMopoObj->odometry_orientation()) );
-  float relydiff =  xdiff * -sin( GetMotorOri(m_pMopoObj->odometry_orientation()) ) +
-                    ydiff *  cos( GetMotorOri(m_pMopoObj->odometry_orientation()) );
+  float relxdiff = xdiff * cos(GetMotorOri(m_pMopoObj->odometry_orientation()))
+      + ydiff * sin(GetMotorOri(m_pMopoObj->odometry_orientation()));
+  float relydiff = xdiff * -sin(GetMotorOri(m_pMopoObj->odometry_orientation()))
+      + ydiff * cos(GetMotorOri(m_pMopoObj->odometry_orientation()));
 
   // update the occgrid...
-  m_pLaserOccGrid->UpdateOccGrid( laserpos_x, laserpos_y, m_RoboIncrease,GetMotorTranslation(motor_des->vx(),motor_des->omega()),relxdiff, relydiff, oridiff );
+  m_pLaserOccGrid->UpdateOccGrid(laserpos_x, laserpos_y, m_RoboIncrease,
+      GetMotorTranslation(motor_des->vx(), motor_des->omega()), relxdiff, relydiff, oridiff);
   // update the positions
-  m_LaserGridPos  = HomPoint( laserpos_x, laserpos_y );
-  m_RoboGridPos   = HomPoint( robopos_x, robopos_y );
-  m_TargetGridPos = HomPoint( targetGridX, targetGridY );
+  m_LaserGridPos = HomPoint(laserpos_x, laserpos_y);
+  m_RoboGridPos = HomPoint(robopos_x, robopos_y);
+  m_TargetGridPos = HomPoint(targetGridX, targetGridY);
 }
-
 
 /** Check if we want to escape an obstacle. */
 bool
 ColliThread::CheckEscape()
 {
-  if ((float)m_pLaserOccGrid->getProb((int)m_RoboGridPos.x(),(int)m_RoboGridPos.y()) ==  _COLLI_CELL_OCCUPIED_ )
-    {
-      return true;
-    }
-  else
-    {
-      return false;
-    }
+  if ((float) m_pLaserOccGrid->getProb((int) m_RoboGridPos.x(), (int) m_RoboGridPos.y()) == _COLLI_CELL_OCCUPIED_) {
+    return true;
+  } else {
+    return false;
+  }
 }
-
 
 HomPoint
 ColliThread::nearest_cell_to_target()
 {
   int cell_size = robo_widthX;
-  if( robo_widthY < cell_size )
-    cell_size = robo_widthY;
+  if (robo_widthY < cell_size) cell_size = robo_widthY;
   cell_size /= m_pLaserOccGrid->getCellWidth();
   cell_size /= 2;
   int min_roboX = m_RoboGridPos.x();
   int min_roboY = m_RoboGridPos.y();
-  float min_dis = sqrt(pow(min_roboX-m_TargetGridPos.x(),2)+pow(min_roboY-m_TargetGridPos.y(),2));
-  for( int i = m_RoboGridPos.x() - cell_size; i <= m_RoboGridPos.x() + cell_size; i++ )
-  {
-    for( int j =  m_RoboGridPos.y() - cell_size; j <= m_RoboGridPos.y() + cell_size; j++ )
-    {
-      if( ( i >= 0 ) && ( j >= 0 ) && ( i < (int)m_pLaserOccGrid->getWidth() ) && ( j < (int)m_pLaserOccGrid->getHeight()) )
-      {
-        float dis = sqrt(pow(i-m_TargetGridPos.x(),2)+pow(j-m_TargetGridPos.y(),2));
-        if( dis < min_dis )
-        {
+  float min_dis = sqrt(pow(min_roboX - m_TargetGridPos.x(), 2) + pow(min_roboY - m_TargetGridPos.y(), 2));
+  for (int i = m_RoboGridPos.x() - cell_size; i <= m_RoboGridPos.x() + cell_size; i++) {
+    for (int j = m_RoboGridPos.y() - cell_size; j <= m_RoboGridPos.y() + cell_size; j++) {
+      if ((i >= 0) && (j >= 0) && (i < (int) m_pLaserOccGrid->getWidth()) && (j < (int) m_pLaserOccGrid->getHeight())) {
+        float dis = sqrt(pow(i - m_TargetGridPos.x(), 2) + pow(j - m_TargetGridPos.y(), 2));
+        if (dis < min_dis) {
           min_dis = dis;
           min_roboX = i;
           min_roboY = j;
@@ -1035,9 +932,8 @@ ColliThread::nearest_cell_to_target()
       }
     }
   }
-  return HomPoint(min_roboX,min_roboY);
+  return HomPoint(min_roboX, min_roboY);
 }
-
 
 #ifdef HAVE_VISUAL_DEBUGGING
 void
@@ -1048,12 +944,11 @@ ColliThread::set_visualization_thread(ColliVisualizationThread *visthread)
 }
 #endif
 
-
 void
 ColliThread::publish_odom()
 {
   tf::Quaternion o_r(-m_pMopoObj->odometry_orientation(), 0, 0);
-  tf::Vector3 o_t(m_pMopoObj->odometry_position_x(),-m_pMopoObj->odometry_position_y(), 0);
+  tf::Vector3 o_t(m_pMopoObj->odometry_position_x(), -m_pMopoObj->odometry_position_y(), 0);
   tf::Transform o_tr(o_r, o_t);
   fawkes::Time *o_ts = new fawkes::Time();
   o_ts = &(o_ts->stamp());
@@ -1061,54 +956,48 @@ ColliThread::publish_odom()
   m_tf_pub_odom->send_transform(o_tr, o_time, "/odom", "/base_link");
 }
 
-
 HomPoint
 ColliThread::transform_odom_to_base(HomPoint point)
 {
   HomPoint res;
   try {
     //tf::Stamped<tf::Point> target_odom(tf::Point(point.x(),-point.y(),0.),fawkes::Time(0, 0), "/odom");
-    tf::Stamped<tf::Point> target_odom(tf::Point(point.x(),point.y(),0.),fawkes::Time(0, 0), "/odom");
+    tf::Stamped<tf::Point> target_odom(tf::Point(point.x(), point.y(), 0.), fawkes::Time(0, 0), "/odom");
     tf::Stamped<tf::Point> baserel_target;
     tf_listener->transform_point("/base_link", target_odom, baserel_target);
-    HomPoint target_trans(baserel_target.x(),baserel_target.y());
+    HomPoint target_trans(baserel_target.x(), baserel_target.y());
     res = target_trans;
   } catch (tf::TransformException &e) {
-    logger->log_warn(name(),"can't transform from odom to base_link");
+    logger->log_warn(name(), "can't transform from odom to base_link");
     e.print_trace();
   }
   return res;
 }
-
 
 HomPoint
 ColliThread::transform_base_to_odom(HomPoint point)
 {
   HomPoint res;
   try {
-    tf::Stamped<tf::Point> target_base(tf::Point(point.x(),point.y(),0.),fawkes::Time(0, 0), "/base_link");
+    tf::Stamped<tf::Point> target_base(tf::Point(point.x(), point.y(), 0.), fawkes::Time(0, 0), "/base_link");
     tf::Stamped<tf::Point> odomrel_target;
     tf_listener->transform_point("/odom", target_base, odomrel_target);
-    HomPoint target_trans(odomrel_target.x(),-odomrel_target.y());
+    HomPoint target_trans(odomrel_target.x(), -odomrel_target.y());
     res = target_trans;
   } catch (tf::TransformException &e) {
-    logger->log_warn(name(),"can't transform from baselink to odometry");
+    logger->log_warn(name(), "can't transform from baselink to odometry");
     e.print_trace();
   }
   return res;
 }
 
-
 float
 ColliThread::GetMotorTranslation(float vtrans, float vori)
 {
   float m_vx = vtrans * cos(vori);
-  if (  m_vx > 0 )
-    return vtrans;
-  else
-    return -vtrans;
+  if (m_vx > 0) return vtrans;
+  else return -vtrans;
 }
-
 
 float
 ColliThread::GetMotorOri(float odom_ori)

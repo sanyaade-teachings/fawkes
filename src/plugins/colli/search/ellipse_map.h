@@ -1,4 +1,3 @@
-
 /***************************************************************************
  *  ellipse_map.h - A colli implementation of a collection offast ellipse
  *
@@ -30,38 +29,40 @@
 #include <vector>
 #include <map>
 
-namespace fawkes {
+namespace fawkes
+{
 #if 0 /* just to make Emacs auto-indent happy */
 }
 #endif
 
-class ColliEllipseMap
-{
- public:
+  class ColliEllipseMap
+  {
+  public:
 
-  //  ColliEllipseMap( int max_radius_width, int max_radius_height, int robocup_mode );
+    //  ColliEllipseMap( int max_radius_width, int max_radius_height, int robocup_mode );
 
-  ColliEllipseMap( );
+    ColliEllipseMap();
 
-  ~ColliEllipseMap() { m_mEllipses.clear(); }
+    ~ColliEllipseMap()
+    {
+      m_mEllipses.clear();
+    }
 
+    const std::vector<int>
+    GetEllipse(int width, int height, int robocup_mode);
 
-  const std::vector< int > GetEllipse( int width, int height, int robocup_mode );
+  private:
 
+    std::map<unsigned int, ColliFastEllipse *> m_mEllipses;
 
- private:
-
-  std::map< unsigned int, ColliFastEllipse * > m_mEllipses;
-
-};
-
-
+  };
 
 //inline ColliEllipseMap::ColliEllipseMap( int max_radius_width, int max_radius_height,
 //         int robocup_mode )
 
-inline ColliEllipseMap::ColliEllipseMap()
-{
+  inline
+  ColliEllipseMap::ColliEllipseMap()
+  {
 //   for ( unsigned int x = 0; x < (unsigned int)max_radius_width; x++ )
 //     {
 //       for ( unsigned int y = 0; y < (unsigned int)max_radius_height; y++ )
@@ -76,26 +77,25 @@ inline ColliEllipseMap::ColliEllipseMap()
 //    m_mEllipses[ key ] = ellipse;
 //  }
 //     }
-}
+  }
 
+  inline const std::vector<int>
+  ColliEllipseMap::GetEllipse(int width, int height, int robocup_mode)
+  {
+    unsigned int key = ((unsigned int) width << 16) | (unsigned int) height;
 
-inline const std::vector< int > ColliEllipseMap::GetEllipse( int width, int height, int robocup_mode )
-{
-  unsigned int key = ((unsigned int)width << 16) | (unsigned int)height;
-
-  std::map< unsigned int, ColliFastEllipse * >::iterator p = m_mEllipses.find( key );
-  if ( p == m_mEllipses.end() ) // ellipse nicht gefunden!
-    {
-      ColliFastEllipse * ellipse = new ColliFastEllipse( width, height, robocup_mode );
-      ellipse->SetKey( key );
-      m_mEllipses[ key ] = ellipse;
+    std::map<unsigned int, ColliFastEllipse *>::iterator p = m_mEllipses.find(key);
+    if (p == m_mEllipses.end()) // ellipse nicht gefunden!
+        {
+      ColliFastEllipse * ellipse = new ColliFastEllipse(width, height, robocup_mode);
+      ellipse->SetKey(key);
+      m_mEllipses[key] = ellipse;
       return ellipse->GetEllipse();
-    }
-  else // ellipse in p gefunden
+    } else // ellipse in p gefunden
     {
-      return m_mEllipses[ key ]->GetEllipse();
+      return m_mEllipses[key]->GetEllipse();
     }
-}
+  }
 
 } // end of namespace fawkes
 

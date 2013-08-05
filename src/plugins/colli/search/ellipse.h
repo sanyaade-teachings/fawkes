@@ -1,4 +1,3 @@
-
 /***************************************************************************
  *  ellipse.h - A colli implementation of a fast ellipse
  *
@@ -27,58 +26,58 @@
 
 #include <vector>
 
-namespace fawkes {
+namespace fawkes
+{
 #if 0 /* just to make Emacs auto-indent happy */
 }
 #endif
 
-class ColliFastEllipse
-{
- public:
-
-  // center 0, 0
-  // construct a new ellipse with given values
-  ColliFastEllipse( int radius_width, int radius_height,
-                int robocup_mode );
-  ~ColliFastEllipse();
-
-
-  // Return the occupied cells with their values
-  inline const std::vector< int > GetEllipse()
+  class ColliFastEllipse
   {
-    return m_OccupiedCells;
-  }
+  public:
 
+    // center 0, 0
+    // construct a new ellipse with given values
+    ColliFastEllipse(int radius_width, int radius_height, int robocup_mode);
+    ~ColliFastEllipse();
 
-  inline int GetKey()
-  {
-    return m_Key;
-  }
+    // Return the occupied cells with their values
+    inline const std::vector<int>
+    GetEllipse()
+    {
+      return m_OccupiedCells;
+    }
 
-  inline void SetKey( int key )
-  {
-    m_Key = key;
-  }
+    inline int
+    GetKey()
+    {
+      return m_Key;
+    }
 
+    inline void
+    SetKey(int key)
+    {
+      m_Key = key;
+    }
 
- private:
+  private:
 
-  // the occ cells, size is dividable through 3, 'cause:
-  // [i]   = x coord,
-  // [i+1] = y coord,
-  // [i+2] = costs
-  std::vector< int > m_OccupiedCells;
+    // the occ cells, size is dividable through 3, 'cause:
+    // [i]   = x coord,
+    // [i+1] = y coord,
+    // [i+2] = costs
+    std::vector<int> m_OccupiedCells;
 
+    // a unique identifier for each ellipse
+    int m_Key;
 
-  // a unique identifier for each ellipse
-  int m_Key;
+    inline float
+    sqr(float x)
+    {
+      return (x * x);
+    }
 
-  inline float sqr( float x )
-  {
-    return (x*x);
-  }
-
-};
+  };
 
 } // end of namespace fawkes
 

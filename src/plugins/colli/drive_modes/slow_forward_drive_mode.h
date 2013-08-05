@@ -16,23 +16,21 @@
 //     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-
 /*
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-  ©                                                                            ©
-  ©                                            ####   ####           .-""-.    ©
-  ©       # #                             #   #    # #    #         /[] _ _\   ©
-  ©       # #                                 #    # #             _|_o_LII|_  ©
-  © ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ©
-  © #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ©
-  © #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ©
-  © #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ©
-  © '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ©
-  ©                                                               /__|    |__\ ©
-  ©                                                                            ©
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-*/
-
+ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ ï¿½                                                                            ï¿½
+ ï¿½                                            ####   ####           .-""-.    ï¿½
+ ï¿½       # #                             #   #    # #    #         /[] _ _\   ï¿½
+ ï¿½       # #                                 #    # #             _|_o_LII|_  ï¿½
+ ï¿½ ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ï¿½
+ ï¿½ #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ï¿½
+ ï¿½ #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ï¿½
+ ï¿½ #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ï¿½
+ ï¿½ '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ï¿½
+ ï¿½                                                               /__|    |__\ ï¿½
+ ï¿½                                                                            ï¿½
+ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ */
 
 /* ******************************************************************** */
 /*                                                                      */
@@ -52,54 +50,51 @@
 /*                                                                      */
 /* ******************************************************************** */
 
-
 #ifndef _COLLI_SLOW_FORWARD_DRIVE_MODE_H_
 #define _COLLI_SLOW_FORWARD_DRIVE_MODE_H_
 
-
 #include "abstract_drive_mode.h"
 
-namespace fawkes {
+namespace fawkes
+{
 #if 0 /* just to make Emacs auto-indent happy */
 }
 #endif
 
-/** This is the slow-forward drive-module. It is inherited from
- *    the abstract drive mode.
- */
-class CSlowForwardDriveModule : public CAbstractDriveMode
-{
-public:
-
-  /** Constructor does only set the name of the slow forward drive mode.
+  /** This is the slow-forward drive-module. It is inherited from
+   *    the abstract drive mode.
    */
-  CSlowForwardDriveModule(Logger* logger, Configuration *config);
+  class CSlowForwardDriveModule : public CAbstractDriveMode
+  {
+  public:
 
+    /** Constructor does only set the name of the slow forward drive mode.
+     */
+    CSlowForwardDriveModule(Logger* logger, Configuration *config);
 
-  /** Destructor does nothing, because nothing was created in here.
-   */
-  ~CSlowForwardDriveModule();
+    /** Destructor does nothing, because nothing was created in here.
+     */
+    ~CSlowForwardDriveModule();
 
+    /** This Routine is called. Afterwards the m_proposedTranslation and
+     *    m_proposedRotation have to be filled. Here they are
+     *    filled up to 1 m/s and M_PI rad/s.
+     */
+    virtual void
+    Update();
 
-  /** This Routine is called. Afterwards the m_proposedTranslation and
-   *    m_proposedRotation have to be filled. Here they are
-   *    filled up to 1 m/s and M_PI rad/s.
-   */
-  virtual void Update();
+  private:
 
+    float
+    SlowForward_Curvature(float dist_to_target, float dist_to_trajec, float alpha, float trans_0, float rot_0);
+    float
+    SlowForward_Translation(float dist_to_target, float dist_to_front, float alpha, float trans_0, float rot_0,
+        float rot_1);
 
-private:
+    float m_MaxTranslation, m_MaxRotation;
 
-
-  float SlowForward_Curvature( float dist_to_target, float dist_to_trajec, float alpha,
-             float trans_0, float rot_0 );
-  float SlowForward_Translation( float dist_to_target, float dist_to_front, float alpha,
-         float trans_0, float rot_0, float rot_1 );
-
-  float m_MaxTranslation, m_MaxRotation;
-
-  Logger* loggerSlowFor;
-};
+    Logger* loggerSlowFor;
+  };
 
 } // namespace fawkes
 

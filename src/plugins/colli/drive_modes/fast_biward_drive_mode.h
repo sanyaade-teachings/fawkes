@@ -16,23 +16,21 @@
 //     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-
 /*
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-  ©                                                                            ©
-  ©                                            ####   ####           .-""-.    ©
-  ©       # #                             #   #    # #    #         /[] _ _\   ©
-  ©       # #                                 #    # #             _|_o_LII|_  ©
-  © ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ©
-  © #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ©
-  © #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ©
-  © #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ©
-  © '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ©
-  ©                                                               /__|    |__\ ©
-  ©                                                                            ©
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-*/
-
+ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ ï¿½                                                                            ï¿½
+ ï¿½                                            ####   ####           .-""-.    ï¿½
+ ï¿½       # #                             #   #    # #    #         /[] _ _\   ï¿½
+ ï¿½       # #                                 #    # #             _|_o_LII|_  ï¿½
+ ï¿½ ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ï¿½
+ ï¿½ #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ï¿½
+ ï¿½ #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ï¿½
+ ï¿½ #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ï¿½
+ ï¿½ '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ï¿½
+ ï¿½                                                               /__|    |__\ ï¿½
+ ï¿½                                                                            ï¿½
+ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ */
 
 /* ******************************************************************** */
 /*                                                                      */
@@ -59,44 +57,43 @@
 #include "fast_forward_drive_mode.h"
 #include "fast_backward_drive_mode.h"
 
-namespace fawkes {
+namespace fawkes
+{
 #if 0 /* just to make Emacs auto-indent happy */
 }
 #endif
 
-class CFastBiwardDriveModule : public CAbstractDriveMode
-{
-public:
+  class CFastBiwardDriveModule : public CAbstractDriveMode
+  {
+  public:
 
-  /** Constructor.
-   */
-  CFastBiwardDriveModule( Logger* logger, Configuration *config, CFastForwardDriveModule*  forward_module,
-        CFastBackwardDriveModule* backward_module );
+    /** Constructor.
+     */
+    CFastBiwardDriveModule(Logger* logger, Configuration *config, CFastForwardDriveModule* forward_module,
+        CFastBackwardDriveModule* backward_module);
 
+    /** Destructor. Does nothing, because nothing was created in this module.
+     */
+    ~CFastBiwardDriveModule();
 
-  /** Destructor. Does nothing, because nothing was created in this module.
-   */
-  ~CFastBiwardDriveModule();
+    /** This Routine is called. Afterwards the m_proposedTranslation and
+     *    m_proposedRotation have to be filled. Here they are
+     *    set to zero.
+     */
+    virtual void
+    Update();
 
+  private:
 
-  /** This Routine is called. Afterwards the m_proposedTranslation and
-   *    m_proposedRotation have to be filled. Here they are
-   *    set to zero.
-   */
-  virtual void Update();
+    float m_MaxTranslation, m_MaxRotation;
 
+    CFastForwardDriveModule* m_pFastForwardDriveModule;
+    CFastBackwardDriveModule* m_pFastBackwardDriveModule;
 
-private:
+    int m_CountForward;
 
-  float m_MaxTranslation, m_MaxRotation;
-
-  CFastForwardDriveModule*   m_pFastForwardDriveModule;
-  CFastBackwardDriveModule*  m_pFastBackwardDriveModule;
-
-  int   m_CountForward;
-
-  Logger* loggerFastBi;
-};
+    Logger* loggerFastBi;
+  };
 
 } // namespace fawkes
 

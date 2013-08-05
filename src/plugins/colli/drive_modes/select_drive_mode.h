@@ -16,23 +16,21 @@
 //     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-
 /*
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-  ©                                                                            ©
-  ©                                            ####   ####           .-""-.    ©
-  ©       # #                             #   #    # #    #         /[] _ _\   ©
-  ©       # #                                 #    # #             _|_o_LII|_  ©
-  © ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ©
-  © #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ©
-  © #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ©
-  © #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ©
-  © '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ©
-  ©                                                               /__|    |__\ ©
-  ©                                                                            ©
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-*/
-
+ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ ï¿½                                                                            ï¿½
+ ï¿½                                            ####   ####           .-""-.    ï¿½
+ ï¿½       # #                             #   #    # #    #         /[] _ _\   ï¿½
+ ï¿½       # #                                 #    # #             _|_o_LII|_  ï¿½
+ ï¿½ ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ï¿½
+ ï¿½ #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ï¿½
+ ï¿½ #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ï¿½
+ ï¿½ #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ï¿½
+ ï¿½ '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ï¿½
+ ï¿½                                                               /__|    |__\ ï¿½
+ ï¿½                                                                            ï¿½
+ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ */
 
 /* ******************************************************************** */
 /*                                                                      */
@@ -52,8 +50,6 @@
 /*                                                                      */
 /* ******************************************************************** */
 
-
-
 #ifndef _COLLI_SELECT_DRIVE_MODE_H_
 #define _COLLI_SELECT_DRIVE_MODE_H_
 
@@ -61,83 +57,84 @@
 
 #include <vector>
 
-namespace fawkes {
+namespace fawkes
+{
 #if 0 /* just to make Emacs auto-indent happy */
 }
 #endif
 
-class NavigatorInterface;
-class MotorInterface;
-class Logger;
-class Laser;
+  class NavigatorInterface;
+  class MotorInterface;
+  class Logger;
+  class Laser;
 
 /// This class selects the correct drive mode and calls the appopriate drive component
-class CSelectDriveMode
-{
-public:
+  class CSelectDriveMode
+  {
+  public:
 
-  /// laser + target wird hier gebraucht
-  CSelectDriveMode(MotorInterface* motor, Laser* laser, NavigatorInterface* target, Logger* logger, Configuration *config );
+    /// laser + target wird hier gebraucht
+    CSelectDriveMode(MotorInterface* motor, Laser* laser, NavigatorInterface* target, Logger* logger,
+        Configuration *config);
 
+    ///
+    ~CSelectDriveMode();
 
-  ///
-  ~CSelectDriveMode( );
+    /** Set local target point before update!
+     */
+    void
+    SetLocalTarget(float localTargetX, float localTargetY);
 
+    /** Set local trajectory point before update!
+     */
+    void
+    SetLocalTrajec(float localTrajecX, float localTrajecY);
 
-  /** Set local target point before update!
-   */
-  void SetLocalTarget( float localTargetX, float localTargetY );
+    /** Has to be called before the proposed values are called.
+     */
+    void
+    Update(bool escape = false);
 
+    /** Returns the proposed translation.
+     *  After an update.
+     */
+    float
+    GetProposedTranslation();
 
-  /** Set local trajectory point before update!
-   */
-  void SetLocalTrajec( float localTrajecX, float localTrajecY );
+    /** Returns the proposed rotation.
+     *  After an update.
+     */
+    float
+    GetProposedRotation();
 
+    float
+    GetMotorTranslation(float vtrans, float vori);
+    float
+    GetMotorOri(float odom_ori);
+  private:
 
-  /** Has to be called before the proposed values are called.
-   */
-  void Update( bool escape = false );
+    NavigatorInterface* m_pColliTarget;
+    MotorInterface* m_pMotor;
+    Laser* m_pLaser;
+    // Vector of drive modes
+    std::vector<CAbstractDriveMode *> m_vDriveModeList;
 
+    // local copies of current local target values
+    float m_LocalTargetX, m_LocalTargetY;
+    float m_LocalTrajecX, m_LocalTrajecY;
 
-  /** Returns the proposed translation.
-   *  After an update.
-   */
-  float GetProposedTranslation();
+    // local copies of the proposed values
+    float m_ProposedTranslation;
+    float m_ProposedRotation;
 
+    // an escape flag
+    int m_EscapeFlag;
 
-  /** Returns the proposed rotation.
-   *  After an update.
-   */
-  float GetProposedRotation();
-
-  float GetMotorTranslation(float vtrans, float vori);
-  float GetMotorOri(float odom_ori);
-private:
-
-  NavigatorInterface* m_pColliTarget;
-  MotorInterface*     m_pMotor;
-  Laser*  m_pLaser;
-  // Vector of drive modes
-  std::vector< CAbstractDriveMode * > m_vDriveModeList;
-
-
-  // local copies of current local target values
-  float m_LocalTargetX, m_LocalTargetY;
-  float m_LocalTrajecX, m_LocalTrajecY;
-
-  // local copies of the proposed values
-  float m_ProposedTranslation;
-  float m_ProposedRotation;
-
-  // an escape flag
-  int m_EscapeFlag;
-
-
-  /* ************************************************************************ */
-  /* PRIVATE METHODS                                                          */
-  /* ************************************************************************ */
-  Logger* loggerSelect;
-};
+    /* ************************************************************************ */
+    /* PRIVATE METHODS                                                          */
+    /* ************************************************************************ */
+    Logger* loggerSelect;
+  };
 
 } // namespace fawkes
 

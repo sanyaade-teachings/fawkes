@@ -1,4 +1,3 @@
-
 /***************************************************************************
  *  robo_laserpoint.h - Class handling laser scans
  *
@@ -29,125 +28,133 @@
 
 #include <vector>
 
-
-namespace fawkes {
+namespace fawkes
+{
 #if 0 /* just to make Emacs auto-indent happy */
 }
 #endif
 
-/* Reading struct.
- */
-struct Reading
-{
-  float posX, posY, length, rad;
-};
-
-
-/** Ths class contains methods for handling scan data.
- */
-class LaserPoint
-{
- public:
-
-  /** Constructor.
-   * @param numberOfReadings is the number of scan-readings the scan should hold.
-   * @param * dbg is the an instance of the Debug-Class.
-   *  \exception (int 1) the could not be instanced.
+  /* Reading struct.
    */
-  LaserPoint( int numberOfReadings ) throw (int);
+  struct Reading
+  {
+    float posX, posY, length, rad;
+  };
 
-
-  /** Destructor.
+  /** Ths class contains methods for handling scan data.
    */
-  ~LaserPoint();
+  class LaserPoint
+  {
+  public:
 
-  /** Returns the number-reading length.
-   *  @param number is the readings number.
-   *  @return float is the length.
-   */
-  float  GetLength( int number );
+    /** Constructor.
+     * @param numberOfReadings is the number of scan-readings the scan should hold.
+     * @param * dbg is the an instance of the Debug-Class.
+     *  \exception (int 1) the could not be instanced.
+     */
+    LaserPoint(int numberOfReadings) throw (int);
 
-  /** Returns the number-reading x coordinate.
-   *  @param number is the readings number.
-   *  @return float is the x coordinate.
-   */
-  float  GetPosX  ( int number );
+    /** Destructor.
+     */
+    ~LaserPoint();
 
-  /** Returns the number-reading y coordinate.
-   *  @param number is the readings number.
-   *  @return float is the y coordinate.
-   */
-  float  GetPosY  ( int number );
+    /** Returns the number-reading length.
+     *  @param number is the readings number.
+     *  @return float is the length.
+     */
+    float
+    GetLength(int number);
 
-  /** Returns the number-reading radians.
-   *  @param number is the readings number.
-   *  @return float is the angle in rad.
-   */
-  float  GetRadians  ( int number );
+    /** Returns the number-reading x coordinate.
+     *  @param number is the readings number.
+     *  @return float is the x coordinate.
+     */
+    float
+    GetPosX(int number);
 
+    /** Returns the number-reading y coordinate.
+     *  @param number is the readings number.
+     *  @return float is the y coordinate.
+     */
+    float
+    GetPosY(int number);
 
-  /** Sets the number-readings angle.
-   *  @param number is the readings number.
-   *  @param length is the readings angle in rad.
-   */
-  void SetRadians( int number, float radians );
+    /** Returns the number-reading radians.
+     *  @param number is the readings number.
+     *  @return float is the angle in rad.
+     */
+    float
+    GetRadians(int number);
 
-  /** Sets the number-readings length.
-   *  @param number is the readings number.
-   *  @param length is the readings length.
-   */
-  void  SetLength  ( int number, float length );
+    /** Sets the number-readings angle.
+     *  @param number is the readings number.
+     *  @param length is the readings angle in rad.
+     */
+    void
+    SetRadians(int number, float radians);
 
-  /** Sets the number-readings x coordinate.
-   *  @param number is the readings number.
-   *  @param posX is the readings x coordinate.
-   */
-  void  SetPosX  ( int number, float posX);
+    /** Sets the number-readings length.
+     *  @param number is the readings number.
+     *  @param length is the readings length.
+     */
+    void
+    SetLength(int number, float length);
 
-  /** Computes the number-readings x coordinate by
-   *  the number-readings radians and length and
-   *  finally sets the computed value.
-   *  @param number is the readings number.
-   */
-  void  SetPosX  ( int number);
+    /** Sets the number-readings x coordinate.
+     *  @param number is the readings number.
+     *  @param posX is the readings x coordinate.
+     */
+    void
+    SetPosX(int number, float posX);
 
-  /** Sets the number-readings x coordinate.
-   *  @param number is the readings number.
-   *  @param posY is the readings y coordinate.
-   */
-  void  SetPosY  ( int number, float posY );
+    /** Computes the number-readings x coordinate by
+     *  the number-readings radians and length and
+     *  finally sets the computed value.
+     *  @param number is the readings number.
+     */
+    void
+    SetPosX(int number);
 
-  /** Computes the number-readings y coordinate by
-   *  the number-readings radians and length and
-   *  finally sets the computed value.
-   *  @param number is the readings number.
-   */
-  void  SetPosY  ( int number );
+    /** Sets the number-readings x coordinate.
+     *  @param number is the readings number.
+     *  @param posY is the readings y coordinate.
+     */
+    void
+    SetPosY(int number, float posY);
 
-  /** Computes the number-readings coordinates by
-   *  the number-readings radians and length and
-   *  finally sets the computed values.
-   *  @param number is the readings number.
-   */
-  void  SetPos  ( int number );
+    /** Computes the number-readings y coordinate by
+     *  the number-readings radians and length and
+     *  finally sets the computed value.
+     *  @param number is the readings number.
+     */
+    void
+    SetPosY(int number);
 
+    /** Computes the number-readings coordinates by
+     *  the number-readings radians and length and
+     *  finally sets the computed values.
+     *  @param number is the readings number.
+     */
+    void
+    SetPos(int number);
 
-  // ======================================================= //
+    // ======================================================= //
 
- private:
+  private:
 
-  TrigTable * m_pTrigTable;
+    TrigTable * m_pTrigTable;
 
-  // array containing scan data
-  std::vector<Reading> m_pLaserPoint;
+    // array containing scan data
+    std::vector<Reading> m_pLaserPoint;
 
-  // number of readings
-  int m_NumberOfReadings;
+    // number of readings
+    int m_NumberOfReadings;
 
-  // range check methods
-  int  RangeCheck  ( int number);
+    // range check methods
+    int
+    RangeCheck(int number);
 
-};
+  };
 
 } // namespace fawkes
 

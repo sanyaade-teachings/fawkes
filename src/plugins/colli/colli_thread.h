@@ -1,4 +1,3 @@
-
 /***************************************************************************
  *  colli_thread.h - Colli Thread
  *
@@ -52,7 +51,8 @@
 #include <stdlib.h>
 
 // Colli States
-enum ColliState {
+enum ColliState
+{
   NothingToDo,          // Indicating that nothing is to do
   OrientAtTarget,       // Indicating that the robot is at target and has to orient
   DriveToOrientPoint,   // Drive to the orientation point
@@ -64,7 +64,8 @@ const string default_hostname = "";
 class ColliVisualizationThread;
 #endif
 
-namespace fawkes {
+namespace fawkes
+{
   class MotorInteface;
   class Laser360Interface;
   class NavigatorInterface;
@@ -75,65 +76,74 @@ namespace fawkes {
   class Laser;
 }
 
-
-class ColliThread
-: public fawkes::Thread,
-  public fawkes::ClockAspect,
-  public fawkes::LoggingAspect,
-  public fawkes::ConfigurableAspect,
-  public fawkes::TransformAspect,
-  public fawkes::BlackBoardAspect
+class ColliThread : public fawkes::Thread,
+    public fawkes::ClockAspect,
+    public fawkes::LoggingAspect,
+    public fawkes::ConfigurableAspect,
+    public fawkes::TransformAspect,
+    public fawkes::BlackBoardAspect
 {
- public:
+public:
   ColliThread();
-  virtual ~ColliThread();
+  virtual
+  ~ColliThread();
 
-  virtual void init();
-  virtual void loop();
-  virtual void finalize();
+  virtual void
+  init();
+  virtual void
+  loop();
+  virtual void
+  finalize();
 
 #ifdef HAVE_VISUAL_DEBUGGING
   void set_visualization_thread(ColliVisualizationThread *visthread);
 #endif
 
- protected: virtual void run() { Thread::run(); }
+protected:
+  virtual void
+  run()
+  {
+    Thread::run();
+  }
 
- private:
- #ifdef HAVE_VISUAL_DEBUGGING
+private:
+#ifdef HAVE_VISUAL_DEBUGGING
   ColliVisualizationThread *visthread_;
   void visualize_cells();
   void visualize_grid();
- #endif
-  fawkes::MotorInterface  *m_pMopoObj;
-  fawkes::MotorInterface  *motor_des;
+#endif
+  fawkes::MotorInterface *m_pMopoObj;
+  fawkes::MotorInterface *motor_des;
   fawkes::Laser360Interface *m_pLaserScannerObj;
   fawkes::NavigatorInterface *m_pColliTargetObj;
   fawkes::NavigatorInterface *m_pColliDataObj;
 
   fawkes::NavigatorInterface *ninit;
 
-  void init_laser();
-  void update_navi();
+  void
+  init_laser();
+  void
+  update_navi();
 
   fawkes::tf::TransformPublisher *m_tf_pub_odom;
 
-  fawkes::Laser*                          m_pLaser;            // laser interface for easy use
-  ColliSearch*                        m_pSearch;           // our plan module which calculates the info
+  fawkes::Laser* m_pLaser;            // laser interface for easy use
+  ColliSearch* m_pSearch;           // our plan module which calculates the info
 
-  CSelectDriveMode*               m_pSelectDriveMode;  // the drive mode selection module
+  CSelectDriveMode* m_pSelectDriveMode;  // the drive mode selection module
 
-  CBaseMotorInstruct*             m_pMotorInstruct;    // the motor instructor module
+  CBaseMotorInstruct* m_pMotorInstruct;    // the motor instructor module
 
-  ColliLaserOccupancyGrid*            m_pLaserOccGrid;     // the grid to drive on
+  ColliLaserOccupancyGrid* m_pLaserOccGrid;     // the grid to drive on
   /* ************************************************************************ */
   /* PRIVATE VARIABLES THAT HAVE TO BE HANDLED ALL OVER THE MODULE            */
   /* ************************************************************************ */
-  HomPoint  m_RoboGridPos;        // the robots position in the grid
-  HomPoint  m_LaserGridPos;       // the laser its position in the grid ( not equal to robopos!!! )
-  HomPoint  m_TargetGridPos;      // the targets position in the grid
+  HomPoint m_RoboGridPos;        // the robots position in the grid
+  HomPoint m_LaserGridPos;       // the laser its position in the grid ( not equal to robopos!!! )
+  HomPoint m_TargetGridPos;      // the targets position in the grid
 
-  HomPoint  m_LocalGridTarget, m_LocalTarget;   // the local target (grid/relative)
-  HomPoint  m_LocalGridTrajec, m_LocalTrajec;   // the local trajec (grid/relative)
+  HomPoint m_LocalGridTarget, m_LocalTarget;   // the local target (grid/relative)
+  HomPoint m_LocalGridTrajec, m_LocalTrajec;   // the local trajec (grid/relative)
 
   float m_ProposedTranslation;  // the proposed translation that should be realized in MotorInstruct
   float m_ProposedRotation;     // the proposed rotation that should be realized in MotorInstruct
@@ -145,7 +155,7 @@ class ColliThread
 
   float m_OldX, m_OldY, m_OldOri;  // for updating occgrid and performing pipe compensation
   float m_Updx, m_Updy, m_UpdOri;
-  float m_OldTargetPointX,m_OldTargetPointY;
+  float m_OldTargetPointX, m_OldTargetPointY;
   int escape_count;                // count escaping behaviour
 
   // Config file constants that are read at the beginning
@@ -154,56 +164,68 @@ class ColliThread
   int m_OccGridCellHeight, m_OccGridCellWidth;   // occgrid cell sizes
   float m_MaximumRoboIncrease;                   // maximum increasement of the robots size
   int m_RobocupMode;                             // indicator if robocup or not
-  int robo_widthX,robo_widthY;
+  int robo_widthX, robo_widthY;
   // stop on target stuff
-  std::vector< float > m_oldAnglesToTarget;      // the old angles to the target
+  std::vector<float> m_oldAnglesToTarget;      // the old angles to the target
 
   // Do we  use a RWI Style Robot
   bool isRwiRobot;
 
   bool display_debug_output;
 
-  vector<HomPoint > m_vSolution;
+  vector<HomPoint> m_vSolution;
 
   string laser_frame;
   string naviface_id;
   string laser_iface_id;
   string motor_iface_id;
 
-
   /* ************************************************************************ */
   /* PRIVATE METHODS                                                          */
   /* ************************************************************************ */
   /// Register all BB-Interfaces at the Blackboard.
-  void RegisterAtBlackboard();
+  void
+  RegisterAtBlackboard();
 
   /// Initialize all modules used by the Colli
-  void InitializeModules();
+  void
+  InitializeModules();
 
   /// Get the newest values from the blackboard
-  void UpdateBB();
+  void
+  UpdateBB();
 
   /// Check, in what state the colli is, and what to do
-  void UpdateColliStateMachine();
+  void
+  UpdateColliStateMachine();
 
   /// Calculate all information out of the updated blackboard data
-  void UpdateOwnModules();
+  void
+  UpdateOwnModules();
 
   /// Check, if we have to do escape mode, or if we have to drive the ordinary way ;-)
-  bool CheckEscape();
+  bool
+  CheckEscape();
 
-  float GetMotorTranslation(float vtrans, float vori);
-  float GetMotorOri(float odom_ori);
+  float
+  GetMotorTranslation(float vtrans, float vori);
+  float
+  GetMotorOri(float odom_ori);
 
-  void publish_odom();
-  HomPoint transform_odom_to_base(HomPoint point);
-  HomPoint transform_base_to_odom(HomPoint point);
-  HomPoint nearest_cell_to_target();
+  void
+  publish_odom();
+  HomPoint
+  transform_odom_to_base(HomPoint point);
+  HomPoint
+  transform_base_to_odom(HomPoint point);
+  HomPoint
+  nearest_cell_to_target();
   float motor_distance;
   bool adjust_robopos;
-  inline float sqr( float x )
+  inline float
+  sqr(float x)
   {
-    return (x*x);
+    return (x * x);
   }
 
 };

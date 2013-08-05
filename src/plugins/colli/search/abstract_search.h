@@ -1,4 +1,3 @@
-
 /***************************************************************************
  *  abstract_search.h - Abstract search class for arbitrary search algorithm
  *
@@ -30,95 +29,97 @@
 #include "og_laser.h"
 #include <geometry/hom_point.h>
 
-namespace fawkes {
+namespace fawkes
+{
 #if 0 /* just to make Emacs auto-indent happy */
 }
 #endif
 
-/** @class ColliAbstractSearch <plugins/colli/search/abstract_search.h>
- * This is the abstract search interpretation class for
- * an arbitrary search algorithm to find its way through
- * an Occupancy grid from a robopos to a targetpos.
- *
- * This class tries to translate the found plan to interpreteable
- * things for the rest of the program.
- */
-class ColliAbstractSearch
-{
-
-public:
-
-  ///
-  ColliAbstractSearch( Logger* logger, ColliLaserOccupancyGrid * occGrid );
-
-  ///
-  virtual ~ColliAbstractSearch();
-
-
-  /** update complete plan things
-   *  precondition: the occupancy grid has to be updated previously!
+  /** @class ColliAbstractSearch <plugins/colli/search/abstract_search.h>
+   * This is the abstract search interpretation class for
+   * an arbitrary search algorithm to find its way through
+   * an Occupancy grid from a robopos to a targetpos.
+   *
+   * This class tries to translate the found plan to interpreteable
+   * things for the rest of the program.
    */
-  virtual void Update( int roboX, int roboY, int targetX, int targetY) = 0;
+  class ColliAbstractSearch
+  {
 
+  public:
 
-  /** Returns after an update, if the update was successful.
-   */
-  virtual bool UpdatedSuccessful() = 0;
+    ///
+    ColliAbstractSearch(Logger* logger, ColliLaserOccupancyGrid * occGrid);
 
+    ///
+    virtual
+    ~ColliAbstractSearch();
 
-  /** return pointer to the local target. do not modify afterwards
-   *  precondition: Update has to be called before this is ok here
-   */
-  const HomPoint& GetLocalTarget();
+    /** update complete plan things
+     *  precondition: the occupancy grid has to be updated previously!
+     */
+    virtual void
+    Update(int roboX, int roboY, int targetX, int targetY) = 0;
 
-  /** return pointer to the local trajectory point. do not modify afterwards
-   *  precondition: Update has to be called before this is ok here
-   */
-  const HomPoint& GetLocalTrajec();
+    /** Returns after an update, if the update was successful.
+     */
+    virtual bool
+    UpdatedSuccessful() = 0;
 
-  inline void update_occ(ColliLaserOccupancyGrid * occGrid);
+    /** return pointer to the local target. do not modify afterwards
+     *  precondition: Update has to be called before this is ok here
+     */
+    const HomPoint&
+    GetLocalTarget();
 
-protected:
+    /** return pointer to the local trajectory point. do not modify afterwards
+     *  precondition: Update has to be called before this is ok here
+     */
+    const HomPoint&
+    GetLocalTrajec();
 
-  // the occupancy grid
-  ColliLaserOccupancyGrid * m_pOccGrid;
+    inline void
+    update_occ(ColliLaserOccupancyGrid * occGrid);
 
-  // the calculated information where to drive to
-  HomPoint m_LocalTarget, m_LocalTrajectory;
-};
+  protected:
 
+    // the occupancy grid
+    ColliLaserOccupancyGrid * m_pOccGrid;
 
+    // the calculated information where to drive to
+    HomPoint m_LocalTarget, m_LocalTrajectory;
+  };
 
+  inline
+  ColliAbstractSearch::ColliAbstractSearch(Logger* logger, ColliLaserOccupancyGrid * occGrid)
+  {
+    logger->log_info("ColliAbstractSearch", "ColliAbstractSearch(Constructor): Entering\n");
+    m_pOccGrid = occGrid;
+    logger->log_info("ColliAbstractSearch", "ColliAbstractSearch(Constructor): Exiting\n");
+  }
 
-inline ColliAbstractSearch::ColliAbstractSearch( Logger* logger, ColliLaserOccupancyGrid * occGrid )
-{
-  logger->log_info("ColliAbstractSearch","ColliAbstractSearch(Constructor): Entering\n");
-  m_pOccGrid = occGrid;
-  logger->log_info("ColliAbstractSearch","ColliAbstractSearch(Constructor): Exiting\n");
-}
+  inline
+  ColliAbstractSearch::~ColliAbstractSearch()
+  {
+  }
 
+  inline void
+  ColliAbstractSearch::update_occ(ColliLaserOccupancyGrid * occGrid)
+  {
+    m_pOccGrid = occGrid;
+  }
 
-inline ColliAbstractSearch::~ColliAbstractSearch()
-{
-}
+  inline const HomPoint&
+  ColliAbstractSearch::GetLocalTarget()
+  {
+    return m_LocalTarget;
+  }
 
-
-inline void ColliAbstractSearch::update_occ(ColliLaserOccupancyGrid * occGrid)
-{
-  m_pOccGrid = occGrid;
-}
-
-inline const HomPoint& ColliAbstractSearch::GetLocalTarget()
-{
-  return m_LocalTarget;
-}
-
-
-inline const HomPoint& ColliAbstractSearch::GetLocalTrajec()
-{
-  return m_LocalTrajectory;
-}
-
+  inline const HomPoint&
+  ColliAbstractSearch::GetLocalTrajec()
+  {
+    return m_LocalTrajectory;
+  }
 
 } // namespace fawkes
 

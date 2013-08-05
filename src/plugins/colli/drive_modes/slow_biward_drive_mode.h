@@ -16,23 +16,21 @@
 //     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-
 /*
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-  ©                                                                            ©
-  ©                                            ####   ####           .-""-.    ©
-  ©       # #                             #   #    # #    #         /[] _ _\   ©
-  ©       # #                                 #    # #             _|_o_LII|_  ©
-  © ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ©
-  © #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ©
-  © #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ©
-  © #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ©
-  © '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ©
-  ©                                                               /__|    |__\ ©
-  ©                                                                            ©
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-*/
-
+ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ ï¿½                                                                            ï¿½
+ ï¿½                                            ####   ####           .-""-.    ï¿½
+ ï¿½       # #                             #   #    # #    #         /[] _ _\   ï¿½
+ ï¿½       # #                                 #    # #             _|_o_LII|_  ï¿½
+ ï¿½ ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ï¿½
+ ï¿½ #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ï¿½
+ ï¿½ #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ï¿½
+ ï¿½ #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ï¿½
+ ï¿½ '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ï¿½
+ ï¿½                                                               /__|    |__\ ï¿½
+ ï¿½                                                                            ï¿½
+ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ */
 
 /* ******************************************************************** */
 /*                                                                      */
@@ -52,60 +50,56 @@
 /*                                                                      */
 /* ******************************************************************** */
 
-
 #ifndef _COLLI_SLOW_BIWARD_DRIVE_MODE_H_
 #define _COLLI_SLOW_BIWARD_DRIVE_MODE_H_
-
 
 #include "abstract_drive_mode.h"
 #include "slow_forward_drive_mode.h"
 #include "slow_backward_drive_mode.h"
 
-namespace fawkes {
+namespace fawkes
+{
 #if 0 /* just to make Emacs auto-indent happy */
 }
 #endif
 
-/** This is the slow-biward drive-module. It is inherited from
- *    the abstract drive mode and uses the other both modes.
- *    If the target is in front, it drives forward to the target,
- *    else it drives backward to the target.
- */
-class CSlowBiwardDriveModule : public CAbstractDriveMode
-{
-public:
-
-  /** Constructor does set name and gets the two other drive
-   *    modes.
+  /** This is the slow-biward drive-module. It is inherited from
+   *    the abstract drive mode and uses the other both modes.
+   *    If the target is in front, it drives forward to the target,
+   *    else it drives backward to the target.
    */
-  CSlowBiwardDriveModule( Logger* logger, Configuration *config, CSlowForwardDriveModule*  slow_forward,
-        CSlowBackwardDriveModule* slow_backward );
+  class CSlowBiwardDriveModule : public CAbstractDriveMode
+  {
+  public:
 
+    /** Constructor does set name and gets the two other drive
+     *    modes.
+     */
+    CSlowBiwardDriveModule(Logger* logger, Configuration *config, CSlowForwardDriveModule* slow_forward,
+        CSlowBackwardDriveModule* slow_backward);
 
-  /** Destructor does nothing, because nothing is created in here.
-   */
-  ~CSlowBiwardDriveModule();
+    /** Destructor does nothing, because nothing is created in here.
+     */
+    ~CSlowBiwardDriveModule();
 
+    /** This Routine is called. Afterwards the m_proposedTranslation and
+     *    m_proposedRotation have to be filled. Here they are
+     *    filled up in between -1 m/s to 1 m/s and M_PI rad/s.
+     */
+    void
+    Update();
 
-  /** This Routine is called. Afterwards the m_proposedTranslation and
-   *    m_proposedRotation have to be filled. Here they are
-   *    filled up in between -1 m/s to 1 m/s and M_PI rad/s.
-   */
-  void Update();
+  private:
 
+    CSlowForwardDriveModule* m_pSlowForwardDriveModule;
+    CSlowBackwardDriveModule* m_pSlowBackwardDriveModule;
 
-private:
+    float m_MaxTranslation, m_MaxRotation;
 
-  CSlowForwardDriveModule*  m_pSlowForwardDriveModule;
-  CSlowBackwardDriveModule* m_pSlowBackwardDriveModule;
+    int m_CountForward;
 
-  float m_MaxTranslation, m_MaxRotation;
-
-
-  int   m_CountForward;
-
-  Logger* loggerSlowBi;
-};
+    Logger* loggerSlowBi;
+  };
 
 } // namespace fawkes
 

@@ -16,23 +16,21 @@
 //     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-
 /*
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-  ©                                                                            ©
-  ©                                            ####   ####           .-""-.    ©
-  ©       # #                             #   #    # #    #         /[] _ _\   ©
-  ©       # #                                 #    # #             _|_o_LII|_  ©
-  © ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ©
-  © #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ©
-  © #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ©
-  © #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ©
-  © '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ©
-  ©                                                               /__|    |__\ ©
-  ©                                                                            ©
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-*/
-
+ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ ï¿½                                                                            ï¿½
+ ï¿½                                            ####   ####           .-""-.    ï¿½
+ ï¿½       # #                             #   #    # #    #         /[] _ _\   ï¿½
+ ï¿½       # #                                 #    # #             _|_o_LII|_  ï¿½
+ ï¿½ ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ï¿½
+ ï¿½ #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ï¿½
+ ï¿½ #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ï¿½
+ ï¿½ #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ï¿½
+ ï¿½ '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ï¿½
+ ï¿½                                                               /__|    |__\ ï¿½
+ ï¿½                                                                            ï¿½
+ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ */
 
 /* ******************************************************************** */
 /*                                                                      */
@@ -55,93 +53,78 @@
 /*                                                                      */
 /* ******************************************************************** */
 
-
 #ifndef _COLLI_QUARDATIC_MOTORINSTRUCT_CPP_
 #define _COLLI_QUADRATIC_MOTORINSTRUCT_CPP_
-
 
 #include <string>
 #include "quadratic_motor_instruct.h"
 
 using namespace std;
 
-
-
-CQuadraticMotorInstruct::CQuadraticMotorInstruct( MotorInterface* motor, MotorInterface* motor_cmd,float frequency, Logger *logger, Configuration *config ):
- CBaseMotorInstruct( motor, motor_cmd,frequency, logger)
+CQuadraticMotorInstruct::CQuadraticMotorInstruct(MotorInterface* motor, MotorInterface* motor_cmd, float frequency,
+    Logger *logger, Configuration *config)
+    : CBaseMotorInstruct(motor, motor_cmd, frequency, logger)
 {
   loggerQuad = logger;
-  loggerQuad->log_info("CQuadraticMotorInstruct","CQuadraticMotorInstruct(Constructor): Entering\n");
-  
-  /*string confFileName = "../cfg/robocup/colli.cfg";
-  
-  try 
-    {
-      ConfigFile * m_pConf = new ConfigFile( confFileName );
-      basic_trans_acc = m_pConf->floating( "CQuadraticMotorInstruct_BASIC_TRANS_ACC" );
-      basic_trans_dec = m_pConf->floating( "CQuadraticMotorInstruct_BASIC_TRANS_DEC" );
-      basic_rot_acc   = m_pConf->floating( "CQuadraticMotorInstruct_BASIC_ROT_ACC" );
-      basic_rot_dec   = m_pConf->floating( "CQuadraticMotorInstruct_BASIC_ROT_DEC" );
-      delete m_pConf;
-    }
-  catch (...)
-    {
-      cout << "***** ERROR *****: Could not open: " << confFileName 
-	   << " --> ABORTING!" << endl << endl;
-      exit( 0 );
-    }*/
-  if (!config->exists("/plugins/colli/CQuadraticMotorInstruct/CQuadraticMotorInstruct_BASIC_TRANS_ACC") )
-  {
-    cout << "***** ERROR *****: Could not find: CQuadraticMotorInstruct_BASIC_TRANS_ACC " 
-         << " --> ABORTING!" << endl << endl;
+  loggerQuad->log_info("CQuadraticMotorInstruct", "CQuadraticMotorInstruct(Constructor): Entering\n");
 
-  }
-  else
-  {
-    basic_trans_acc = config->get_float("/plugins/colli/CQuadraticMotorInstruct/CQuadraticMotorInstruct_BASIC_TRANS_ACC");
+  /*string confFileName = "../cfg/robocup/colli.cfg";
+
+   try
+   {
+   ConfigFile * m_pConf = new ConfigFile( confFileName );
+   basic_trans_acc = m_pConf->floating( "CQuadraticMotorInstruct_BASIC_TRANS_ACC" );
+   basic_trans_dec = m_pConf->floating( "CQuadraticMotorInstruct_BASIC_TRANS_DEC" );
+   basic_rot_acc   = m_pConf->floating( "CQuadraticMotorInstruct_BASIC_ROT_ACC" );
+   basic_rot_dec   = m_pConf->floating( "CQuadraticMotorInstruct_BASIC_ROT_DEC" );
+   delete m_pConf;
+   }
+   catch (...)
+   {
+   cout << "***** ERROR *****: Could not open: " << confFileName
+   << " --> ABORTING!" << endl << endl;
+   exit( 0 );
+   }*/
+  if (!config->exists("/plugins/colli/CQuadraticMotorInstruct/CQuadraticMotorInstruct_BASIC_TRANS_ACC")) {
+    cout << "***** ERROR *****: Could not find: CQuadraticMotorInstruct_BASIC_TRANS_ACC " << " --> ABORTING!" << endl
+        << endl;
+
+  } else {
+    basic_trans_acc = config->get_float(
+        "/plugins/colli/CQuadraticMotorInstruct/CQuadraticMotorInstruct_BASIC_TRANS_ACC");
     //cout << "CQuadraticMotorInstruct_BASIC_TRANS_ACC:  "<< basic_trans_acc << endl;
   }
-  
-  if(!config->exists("/plugins/colli/CQuadraticMotorInstruct/CQuadraticMotorInstruct_BASIC_TRANS_DEC") )
-  {
-    cout << "***** ERROR *****: Could not find: CQuadraticMotorInstruct_BASIC_TRANS_DEC "
-         << " --> ABORTING!" << endl << endl;
 
-  }
-  else
-  {
-    basic_trans_dec = config->get_float("/plugins/colli/CQuadraticMotorInstruct/CQuadraticMotorInstruct_BASIC_TRANS_DEC");
-   // cout << "CQuadraticMotorInstruct_BASIC_TRANS_DEC: " << basic_trans_dec << endl;
-  }
-  
-  if(!config->exists("/plugins/colli/CQuadraticMotorInstruct/CQuadraticMotorInstruct_BASIC_ROT_ACC") )
-  {
-    cout << "***** ERROR *****: Could not find: CQuadraticMotorInstruct_BASIC_ROT_ACC "
-         << " --> ABORTING!" << endl << endl;
+  if (!config->exists("/plugins/colli/CQuadraticMotorInstruct/CQuadraticMotorInstruct_BASIC_TRANS_DEC")) {
+    cout << "***** ERROR *****: Could not find: CQuadraticMotorInstruct_BASIC_TRANS_DEC " << " --> ABORTING!" << endl
+        << endl;
 
-
+  } else {
+    basic_trans_dec = config->get_float(
+        "/plugins/colli/CQuadraticMotorInstruct/CQuadraticMotorInstruct_BASIC_TRANS_DEC");
+    // cout << "CQuadraticMotorInstruct_BASIC_TRANS_DEC: " << basic_trans_dec << endl;
   }
-  else
-  {
+
+  if (!config->exists("/plugins/colli/CQuadraticMotorInstruct/CQuadraticMotorInstruct_BASIC_ROT_ACC")) {
+    cout << "***** ERROR *****: Could not find: CQuadraticMotorInstruct_BASIC_ROT_ACC " << " --> ABORTING!" << endl
+        << endl;
+
+  } else {
     basic_rot_acc = config->get_float("/plugins/colli/CQuadraticMotorInstruct/CQuadraticMotorInstruct_BASIC_ROT_ACC");
-   // cout << "CQuadraticMotorInstruct_BASIC_ROT_ACC: " << basic_rot_acc << endl; 
+    // cout << "CQuadraticMotorInstruct_BASIC_ROT_ACC: " << basic_rot_acc << endl;
   }
-  
-  if(!config->exists("/plugins/colli/CQuadraticMotorInstruct/CQuadraticMotorInstruct_BASIC_ROT_DEC") )
-  {
-    cout << "***** ERROR *****: Could not find:  CQuadraticMotorInstruct_BASIC_ROT_DEC "
-         << " --> ABORTING!" << endl << endl;
 
-  }
-  else
-  {
+  if (!config->exists("/plugins/colli/CQuadraticMotorInstruct/CQuadraticMotorInstruct_BASIC_ROT_DEC")) {
+    cout << "***** ERROR *****: Could not find:  CQuadraticMotorInstruct_BASIC_ROT_DEC " << " --> ABORTING!" << endl
+        << endl;
+
+  } else {
     basic_rot_dec = config->get_float("/plugins/colli/CQuadraticMotorInstruct/CQuadraticMotorInstruct_BASIC_ROT_DEC");
-   // cout << "CQuadraticMotorInstruct_BASIC_ROT_DEC: " << basic_rot_dec << endl;
+    // cout << "CQuadraticMotorInstruct_BASIC_ROT_DEC: " << basic_rot_dec << endl;
   }
 
-  loggerQuad->log_info("CQuadraticMotorInstruct","CQuadraticMotorInstruct(Constructor): Exiting\n");
+  loggerQuad->log_info("CQuadraticMotorInstruct", "CQuadraticMotorInstruct(Constructor): Exiting\n");
 }
-
 
 CQuadraticMotorInstruct::~CQuadraticMotorInstruct()
 {
@@ -149,125 +132,96 @@ CQuadraticMotorInstruct::~CQuadraticMotorInstruct()
   loggerQuad->log_info("CQuadraticMotorInstruct", "CQuadraticMotorInstruct(Destructor): Exiting\n");
 }
 
-
-
-
- /* Implementation of Calculate Translation Function.
+/* Implementation of Calculate Translation Function.
  * These are dangerous! Take care while modifying. Only a minus sign too few 
  *   or too much may result in non predictable motor behaviour!!!!
  * THIS FUNCTION IS THE LAST BORDER TO THE MOTOR, TAKE CARE AND PAY ATTENTION!!!
  */
-float CQuadraticMotorInstruct::CalculateTranslation( float currentTranslation, 
-						     float desiredTranslation,
-						     float time_factor )
+float
+CQuadraticMotorInstruct::CalculateTranslation(float currentTranslation, float desiredTranslation, float time_factor)
 {
   float execTranslation = 0.0;
-  
-  if (desiredTranslation < currentTranslation)
-    {
-      if (currentTranslation > 0.0) // decrease forward speed
-	{
-	  execTranslation = 
-	    currentTranslation - basic_trans_dec - 
-            ((sqr( fabs(currentTranslation) + 1.0 ) * basic_trans_dec) / 8.0);
-	  execTranslation = max( execTranslation, desiredTranslation );
-	}
-      else if (currentTranslation < 0.0) // increase backward speed
-	{
-	  execTranslation = currentTranslation - basic_trans_acc -
-            ((sqr( fabs(currentTranslation) + 1.0 ) * basic_trans_acc) / 8.0);
-	  execTranslation = max( execTranslation, desiredTranslation );
-	}
-      else // currentTranslation == 0;
-	{
-	  execTranslation = max( -basic_trans_acc, desiredTranslation );
-	}
-    }
-  else if (desiredTranslation > currentTranslation)
-    {
-      if (currentTranslation > 0.0) // increase forward speed
-	{
-	  execTranslation = currentTranslation + basic_trans_acc +
-            ((sqr( fabs(currentTranslation) + 1.0 ) * basic_trans_acc) / 8.0);
-	  execTranslation = min( execTranslation, desiredTranslation );
-	}
-      else if (currentTranslation < 0.0) // decrease backward speed
-	{
-	  execTranslation = currentTranslation + basic_trans_dec +
-              ((sqr( fabs(currentTranslation) + 1.0 ) * basic_trans_dec) / 8.0);
-	  execTranslation = min( execTranslation, desiredTranslation );
-	}
-      else // currentTranslation == 0
-	{
-	  execTranslation = min( basic_trans_acc, desiredTranslation );
-	}
-    }
-  else // nothing to change!!!
-    {
-      execTranslation = desiredTranslation;
-    }
 
-  return execTranslation*time_factor;
+  if (desiredTranslation < currentTranslation) {
+    if (currentTranslation > 0.0) // decrease forward speed
+        {
+      execTranslation = currentTranslation - basic_trans_dec
+          - ((sqr(fabs(currentTranslation) + 1.0) * basic_trans_dec) / 8.0);
+      execTranslation = max(execTranslation, desiredTranslation);
+    } else if (currentTranslation < 0.0) // increase backward speed
+        {
+      execTranslation = currentTranslation - basic_trans_acc
+          - ((sqr(fabs(currentTranslation) + 1.0) * basic_trans_acc) / 8.0);
+      execTranslation = max(execTranslation, desiredTranslation);
+    } else // currentTranslation == 0;
+    {
+      execTranslation = max(-basic_trans_acc, desiredTranslation);
+    }
+  } else if (desiredTranslation > currentTranslation) {
+    if (currentTranslation > 0.0) // increase forward speed
+        {
+      execTranslation = currentTranslation + basic_trans_acc
+          + ((sqr(fabs(currentTranslation) + 1.0) * basic_trans_acc) / 8.0);
+      execTranslation = min(execTranslation, desiredTranslation);
+    } else if (currentTranslation < 0.0) // decrease backward speed
+        {
+      execTranslation = currentTranslation + basic_trans_dec
+          + ((sqr(fabs(currentTranslation) + 1.0) * basic_trans_dec) / 8.0);
+      execTranslation = min(execTranslation, desiredTranslation);
+    } else // currentTranslation == 0
+    {
+      execTranslation = min(basic_trans_acc, desiredTranslation);
+    }
+  } else // nothing to change!!!
+  {
+    execTranslation = desiredTranslation;
+  }
+
+  return execTranslation * time_factor;
 }
-
-
-
 
 /* Implementation of Calculate Rotation Function.
  * These are dangerous! Take care while modifying. Only a minus sign too few 
  *   or too much may result in non predictable motor behaviour!!!!
  * THIS FUNCTION IS THE LAST BORDER TO THE MOTOR, TAKE CARE AND PAY ATTENTION!!!
  */
-float CQuadraticMotorInstruct::CalculateRotation( float currentRotation,
-						  float desiredRotation,
-						  float time_factor  )
+float
+CQuadraticMotorInstruct::CalculateRotation(float currentRotation, float desiredRotation, float time_factor)
 {
   float execRotation = 0.0;
-    
-  if (desiredRotation < currentRotation)
+
+  if (desiredRotation < currentRotation) {
+    if (currentRotation > 0.0) // decrease right rot
+        {
+      execRotation = currentRotation - basic_rot_dec - ((sqr(fabs(currentRotation) + 1.0) * basic_rot_dec) / 8.0);
+      execRotation = max(execRotation, desiredRotation);
+    } else if (currentRotation < 0.0) // increase left rot
+        {
+      execRotation = currentRotation - basic_rot_acc - ((sqr(fabs(currentRotation) + 1.0) * basic_rot_acc) / 8.0);
+      execRotation = max(execRotation, desiredRotation);
+    } else // currentRotation == 0;
     {
-      if (currentRotation > 0.0) // decrease right rot
-	{
-	  execRotation = currentRotation - basic_rot_dec -
-           ((sqr( fabs(currentRotation) + 1.0 ) * basic_rot_dec) / 8.0);
-	  execRotation = max( execRotation, desiredRotation );
-	}
-      else if (currentRotation < 0.0) // increase left rot
-	{
-	  execRotation = currentRotation - basic_rot_acc -
-            ((sqr( fabs(currentRotation) + 1.0 ) * basic_rot_acc) / 8.0);
-	  execRotation = max( execRotation, desiredRotation );
-	}
-      else // currentRotation == 0;
-	{
-	  execRotation = max( -basic_rot_acc, desiredRotation );
-	}
+      execRotation = max(-basic_rot_acc, desiredRotation);
     }
-  else if (desiredRotation > currentRotation)
+  } else if (desiredRotation > currentRotation) {
+    if (currentRotation > 0.0) // increase right rot
+        {
+      execRotation = currentRotation + basic_rot_acc + ((sqr(fabs(currentRotation) + 1.0) * basic_rot_acc) / 8.0);
+      execRotation = min(execRotation, desiredRotation);
+    } else if (currentRotation < 0.0) // decrease left rot
+        {
+      execRotation = currentRotation + basic_rot_dec + ((sqr(fabs(currentRotation) + 1.0) * basic_rot_dec) / 8.0);
+      execRotation = min(execRotation, desiredRotation);
+    } else // currentRotation == 0
     {
-      if (currentRotation > 0.0) // increase right rot
-	{
-	  execRotation = currentRotation + basic_rot_acc +
-            ((sqr( fabs(currentRotation) + 1.0 ) * basic_rot_acc) / 8.0);
-	  execRotation = min( execRotation, desiredRotation );
-	}
-      else if (currentRotation < 0.0) // decrease left rot
-	{
-	  execRotation = currentRotation + basic_rot_dec +
-             ((sqr( fabs(currentRotation) + 1.0 ) * basic_rot_dec) / 8.0);
-	  execRotation = min( execRotation, desiredRotation );
-	}
-      else // currentRotation == 0
-	{
-	  execRotation = min( basic_rot_acc, desiredRotation );
-	}
+      execRotation = min(basic_rot_acc, desiredRotation);
     }
-  else // nothing to change!!!
-    {
-      execRotation = desiredRotation;
-    }
-  
-  return execRotation*time_factor;
+  } else // nothing to change!!!
+  {
+    execRotation = desiredRotation;
+  }
+
+  return execRotation * time_factor;
 }
 
 #endif

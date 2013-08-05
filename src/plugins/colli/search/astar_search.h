@@ -1,4 +1,3 @@
-
 /***************************************************************************
  *  astar_search.h - Interpretation class interface for A* for Colli-A*
  *
@@ -34,114 +33,123 @@
 
 #include <vector>
 
-namespace fawkes {
+namespace fawkes
+{
 #if 0 /* just to make Emacs auto-indent happy */
 }
 #endif
 
-class Logger;
-class Configuration;
+  class Logger;
+  class Configuration;
 
-/** @class ColliSearch <plugins/colli/search/astar_search.h>
- * This is the plan class. It tries to translate the found plan to interpreteable
- * things for the rest of the program.
- *
- * Here the plan from A* is managed and cut into small pieces.
- * Also usable methods for managing the plan are implemented here.
- */
-class ColliSearch: public ColliAbstractSearch
-{
-
-public:
-
-  //
-  ColliSearch( Logger* logger, Configuration *config, ColliLaserOccupancyGrid * occGrid );
-
-  //
-  virtual ~ColliSearch();
-
-
-  // update complete plan things
-  // precondition: the occupancy grid has to be updated previously!
-  void Update( int roboX, int roboY, int targetX, int targetY  );
-
-  // returns, if the update was successful or not.
-  // precondition: update had to be called.
-  bool UpdatedSuccessful();
-
-  // ** getter for visualization ** //
-  std::vector< HomPoint > GetPlan();
-
-
-  ColliLaserOccupancyGrid* get_grid()
-  {
-    return m_pOccGrid;
-  }
-
-  OccupancyGrid * get_astar_grid()
-  {
-    return m_pAStar->get_occ_grid();
-  }
-
-  std::vector<HomPoint > get_occ_astar_search()
-  {
-    return m_pAStar->get_occ_astar();
-  }
-
-  std::vector<HomPoint > get_astar_states()
-  {
-    return m_pAStar->get_seen_states();
-  }
-
-  HomPoint get_mod_target()
-  {
-    return m_TargetPosition;
-  }
-
-  HomPoint get_adjust_robo();
-private:
-
-  /** Returns the current, modified waypoint to drive to.
+  /** @class ColliSearch <plugins/colli/search/astar_search.h>
+   * This is the plan class. It tries to translate the found plan to interpreteable
+   * things for the rest of the program.
+   *
+   * Here the plan from A* is managed and cut into small pieces.
+   * Also usable methods for managing the plan are implemented here.
    */
-  HomPoint CalculateLocalTarget();
+  class ColliSearch : public ColliAbstractSearch
+  {
 
-  /** Adjust the waypoint if it is not the final point.
-   */
-  HomPoint AdjustWaypoint( const HomPoint &local_target );
+  public:
 
-  /** Returns the current trajectory point to drive to.
-   */
-  HomPoint CalculateLocalTrajectoryPoint( );
+    //
+    ColliSearch(Logger* logger, Configuration *config, ColliLaserOccupancyGrid * occGrid);
 
-  /** Method for checking if an obstacle is between two points.
-   */
-  bool IsObstacleBetween( const HomPoint &a, const HomPoint &b,
-        const int maxcount );
+    //
+    virtual
+    ~ColliSearch();
 
+    // update complete plan things
+    // precondition: the occupancy grid has to be updated previously!
+    void
+    Update(int roboX, int roboY, int targetX, int targetY);
 
-  // --------------------------------- //
-  //    VARIABLES
-  // --------------------------------- //
+    // returns, if the update was successful or not.
+    // precondition: update had to be called.
+    bool
+    UpdatedSuccessful();
 
-  ColliAStar * m_pAStar;                // the A* search algorithm
-  std::vector< HomPoint > m_vPlan;    // the local representation of the plan
+    // ** getter for visualization ** //
+    std::vector<HomPoint>
+    GetPlan();
 
-  HomPoint m_RoboPosition, m_TargetPosition;
-  bool m_UpdatedSuccessful;
-  int robo_widthX,robo_widthY;
-  bool adjust_robopos;
-  // SJ TODO: Delete paint stuff
+    ColliLaserOccupancyGrid*
+    get_grid()
+    {
+      return m_pOccGrid;
+    }
+
+    OccupancyGrid *
+    get_astar_grid()
+    {
+      return m_pAStar->get_occ_grid();
+    }
+
+    std::vector<HomPoint>
+    get_occ_astar_search()
+    {
+      return m_pAStar->get_occ_astar();
+    }
+
+    std::vector<HomPoint>
+    get_astar_states()
+    {
+      return m_pAStar->get_seen_states();
+    }
+
+    HomPoint
+    get_mod_target()
+    {
+      return m_TargetPosition;
+    }
+
+    HomPoint
+    get_adjust_robo();
+  private:
+
+    /** Returns the current, modified waypoint to drive to.
+     */
+    HomPoint
+    CalculateLocalTarget();
+
+    /** Adjust the waypoint if it is not the final point.
+     */
+    HomPoint
+    AdjustWaypoint(const HomPoint &local_target);
+
+    /** Returns the current trajectory point to drive to.
+     */
+    HomPoint
+    CalculateLocalTrajectoryPoint();
+
+    /** Method for checking if an obstacle is between two points.
+     */
+    bool
+    IsObstacleBetween(const HomPoint &a, const HomPoint &b, const int maxcount);
+
+    // --------------------------------- //
+    //    VARIABLES
+    // --------------------------------- //
+
+    ColliAStar * m_pAStar;                // the A* search algorithm
+    std::vector<HomPoint> m_vPlan;    // the local representation of the plan
+
+    HomPoint m_RoboPosition, m_TargetPosition;
+    bool m_UpdatedSuccessful;
+    int robo_widthX, robo_widthY;
+    bool adjust_robopos;
+    // SJ TODO: Delete paint stuff
 #ifdef _COLLI_VISUALIZE_
-  CVisualize * m_pVis;
+    CVisualize * m_pVis;
 #endif
 
-  int m_RobocupMode;
+    int m_RobocupMode;
 
-  Logger* loggerAstar;
+    Logger* loggerAstar;
 
-
-};
-
+  };
 
 } // namespace fawkes
 

@@ -1,4 +1,3 @@
-
 /***************************************************************************
  *  defines.h - Defines that are used throughout the colli
  *

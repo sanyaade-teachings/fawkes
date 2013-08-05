@@ -16,23 +16,21 @@
 //     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-
 /*
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-  ©                                                                            ©
-  ©                                            ####   ####           .-""-.    ©
-  ©       # #                             #   #    # #    #         /[] _ _\   ©
-  ©       # #                                 #    # #             _|_o_LII|_  ©
-  © ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ©
-  © #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ©
-  © #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ©
-  © #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ©
-  © '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ©
-  ©                                                               /__|    |__\ ©
-  ©                                                                            ©
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-*/
-
+ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ ï¿½                                                                            ï¿½
+ ï¿½                                            ####   ####           .-""-.    ï¿½
+ ï¿½       # #                             #   #    # #    #         /[] _ _\   ï¿½
+ ï¿½       # #                                 #    # #             _|_o_LII|_  ï¿½
+ ï¿½ ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ï¿½
+ ï¿½ #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ï¿½
+ ï¿½ #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ï¿½
+ ï¿½ #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ï¿½
+ ï¿½ '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ï¿½
+ ï¿½                                                               /__|    |__\ ï¿½
+ ï¿½                                                                            ï¿½
+ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ */
 
 /* ******************************************************************** */
 /*                                                                      */
@@ -52,53 +50,50 @@
 /*                                                                      */
 /* ******************************************************************** */
 
-
 #ifndef _COLLI_MEDIUM_BIWARD_DRIVE_MODE_H_
 #define _COLLI_MEDIUM_BIWARD_DRIVE_MODE_H_
-
 
 #include "abstract_drive_mode.h"
 #include "medium_forward_drive_mode.h"
 #include "medium_backward_drive_mode.h"
 
-namespace fawkes {
+namespace fawkes
+{
 #if 0 /* just to make Emacs auto-indent happy */
 }
 #endif
 
-class CMediumBiwardDriveModule : public CAbstractDriveMode
-{
-public:
+  class CMediumBiwardDriveModule : public CAbstractDriveMode
+  {
+  public:
 
-  /** Constructor.
-   */
-  CMediumBiwardDriveModule( Logger* logger, Configuration *config, CMediumForwardDriveModule*  forward_module,
-          CMediumBackwardDriveModule* backward_module );
+    /** Constructor.
+     */
+    CMediumBiwardDriveModule(Logger* logger, Configuration *config, CMediumForwardDriveModule* forward_module,
+        CMediumBackwardDriveModule* backward_module);
 
+    /** Destructor. Does nothing, because nothing was created in this module.
+     */
+    ~CMediumBiwardDriveModule();
 
-  /** Destructor. Does nothing, because nothing was created in this module.
-   */
-  ~CMediumBiwardDriveModule();
+    /** This Routine is called. Afterwards the m_proposedTranslation and
+     *    m_proposedRotation have to be filled. Here they are
+     *    set to zero.
+     */
+    virtual void
+    Update();
 
+  private:
 
-  /** This Routine is called. Afterwards the m_proposedTranslation and
-   *    m_proposedRotation have to be filled. Here they are
-   *    set to zero.
-   */
-  virtual void Update();
+    float m_MaxTranslation, m_MaxRotation;
 
+    CMediumForwardDriveModule* m_pMediumForwardDriveModule;
+    CMediumBackwardDriveModule* m_pMediumBackwardDriveModule;
 
-private:
+    int m_CountForward;
 
-  float m_MaxTranslation, m_MaxRotation;
-
-  CMediumForwardDriveModule*   m_pMediumForwardDriveModule;
-  CMediumBackwardDriveModule*  m_pMediumBackwardDriveModule;
-
-  int   m_CountForward;
-
-  Logger* loggerMedBi;
-};
+    Logger* loggerMedBi;
+  };
 
 } // namespace fawkes
 

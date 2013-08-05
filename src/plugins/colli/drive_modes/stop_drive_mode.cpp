@@ -16,23 +16,21 @@
 //     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-
 /*
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-  ©                                                                            ©
-  ©                                            ####   ####           .-""-.    ©
-  ©       # #                             #   #    # #    #         /[] _ _\   ©
-  ©       # #                                 #    # #             _|_o_LII|_  ©
-  © ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ©
-  © #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ©
-  © #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ©
-  © #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ©
-  © '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ©
-  ©                                                               /__|    |__\ ©
-  ©                                                                            ©
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-*/
-
+ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ ï¿½                                                                            ï¿½
+ ï¿½                                            ####   ####           .-""-.    ï¿½
+ ï¿½       # #                             #   #    # #    #         /[] _ _\   ï¿½
+ ï¿½       # #                                 #    # #             _|_o_LII|_  ï¿½
+ ï¿½ ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ï¿½
+ ï¿½ #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ï¿½
+ ï¿½ #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ï¿½
+ ï¿½ #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ï¿½
+ ï¿½ '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ï¿½
+ ï¿½                                                               /__|    |__\ ï¿½
+ ï¿½                                                                            ï¿½
+ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ */
 
 /* ******************************************************************** */
 /*                                                                      */
@@ -55,68 +53,66 @@
 #include "stop_drive_mode.h"
 //#include <utils/utils.h>
 
-
 using namespace std;
 
-namespace fawkes {
+namespace fawkes
+{
 #if 0 /* just to make Emacs auto-indent happy */
 }
 #endif
 
-/** Initialize your local values here.
- */
-CStopDriveModule::CStopDriveModule(Logger* logger,Configuration *config) :
-  CAbstractDriveMode(logger,config)
-{
-  loggerStop = logger;
-  loggerStop->log_info("CStopDriveModule","CStopDriveModule(Constructor): Entering...\n");
-  m_DriveModeName = MovingNotAllowed;
-  loggerStop->log_info("CStopDriveModule","CStopDriveModule(Constructor): Exiting...\n");
-}
+  /** Initialize your local values here.
+   */
+  CStopDriveModule::CStopDriveModule(Logger* logger, Configuration *config)
+      : CAbstractDriveMode(logger, config)
+  {
+    loggerStop = logger;
+    loggerStop->log_info("CStopDriveModule", "CStopDriveModule(Constructor): Entering...\n");
+    m_DriveModeName = MovingNotAllowed;
+    loggerStop->log_info("CStopDriveModule", "CStopDriveModule(Constructor): Exiting...\n");
+  }
 
+  /** Destruct your local values here.
+   */
+  CStopDriveModule::~CStopDriveModule()
+  {
+    loggerStop->log_info("CStopDriveModule", "CStopDriveModule(Destructor): Entering...\n");
+    loggerStop->log_info("CStopDriveModule", "CStopDriveModule(Destructor): Exiting...\n");
+  }
 
-/** Destruct your local values here.
- */
-CStopDriveModule::~CStopDriveModule()
-{
-  loggerStop->log_info("CStopDriveModule","CStopDriveModule(Destructor): Entering...\n");
-  loggerStop->log_info("CStopDriveModule","CStopDriveModule(Destructor): Exiting...\n");
-}
+  /* ************************************************************************** */
+  /* ***********************        U P D A T E       ************************* */
+  /* ************************************************************************** */
 
-
-
-/* ************************************************************************** */
-/* ***********************        U P D A T E       ************************* */
-/* ************************************************************************** */
-
-/** Calculate here your desired settings. What you desire is checked afterwards to the current
- *    settings of the physical boundaries, but take care also.
- *
- *  How you do this is up to you, but be careful, our hardware is expensive!!!!
- *
- *  Available are:
- *
- *     m_TargetX, m_TargetY, m_TargetOri  --> current Target to drive to
- *     m_RoboX, m_RoboY, m_RoboOri        --> current Robot coordinates
- *     m_RoboTrans, m_RoboRot             --> current Motor values
- *
- *     m_LocalTargetX, m_LocalTargetY     --> our local target found by the search component we want to reach
- *     m_LocalTrajecX, m_LocalTrajecY     --> The point we would collide with, if we would drive WITHOUT Rotation
- *
- *     m_OrientAtTarget                   --> Do we have to orient ourself at the target?
- *     m_StopAtTarget                     --> Do we have to stop really ON the target?
- *
- *  Afterwards filled should be:
- *
- *     m_ProposedTranslation              --> Desired Translation speed
- *     m_ProposedRotation                 --> Desired Rotation speed
- *
- *  Those values are questioned after an Update() was called.
- */
-void CStopDriveModule::Update()
-{
-  m_ProposedTranslation = 0.0;
-  m_ProposedRotation    = 0.0;
-}
+  /** Calculate here your desired settings. What you desire is checked afterwards to the current
+   *    settings of the physical boundaries, but take care also.
+   *
+   *  How you do this is up to you, but be careful, our hardware is expensive!!!!
+   *
+   *  Available are:
+   *
+   *     m_TargetX, m_TargetY, m_TargetOri  --> current Target to drive to
+   *     m_RoboX, m_RoboY, m_RoboOri        --> current Robot coordinates
+   *     m_RoboTrans, m_RoboRot             --> current Motor values
+   *
+   *     m_LocalTargetX, m_LocalTargetY     --> our local target found by the search component we want to reach
+   *     m_LocalTrajecX, m_LocalTrajecY     --> The point we would collide with, if we would drive WITHOUT Rotation
+   *
+   *     m_OrientAtTarget                   --> Do we have to orient ourself at the target?
+   *     m_StopAtTarget                     --> Do we have to stop really ON the target?
+   *
+   *  Afterwards filled should be:
+   *
+   *     m_ProposedTranslation              --> Desired Translation speed
+   *     m_ProposedRotation                 --> Desired Rotation speed
+   *
+   *  Those values are questioned after an Update() was called.
+   */
+  void
+  CStopDriveModule::Update()
+  {
+    m_ProposedTranslation = 0.0;
+    m_ProposedRotation = 0.0;
+  }
 
 } // namespace fawkes

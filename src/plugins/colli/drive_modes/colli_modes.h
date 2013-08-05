@@ -16,23 +16,21 @@
 //     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-
 /*
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-  ©                                                                            ©
-  ©                                            ####   ####           .-""-.    ©
-  ©       # #                             #   #    # #    #         /[] _ _\   ©
-  ©       # #                                 #    # #             _|_o_LII|_  ©
-  © ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ©
-  © #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ©
-  © #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ©
-  © #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ©
-  © '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ©
-  ©                                                               /__|    |__\ ©
-  ©                                                                            ©
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-*/
-
+ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ ï¿½                                                                            ï¿½
+ ï¿½                                            ####   ####           .-""-.    ï¿½
+ ï¿½       # #                             #   #    # #    #         /[] _ _\   ï¿½
+ ï¿½       # #                                 #    # #             _|_o_LII|_  ï¿½
+ ï¿½ ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ï¿½
+ ï¿½ #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ï¿½
+ ï¿½ #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ï¿½
+ ï¿½ #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ï¿½
+ ï¿½ '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ï¿½
+ ï¿½                                                               /__|    |__\ ï¿½
+ ï¿½                                                                            ï¿½
+ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ */
 
 /* ******************************************************************** */
 /*                                                                      */
@@ -51,10 +49,8 @@
 /*                                                                      */
 /* ******************************************************************** */
 
-
 #ifndef _COLLI_MODES_H_
 #define _COLLI_MODES_H_
-
 
 /** Available Collimodes follow here!
  *
@@ -70,60 +66,60 @@
  *
  */
 /*enum ColliModes
-  {
-    MovingNotAllowed = 0,                    // implemented
+ {
+ MovingNotAllowed = 0,                    // implemented
 
-    CarefulForward          = 1050,
-    SlowForward             = 1150,          // implemented
-    ModerateForward         = 1250,          // implemented, robocup specific
-    FastForward             = 1350,          // implemented, robocup specific
+ CarefulForward          = 1050,
+ SlowForward             = 1150,          // implemented
+ ModerateForward         = 1250,          // implemented, robocup specific
+ FastForward             = 1350,          // implemented, robocup specific
 
-    CarefulAllowBackward    = 2050,
-    SlowAllowBackward       = 2150,          // implemented
-    ModerateAllowBackward   = 2250,          // implemented, robocup specific
-    FastAllowBackward       = 2350,          // implemented, robocup specific
+ CarefulAllowBackward    = 2050,
+ SlowAllowBackward       = 2150,          // implemented
+ ModerateAllowBackward   = 2250,          // implemented, robocup specific
+ FastAllowBackward       = 2350,          // implemented, robocup specific
 
-    CarefulBackward         = 3050,
-    SlowBackward            = 3150,          // implemented
-    ModerateBackward        = 3250,          // implemented, robocup specific
-    FastBackward            = 3350,          // implemented, robocup specific
+ CarefulBackward         = 3050,
+ SlowBackward            = 3150,          // implemented
+ ModerateBackward        = 3250,          // implemented, robocup specific
+ FastBackward            = 3350,          // implemented, robocup specific
 
-    ESCAPE                  = 9999,          // implemented
+ ESCAPE                  = 9999,          // implemented
 
-    SlowDribbleBall         = 4150,          // not implemented
-    ModerateDribbleBall     = 4250,          // not implemented
-    FastDribbleBall         = 4350,          // not implemented
+ SlowDribbleBall         = 4150,          // not implemented
+ ModerateDribbleBall     = 4250,          // not implemented
+ FastDribbleBall         = 4350,          // not implemented
 
-    OVERRIDE                = 666,           // to use mopo-obj while colli is running
+ OVERRIDE                = 666,           // to use mopo-obj while colli is running
 
-  };*/
+ };*/
 enum ColliModes
-  {
-    MovingNotAllowed ,                    // implemented
+{
+  MovingNotAllowed,                    // implemented
 
-    CarefulForward,
-    SlowForward,                         // implemented
-    ModerateForward,                    // implemented, robocup specific
-    FastForward,                        // implemented, robocup specific
+  CarefulForward,
+  SlowForward,                         // implemented
+  ModerateForward,                    // implemented, robocup specific
+  FastForward,                        // implemented, robocup specific
 
-    CarefulAllowBackward,
-    SlowAllowBackward,                  // implemented
-    ModerateAllowBackward,             // implemented, robocup specific
-    FastAllowBackward,                 // implemented, robocup specific
+  CarefulAllowBackward,
+  SlowAllowBackward,                  // implemented
+  ModerateAllowBackward,             // implemented, robocup specific
+  FastAllowBackward,                 // implemented, robocup specific
 
-    CarefulBackward,
-    SlowBackward,                     // implemented
-    ModerateBackward,                // implemented, robocup specific
-    FastBackward,                   // implemented, robocup specific
+  CarefulBackward,
+  SlowBackward,                     // implemented
+  ModerateBackward,                // implemented, robocup specific
+  FastBackward,                   // implemented, robocup specific
 
-    ESCAPE,                        // implemented
+  ESCAPE,                        // implemented
 
-    SlowDribbleBall ,             // not implemented
-    ModerateDribbleBall,         // not implemented
-    FastDribbleBall,            // not implemented
+  SlowDribbleBall,             // not implemented
+  ModerateDribbleBall,         // not implemented
+  FastDribbleBall,            // not implemented
 
-    OVERRIDE,                  // to use mopo-obj while colli is running
+  OVERRIDE,                  // to use mopo-obj while colli is running
 
-  };
+};
 
 #endif // _COLLI_MODES_H_

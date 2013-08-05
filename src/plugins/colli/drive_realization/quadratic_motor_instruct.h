@@ -16,23 +16,21 @@
 //     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-
 /*
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-  ©                                                                            ©
-  ©                                            ####   ####           .-""-.    ©
-  ©       # #                             #   #    # #    #         /[] _ _\   ©
-  ©       # #                                 #    # #             _|_o_LII|_  ©
-  © ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ©
-  © #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ©
-  © #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ©
-  © #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ©
-  © '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ©
-  ©                                                               /__|    |__\ ©
-  ©                                                                            ©
-  ©º°¨¨°º©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©©º°¨¨°º©º°¨¨°º©
-*/
-
+ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ ï¿½                                                                            ï¿½
+ ï¿½                                            ####   ####           .-""-.    ï¿½
+ ï¿½       # #                             #   #    # #    #         /[] _ _\   ï¿½
+ ï¿½       # #                                 #    # #             _|_o_LII|_  ï¿½
+ ï¿½ ,###, # #  ### ## ## ##   ###  ## ##  #   #    # #       ###  / | ==== | \ ï¿½
+ ï¿½ #   # # # #   # ## ## #  #   #  ## #  #   ###### #      #     |_| ==== |_| ï¿½
+ ï¿½ #   # # # ####  #  #  #  #   #  #  #  #   #    # #      ####   ||" ||  ||  ï¿½
+ ï¿½ #   # # # #     #  #  #  #   #  #  #  #   #    # #    #    #   ||LI  o ||  ï¿½
+ ï¿½ '###'# # # #### #  #  ##  ### # #  ## ## #      # ####  ###    ||'----'||  ï¿½
+ ï¿½                                                               /__|    |__\ ï¿½
+ ï¿½                                                                            ï¿½
+ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ */
 
 /* ******************************************************************** */
 /*                                                                      */
@@ -55,7 +53,6 @@
 /*                                                                      */
 /* ******************************************************************** */
 
-
 #ifndef _COLLI_QUADRATIC_MOTORINSTRUCT_H_
 #define _COLLI_QUADRATIC_MOTORINSTRUCT_H_
 
@@ -68,56 +65,57 @@
 /** A linear motor instruction class. Tries to reach the desired values
  *    from the current values by a linear function.
  */
-class CQuadraticMotorInstruct: public CBaseMotorInstruct
+class CQuadraticMotorInstruct : public CBaseMotorInstruct
 {
 public:
-  
-  CQuadraticMotorInstruct( MotorInterface* motor, MotorInterface* motor_cmd,float frequency, Logger *logger, Configuration *config );
-  
- ~CQuadraticMotorInstruct();
-  
-  
+
+  CQuadraticMotorInstruct(MotorInterface* motor, MotorInterface* motor_cmd, float frequency, Logger *logger,
+      Configuration *config);
+
+  ~CQuadraticMotorInstruct();
+
 private:
-  
+
   // implementation of the virtual functions of the base class
-  
 
   /// linear implementation of velocity constraints
-  float CalculateRotation( float currentRotation, float desiredRotation, 
-			   float time_factor );
-  
-  /// linear implementation of velocity constraints
-  float CalculateTranslation( float currentTranslation, float desiredTranslation, 
-			      float time_factor );
+  float
+  CalculateRotation(float currentRotation, float desiredRotation, float time_factor);
 
+  /// linear implementation of velocity constraints
+  float
+  CalculateTranslation(float currentTranslation, float desiredTranslation, float time_factor);
 
   /// maximum acceleration and deceleration values for translation and rotation
   float basic_trans_acc;
   float basic_trans_dec;
   float basic_rot_acc;
   float basic_rot_dec;
-  Logger *loggerQuad;  
+  Logger *loggerQuad;
 
-  inline float sqr( float x )
+  inline float
+  sqr(float x)
   {
-    return (x*x);
+    return (x * x);
   }
-  inline int sqr( int x )
+  inline int
+  sqr(int x)
   {
-    return (x*x);
-  }
- 
-  inline double sqr( double x )
-  {
-    return (x*x);
+    return (x * x);
   }
 
-  inline unsigned long sqr( unsigned long x )
+  inline double
+  sqr(double x)
   {
-    return (x*x);
+    return (x * x);
+  }
+
+  inline unsigned long
+  sqr(unsigned long x)
+  {
+    return (x * x);
   }
 
 };
-
 
 #endif
