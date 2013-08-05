@@ -55,169 +55,186 @@ ColliThread::~ColliThread()
 void
 ColliThread::init()
 {
-	if ( !config->exists("/plugins/colli/enable_debug_output") ) {
-		logger->log_info(name(), "Debug output is not set... Disabled");
-		display_debug_output = false;
-	} else {
-		display_debug_output = config->get_bool("/plugins/colli/enable_debug_output");
-	}
+  if (!config->exists("/plugins/colli/enable_debug_output")) {
+    logger->log_info(name(), "Debug output is not set... Disabled");
+    display_debug_output = false;
+  } else {
+    display_debug_output = config->get_bool(
+        "/plugins/colli/enable_debug_output");
+  }
 
-	if (display_debug_output) {
-		logger->log_info(name(),"COLLI (Constructor): Constructing...");
-	}
+  if (display_debug_output) {
+    logger->log_info(name(), "COLLI (Constructor): Constructing...");
+  }
 
-	if (!config->exists("/plugins/colli/Colli_FREQUENCY") ) {
-		logger->log_error(name(), "***** ERROR *****: Could not get: Colli_FREQUENCY --> ABORTING");
-		return;
-	} else {
-		m_ColliFrequency = (int)(1000.0/(float)config->get_int( "/plugins/colli/Colli_FREQUENCY" ));
+  if (!config->exists("/plugins/colli/Colli_FREQUENCY")) {
+    logger->log_error(name(),
+        "***** ERROR *****: Could not get: Colli_FREQUENCY --> ABORTING");
+    return;
+  } else {
+    m_ColliFrequency = (int) (1000.0
+        / (float) config->get_int("/plugins/colli/Colli_FREQUENCY"));
 
-		if (display_debug_output) {
-			logger->log_info(name(), "Colli_FREQUENCY %f", m_ColliFrequency);
-		}
-	}
+    if (display_debug_output) {
+      logger->log_info(name(), "Colli_FREQUENCY %f", m_ColliFrequency);
+    }
+  }
 
-	if (!config->exists("/plugins/colli/OccGrid_HEIGHT") ) {
-		logger->log_error(name(), "***** ERROR *****: Could not get: OccGrid_HEIGHT --> ABORTING!");
-		return;
-	} else {
-		m_OccGridHeight = config->get_float( "/plugins/colli/OccGrid_HEIGHT" );
-		//cout << "OccGrid_HEIGHT " << m_OccGridHeight << endl;
-	}
+  if (!config->exists("/plugins/colli/OccGrid_HEIGHT")) {
+    logger->log_error(name(),
+        "***** ERROR *****: Could not get: OccGrid_HEIGHT --> ABORTING!");
+    return;
+  } else {
+    m_OccGridHeight = config->get_float("/plugins/colli/OccGrid_HEIGHT");
+    //cout << "OccGrid_HEIGHT " << m_OccGridHeight << endl;
+  }
 
-	if (!config->exists("/plugins/colli/OccGrid_WIDTH") ) {
-		logger->log_error(name(), "***** ERROR *****: Could not get: OccGrid_WIDTH --> ABORTING!");
-		return;
-	} else {
-		m_OccGridWidth  = config->get_float( "/plugins/colli/OccGrid_HEIGHT" );
-		//cout << "OccGrid_HEIGHT " <<m_OccGridWidth << endl;
-	}
+  if (!config->exists("/plugins/colli/OccGrid_WIDTH")) {
+    logger->log_error(name(),
+        "***** ERROR *****: Could not get: OccGrid_WIDTH --> ABORTING!");
+    return;
+  } else {
+    m_OccGridWidth = config->get_float("/plugins/colli/OccGrid_HEIGHT");
+    //cout << "OccGrid_HEIGHT " <<m_OccGridWidth << endl;
+  }
 
-	if (!config->exists("/plugins/colli/OccGrid_CELL_HEIGHT") )	{
-		logger->log_error(name(), "***** ERROR *****: Could not get: OccGrid_CELL_HEIGHT --> ABORTING!");
-		return;
-	} else {
-		m_OccGridCellHeight = config->get_int("/plugins/colli/OccGrid_CELL_HEIGHT");
-		//cout << "OccGrid_CELL_HEIGHT " <<m_OccGridCellHeight  << endl;
-	}
+  if (!config->exists("/plugins/colli/OccGrid_CELL_HEIGHT")) {
+    logger->log_error(name(),
+        "***** ERROR *****: Could not get: OccGrid_CELL_HEIGHT --> ABORTING!");
+    return;
+  } else {
+    m_OccGridCellHeight = config->get_int("/plugins/colli/OccGrid_CELL_HEIGHT");
+    //cout << "OccGrid_CELL_HEIGHT " <<m_OccGridCellHeight  << endl;
+  }
 
-	if (!config->exists("/plugins/colli/OccGrid_CELL_WIDTH") ) {
-		logger->log_error(name(), "***** ERROR *****: Could not get: OccGrid_CELL_WIDTH --> ABORTING!");
-		return;
-	} else {
-		m_OccGridCellWidth  = config->get_int("/plugins/colli/OccGrid_CELL_WIDTH");
-		//cout << "OccGrid_CELL_WIDTH " << m_OccGridCellWidth << endl;
-	}
+  if (!config->exists("/plugins/colli/OccGrid_CELL_WIDTH")) {
+    logger->log_error(name(),
+        "***** ERROR *****: Could not get: OccGrid_CELL_WIDTH --> ABORTING!");
+    return;
+  } else {
+    m_OccGridCellWidth = config->get_int("/plugins/colli/OccGrid_CELL_WIDTH");
+    //cout << "OccGrid_CELL_WIDTH " << m_OccGridCellWidth << endl;
+  }
 
-	if (!config->exists("/plugins/colli/Colli_MAX_ROBO_INCREASE") ) {
-		logger->log_error(name(), "***** ERROR *****: Could not get: Colli_MAX_ROBO_INCREASE --> ABORTING!");
-		return;
-	} else {
-		m_MaximumRoboIncrease = config->get_float("/plugins/colli/Colli_MAX_ROBO_INCREASE");
-		//cout << "Colli_MAX_ROBO_INCREASE " << m_MaximumRoboIncrease << endl;
-	}
+  if (!config->exists("/plugins/colli/Colli_MAX_ROBO_INCREASE")) {
+    logger->log_error(name(),
+        "***** ERROR *****: Could not get: Colli_MAX_ROBO_INCREASE --> ABORTING!");
+    return;
+  } else {
+    m_MaximumRoboIncrease = config->get_float(
+        "/plugins/colli/Colli_MAX_ROBO_INCREASE");
+    //cout << "Colli_MAX_ROBO_INCREASE " << m_MaximumRoboIncrease << endl;
+  }
 
-	if (!config->exists("/plugins/colli/Colli_ROBOCUP_MODE") ) {
-		logger->log_error(name(), "***** ERROR *****: Could not get: Colli_ROBOCUP_MODE --> ABORTING!");
-		return;
-	} else {
-		m_RobocupMode = config->get_int("/plugins/colli/Colli_ROBOCUP_MODE");
-		//cout << "Colli_ROBOCUP_MODE " << m_RobocupMode << endl;
-	}
+  if (!config->exists("/plugins/colli/Colli_ROBOCUP_MODE")) {
+    logger->log_error(name(),
+        "***** ERROR *****: Could not get: Colli_ROBOCUP_MODE --> ABORTING!");
+    return;
+  } else {
+    m_RobocupMode = config->get_int("/plugins/colli/Colli_ROBOCUP_MODE");
+    //cout << "Colli_ROBOCUP_MODE " << m_RobocupMode << endl;
+  }
 
-	if (!config->exists("/plugins/colli/Navigator_interface_id") ) {
-		logger->log_error(name(), "***** ERROR *****: Could not get: Navigator_interface_id --> ABORTING!");
-		return;
-	} else {
-		naviface_id = config->get_string("/plugins/colli/Navigator_interface_id");
-	}
+  if (!config->exists("/plugins/colli/Navigator_interface_id")) {
+    logger->log_error(name(),
+        "***** ERROR *****: Could not get: Navigator_interface_id --> ABORTING!");
+    return;
+  } else {
+    naviface_id = config->get_string("/plugins/colli/Navigator_interface_id");
+  }
 
-	if (!config->exists("/plugins/colli/Laser_interface_id") ) {
-		logger->log_error(name(), "***** ERROR *****: Could not get: Laser_interface_id --> ABORTING!");
-		return;
-	} else {
-		laser_iface_id = config->get_string("/plugins/colli/Laser_interface_id");
-	}
+  if (!config->exists("/plugins/colli/Laser_interface_id")) {
+    logger->log_error(name(),
+        "***** ERROR *****: Could not get: Laser_interface_id --> ABORTING!");
+    return;
+  } else {
+    laser_iface_id = config->get_string("/plugins/colli/Laser_interface_id");
+  }
 
-	if (!config->exists("/plugins/colli/Motor_interface_id") ) {
-		logger->log_error(name(), "***** ERROR *****: Could not get: Motor_interface_id --> ABORTING!");
-		return;
-	} else {
-		motor_iface_id = config->get_string("/plugins/colli/Motor_interface_id");
-	}
+  if (!config->exists("/plugins/colli/Motor_interface_id")) {
+    logger->log_error(name(),
+        "***** ERROR *****: Could not get: Motor_interface_id --> ABORTING!");
+    return;
+  } else {
+    motor_iface_id = config->get_string("/plugins/colli/Motor_interface_id");
+  }
 
-	/* As default we use a football player AllemaniACs robot */
-	if (default_hostname == "carl_rc.informatik.rwth-aachen.de") {				//TODO this needs to get removed or changed to generic version
-		isRwiRobot = true;
-		if (display_debug_output) {
-			logger->log_info(name(), "COLLI (Constructor): Using a RWI Robot so this effects robs position in grid");
-		}
-	} else {
-		isRwiRobot = false;
-		if (display_debug_output) {
-			logger->log_info(name(), "COLLI (Constructor): Using Colli for an AllemaniACs IKEA Style Robot");
-		}
-	}
+  /* As default we use a football player AllemaniACs robot */
+  if (default_hostname == "carl_rc.informatik.rwth-aachen.de") {//TODO this needs to get removed or changed to generic version
+    isRwiRobot = true;
+    if (display_debug_output) {
+      logger->log_info(name(),
+          "COLLI (Constructor): Using a RWI Robot so this effects robs position in grid");
+    }
+  } else {
+    isRwiRobot = false;
+    if (display_debug_output) {
+      logger->log_info(name(),
+          "COLLI (Constructor): Using Colli for an AllemaniACs IKEA Style Robot");
+    }
+  }
 
-	if (!config->exists("/plugins/colli/MotorDistance") ) {
-		logger->log_error(name(), "***** ERROR *****: Could not get: MotorDistance");
-		motor_distance = 0;
-	} else {
-		motor_distance = config->get_float("/plugins/colli/MotorDistance");
-	}
+  if (!config->exists("/plugins/colli/MotorDistance")) {
+    logger->log_error(name(),
+        "***** ERROR *****: Could not get: MotorDistance");
+    motor_distance = 0;
+  } else {
+    motor_distance = config->get_float("/plugins/colli/MotorDistance");
+  }
 
-	if (!config->exists("/plugins/colli/adjust_robo_pos") ) {
-		logger->log_error(name(), "***** ERROR *****: Could not get: adjust_robo_pos");
-		adjust_robopos = false;
-	} else {
-		adjust_robopos = config->get_bool("/plugins/colli/adjust_robo_pos");
-	}
+  if (!config->exists("/plugins/colli/adjust_robo_pos")) {
+    logger->log_error(name(),
+        "***** ERROR *****: Could not get: adjust_robo_pos");
+    adjust_robopos = false;
+  } else {
+    adjust_robopos = config->get_bool("/plugins/colli/adjust_robo_pos");
+  }
 
-	if( !config->exists("/plugins/colli/Roboshape/WIDTH_X") ) {
-		adjust_robopos = false;
-	} else {
-		robo_widthX = config->get_float("/plugins/colli/Roboshape/WIDTH_X") * 100.;
-	}
+  if (!config->exists("/plugins/colli/Roboshape/WIDTH_X")) {
+    adjust_robopos = false;
+  } else {
+    robo_widthX = config->get_float("/plugins/colli/Roboshape/WIDTH_X") * 100.;
+  }
 
-	if( !config->exists("/plugins/colli/Roboshape/WIDTH_Y") ) {
-		adjust_robopos = false;
-	} else {
-		robo_widthY = config->get_float("/plugins/colli/Roboshape/WIDTH_Y") * 100.;
-	}
+  if (!config->exists("/plugins/colli/Roboshape/WIDTH_Y")) {
+    adjust_robopos = false;
+  } else {
+    robo_widthY = config->get_float("/plugins/colli/Roboshape/WIDTH_Y") * 100.;
+  }
 
-	for ( unsigned int i = 0; i < 10; i++ ) {
-		m_oldAnglesToTarget.push_back( 0.0 );
-	}
+  for (unsigned int i = 0; i < 10; i++) {
+    m_oldAnglesToTarget.push_back(0.0);
+  }
 
-	srand( time( NULL ) );
+  srand(time(NULL));
 
-	if (display_debug_output) {
-		logger->log_info(name(),"COLLI (Constructor): Entering initialization ...");
-	}
+  if (display_debug_output) {
+    logger->log_info(name(),
+        "COLLI (Constructor): Entering initialization ...");
+  }
 
-	RegisterAtBlackboard();
-	InitializeModules();
+  RegisterAtBlackboard();
+  InitializeModules();
 
+  m_oldTargetX = m_pColliTargetObj->dest_x();
+  m_oldTargetY = m_pColliTargetObj->dest_y();
+  m_oldTargetOri = m_pColliTargetObj->dest_ori();
 
-	m_oldTargetX   = m_pColliTargetObj->dest_x();
-	m_oldTargetY   = m_pColliTargetObj->dest_y();
-	m_oldTargetOri = m_pColliTargetObj->dest_ori();
+  m_ProposedTranslation = 0.0;
+  m_ProposedRotation = 0.0;
 
-	m_ProposedTranslation = 0.0;
-	m_ProposedRotation    = 0.0;
+  escape_count = 0;
 
-	escape_count = 0;
+  // Initialize the alive stuff
+  /*BBAlive( "laser", 4 );
+   BBAlive( "sim_robot", 4 );
+   BBAlive( "laser_obstacles", 4);*/
 
-	// Initialize the alive stuff
-	/*BBAlive( "laser", 4 );
-	BBAlive( "sim_robot", 4 );
-	BBAlive( "laser_obstacles", 4);*/
+  laser_frame = "/base_laser";							//TODO this should be a config value
 
-	laser_frame = "/base_laser";												//TODO this should be a config value
-
-	if (display_debug_output) {
-		logger->log_info(name(),"COLLI (Constructor): Initialization done.");
-	}
+  if (display_debug_output) {
+    logger->log_info(name(), "COLLI (Constructor): Initialization done.");
+  }
 }
 
 
