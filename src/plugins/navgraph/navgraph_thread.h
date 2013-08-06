@@ -80,7 +80,7 @@ public:
   bool node_reached();
   fawkes::TopologicalMapGraph * load_graph(std::string filename);
   void log_graph();
-
+  void reserve_path(std::vector<fawkes::TopologicalMapNode> path);
 
  private:
   std::string  cfg_graph_file_;

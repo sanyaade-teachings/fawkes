@@ -82,6 +82,11 @@ TopologicalMapGraph::nodes() const
   return nodes_;
 }
 
+std::vector<TopologicalMapNode> &
+TopologicalMapGraph::get_nodes()
+{
+  return nodes_;
+}
 
 /** Get edges of the graph.
  * @return const reference to vector of edges of this graph

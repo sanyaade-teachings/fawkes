@@ -42,6 +42,7 @@ class TopologicalMapGraph
   
   std::string                              name() const;
   const std::vector<TopologicalMapNode> &  nodes() const;
+  std::vector<TopologicalMapNode> &  get_nodes();
   const std::vector<TopologicalMapEdge> &  edges() const;
 
   TopologicalMapNode node(std::string name) const;

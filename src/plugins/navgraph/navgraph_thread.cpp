@@ -105,6 +105,7 @@ NavGraphThread::init()
   last_node_         = "";
   cmd_sent_at_       = new Time(clock);
   target_reached_at_ = new Time(clock);
+
 }
 
 void
@@ -226,6 +227,8 @@ NavGraphThread::loop()
   if (needs_write) {
     pp_nav_if_->write();
   }
+	
+
 }
 
 TopologicalMapGraph *
@@ -589,4 +592,44 @@ NavGraphThread::log_graph()
       logger->log_info(name(), "  - %s: %s", p->first.c_str(), p->second.c_str());
     }
   }
+}
+
+void
+NavGraphThread::reserve_path(std::vector<fawkes::TopologicalMapNode> path){
+
+  // load map with corresponding nodes from graph
+  std::map< std::string , fawkes::TopologicalMapNode> node_map;
+  for( unsigned int i = 0; i < path.size(); i++){
+	  node_map.insert( std::pair<std::string,fawkes::TopologicalMapNode>(path[i].name(),path[i]) );
+  }
+  
+  // go through graph_ and mark all node of path as reserved
+  for( unsigned int i = 0; i < graph_->nodes().size(); i++){
+	
+	if( node_map.find( graph_->nodes()[i].name() ) != node_map.end() ){
+		logger->log_info(name(), "Navgraph: Found %s ", graph_->nodes()[i].name().c_str() );
+		
+		// assign property "reserved"=true to nodes of path in graph
+		graph_->get_nodes()[i].set_property("reserved",true);
+	}
+   }  
+
+   for( unsigned int i = 0; i < graph_->nodes().size(); i++){
+   
+	if( graph_->get_nodes()[i].has_property("reserved") ){
+		logger->log_info(name(), "Navgraph: Node %s is marked %s ", graph_->get_nodes()[i].name().c_str(), graph_->get_nodes()[i].property("reserved").c_str() );
+
+	}
+   }
+
+/********Nächste Schritte *********
+*
+* anlegen einer reservierungs msg im Navigatorinterface
+*
+* bauen eines Nodes welcher reservierungs msg rausschicken kann
+*
+* hinzufügen eines hohen Kostenwertes bei reservierten nodes 
+*
+***********************************/
+
 }
