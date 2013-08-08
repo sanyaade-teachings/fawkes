@@ -204,6 +204,12 @@ NavGraphVisualizationThread::publish()
       sphere.scale.x = sphere.scale.y = sphere.scale.z = 0.05;
       sphere.color.r = 0.5;
     }
+
+    if( nodes[i].has_property("reserved") ){
+	sphere.color.r = 0.f;
+        sphere.color.g = 0.f;
+    }    
+
     sphere.color.b = 0.f;
     sphere.color.a = 1.0;
     sphere.lifetime = ros::Duration(0, 0);
