@@ -99,6 +99,10 @@ NavGraphSearchState::children()
     TopologicalMapNode d = map_graph_->node(descendants[i]);
     distance = sqrt(pow(node_.x() - d.x(), 2) +
 		    pow(node_.y() - d.y(), 2) );
+
+    if( node_.has_property("reserved" )){
+	distance += 99;
+    }
     children.push_back(new NavGraphSearchState(d, goal_, 
 					       past_cost + distance, this,
 					       map_graph_) );

@@ -158,8 +158,26 @@ NavGraphThread::loop()
       generate_plan(msg->place());
       optimize_plan();
       start_plan();
-    }
+    } else if (pp_nav_if_->msgq_first_is<NavigatorInterface::ReservePathMessage>()) {
 
+      NavigatorInterface::ReservePathMessage *msg = pp_nav_if_->msgq_first(msg);
+
+      reserved_path_.push_back( msg->node01() );   reserved_path_.push_back( msg->node02() );
+      reserved_path_.push_back( msg->node03() );   reserved_path_.push_back( msg->node04() );
+      reserved_path_.push_back( msg->node05() );   reserved_path_.push_back( msg->node06() );
+      reserved_path_.push_back( msg->node07() );   reserved_path_.push_back( msg->node08() );
+      reserved_path_.push_back( msg->node09() );   reserved_path_.push_back( msg->node10() );
+
+      std::string path;
+      for( std::vector<std::string>::iterator it = reserved_path_.begin(); it<reserved_path_.end(); ++it){
+	path += *it + " / ";
+       }
+       
+      logger->log_info(name(), "Reserved Path: %s" , path.c_str() );
+
+      reserve_path();
+
+    }
     pp_nav_if_->msgq_pop();
   }
 
@@ -595,29 +613,30 @@ NavGraphThread::log_graph()
 }
 
 void
-NavGraphThread::reserve_path(std::vector<fawkes::TopologicalMapNode> path){
+NavGraphThread::reserve_path(){
 
-  // load map with corresponding nodes from graph
-  std::map< std::string , fawkes::TopologicalMapNode> node_map;
-  for( unsigned int i = 0; i < path.size(); i++){
-	  node_map.insert( std::pair<std::string,fawkes::TopologicalMapNode>(path[i].name(),path[i]) );
-  }
-  
+  std::vector<std::string>::iterator it;
+
   // go through graph_ and mark all node of path as reserved
   for( unsigned int i = 0; i < graph_->nodes().size(); i++){
 	
-	if( node_map.find( graph_->nodes()[i].name() ) != node_map.end() ){
-		logger->log_info(name(), "Navgraph: Found %s ", graph_->nodes()[i].name().c_str() );
+	for( it = reserved_path_.begin(); it != reserved_path_.end(); ++it){
+
+		if( graph_->nodes()[i].name()  == *it ){
+			logger->log_info(name(), "Navraph: Found %s ", graph_->nodes()[i].name().c_str() );
 		
-		// assign property "reserved"=true to nodes of path in graph
-		graph_->get_nodes()[i].set_property("reserved",true);
+			// assign property "reserved"=true to nodes of path in graph
+			graph_->get_nodes()[i].set_property("reserved",true);
+		}
 	}
    }  
+
+   reserved_path_.clear();
 
    for( unsigned int i = 0; i < graph_->nodes().size(); i++){
    
 	if( graph_->get_nodes()[i].has_property("reserved") ){
-		logger->log_info(name(), "Navgraph: Node %s is marked %s ", graph_->get_nodes()[i].name().c_str(), graph_->get_nodes()[i].property("reserved").c_str() );
+		logger->log_info(name(), "Navgraph: Node %s has property 'reserved' = %s", graph_->get_nodes()[i].name().c_str(), graph_->get_nodes()[i].property("reserved").c_str() );
 
 	}
    }

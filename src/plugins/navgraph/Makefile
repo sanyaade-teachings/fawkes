@@ -26,7 +26,16 @@ LIBS_navgraph = fawkescore fawkesutils fawkesaspects fawkesinterface \
 	    fawkesblackboard NavigatorInterface
 OBJS_navgraph = navgraph_plugin.o navgraph_thread.o search_state.o
 
-OBJS_all    = $(OBJS_navgraph)
+LIBS_test_reservation = fawkescore fawkesutils fawkesaspects fawkesinterface \
+	    fawkesblackboard NavigatorInterface
+OBJS_test_reservation= test_reservation_plugin.o test_reservation_thread.o
+
+OBJS_all    = $(OBJS_navgraph) $(OBJS_test_reservation) 
+
+CFLAGS_test_reservation_thread  = $(CFLAGS)
+CFLAGS_test_reservation_plugin  = $(CFLAGS_test_reservation_thread)
+
+PLUGINS_all += $(PLUGINDIR)/test-reservation.$(SOEXT)
 
 ifeq ($(HAVE_TF),1)
   CFLAGS_navgraph_thread  = $(CFLAGS) $(CFLAGS_TF)
@@ -34,7 +43,7 @@ ifeq ($(HAVE_TF),1)
   LDFLAGS_navgraph       += $(LDFLAGS_TF)
   LIBS_navgraph          += fawkestf
 
-  PLUGINS_all = $(PLUGINDIR)/navgraph.$(SOEXT)
+  PLUGINS_all += $(PLUGINDIR)/navgraph.$(SOEXT)
 
 
   ifeq ($(ENABLE_VISUALIZATION),1)

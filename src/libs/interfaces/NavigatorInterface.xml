@@ -159,4 +159,17 @@
     <comment>Sets the desired drive modefor collision avoidance.</comment>
     <ref>drive_mode</ref>
   </message>
+  <message name="ReservePathMessage">
+    <comment>States the path which should be reserved for opponent robot.</comment>
+    <field type="string" length="64" name="node01">Planned path of robot.</field>
+    <field type="string" length="64" name="node02">Planned path of robot.</field>
+    <field type="string" length="64" name="node03">Planned path of robot.</field>
+    <field type="string" length="64" name="node04">Planned path of robot.</field>
+    <field type="string" length="64" name="node05">Planned path of robot.</field>
+    <field type="string" length="64" name="node06">Planned path of robot.</field>
+    <field type="string" length="64" name="node07">Planned path of robot.</field>
+    <field type="string" length="64" name="node08">Planned path of robot.</field>
+    <field type="string" length="64" name="node09">Planned path of robot.</field>
+    <field type="string" length="64" name="node10">Planned path of robot.</field>
+  </message>
 </interface>
